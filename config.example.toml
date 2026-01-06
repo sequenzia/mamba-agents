@@ -1,0 +1,67 @@
+# Pydantic Agent Configuration
+# Copy this file to config.toml and customize as needed
+
+[model_backend]
+base_url = "http://localhost:11434/v1"
+model = "llama3.2"
+# api_key = "your-api-key-here"  # Use environment variable instead
+timeout = 30.0
+max_retries = 3
+temperature = 0.7
+# max_tokens = 4096  # Uncomment to set max tokens
+
+[logging]
+level = "INFO"
+structured = false
+include_request_body = false
+include_response_body = false
+body_size_limit = 1024
+include_correlation_id = true
+redact_authorization = true
+redact_api_keys = true
+
+[observability]
+request_id_format = "uuid4"
+propagate_trace_context = true
+enable_otel_instrumentation = false
+metrics_enabled = true
+
+[retry]
+retry_level = 2  # 1=conservative, 2=balanced, 3=aggressive
+initial_backoff_seconds = 1.0
+max_backoff_seconds = 60.0
+circuit_breaker_threshold = 5
+circuit_breaker_timeout = 30.0
+
+[token_tracking]
+encoding = "cl100k_base"
+cache_tokenizer = true
+safety_margin = 0.05  # 5% safety margin for context window
+
+[context]
+strategy = "sliding_window"
+trigger_threshold_tokens = 100000
+target_tokens = 80000
+preserve_recent_turns = 10
+preserve_system_prompt = true
+
+[streaming]
+stream_model_responses = true
+stream_tool_results = true
+chunk_size = 1024
+
+# MCP Server Configuration (optional)
+# [[mcp_servers]]
+# name = "filesystem"
+# transport = "stdio"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/data"]
+
+# [[mcp_servers]]
+# name = "custom-api"
+# transport = "sse"
+# url = "http://localhost:8080/mcp"
+# tool_prefix = "custom"
+# [mcp_servers.auth]
+# type = "api_key"
+# key_env = "MCP_CUSTOM_API_KEY"
