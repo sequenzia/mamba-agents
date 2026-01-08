@@ -110,16 +110,18 @@ class Agent(Generic[DepsT, OutputT]):
             Configured Agent instance.
         """
         # Use OpenAI provider with custom base_url from settings
-        from pydantic_ai.models.openai import OpenAIModel
+        from pydantic_ai.models.openai import OpenAIChatModel
+        from pydantic_ai.providers.openai import OpenAIProvider
 
-        model = OpenAIModel(
+        model = OpenAIChatModel(
             settings.model_backend.model,
-            provider="openai",
-            base_url=settings.model_backend.base_url,
-            api_key=(
-                settings.model_backend.api_key.get_secret_value()
-                if settings.model_backend.api_key
-                else None
+            provider=OpenAIProvider(
+                base_url=settings.model_backend.base_url,
+                api_key=(
+                    settings.model_backend.api_key.get_secret_value()
+                    if settings.model_backend.api_key
+                    else None
+                ),
             ),
         )
 
