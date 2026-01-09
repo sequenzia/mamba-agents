@@ -45,7 +45,7 @@ class Agent(Generic[DepsT, OutputT]):
 
     def __init__(
         self,
-        model: str | Model,
+        model: str | Model | None = None,
         *,
         tools: Sequence[Callable[..., Any] | "ToolDefinition"] | None = None,
         system_prompt: str = "",
@@ -58,15 +58,39 @@ class Agent(Generic[DepsT, OutputT]):
 
         Args:
             model: Model to use (string identifier or Model instance).
+                If not provided, uses settings.model_backend configuration.
             tools: Optional list of tools to register.
             system_prompt: System prompt for the agent.
             deps_type: Type of dependencies for tool calls.
             output_type: Expected output type.
             config: Agent execution configuration.
             settings: Full agent settings (for model backend, etc.).
+
+        Raises:
+            ValueError: If neither model nor settings is provided.
         """
         self._config = config or AgentConfig(system_prompt=system_prompt)
         self._settings = settings or AgentSettings()
+
+        # Construct model from settings if not provided
+        if model is None:
+            if settings is None:
+                raise ValueError("Either 'model' or 'settings' must be provided")
+
+            from pydantic_ai.models.openai import OpenAIChatModel
+            from pydantic_ai.providers.openai import OpenAIProvider
+
+            model = OpenAIChatModel(
+                self._settings.model_backend.model,
+                provider=OpenAIProvider(
+                    base_url=self._settings.model_backend.base_url,
+                    api_key=(
+                        self._settings.model_backend.api_key.get_secret_value()
+                        if self._settings.model_backend.api_key
+                        else None
+                    ),
+                ),
+            )
 
         # Create the underlying pydantic-ai agent
         agent_kwargs: dict[str, Any] = {
