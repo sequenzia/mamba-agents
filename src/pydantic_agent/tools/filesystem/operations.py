@@ -4,15 +4,13 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 def delete_file(
     path: str,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> bool:
     """Delete a file.
 
@@ -46,7 +44,7 @@ def delete_file(
 def move_file(
     source: str,
     destination: str,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> str:
     """Move or rename a file.
 
@@ -83,7 +81,7 @@ def move_file(
 def copy_file(
     source: str,
     destination: str,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> str:
     """Copy a file.
 

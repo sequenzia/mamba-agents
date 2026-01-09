@@ -5,10 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 @dataclass
@@ -39,7 +37,7 @@ def grep_search(
     ignore_case: bool = False,
     regex: bool = True,
     max_results: int = 100,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> list[GrepMatch]:
     """Search file contents for a pattern.
 

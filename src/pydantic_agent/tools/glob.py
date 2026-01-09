@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 def glob_search(
@@ -14,7 +12,7 @@ def glob_search(
     root_dir: str = ".",
     recursive: bool = True,
     max_results: int = 1000,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> list[str]:
     """Find files matching a glob pattern.
 

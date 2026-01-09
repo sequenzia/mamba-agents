@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from pydantic import BaseModel, ConfigDict, field_validator
 
-class FilesystemSecurity:
+
+class FilesystemSecurity(BaseModel):
     """Security enforcement for filesystem operations.
 
     Provides sandbox mode, path traversal prevention, and extension filtering.
@@ -17,25 +19,20 @@ class FilesystemSecurity:
         max_file_size: Maximum file size in bytes for read operations.
     """
 
-    def __init__(
-        self,
-        base_directory: Path | str | None = None,
-        allowed_extensions: set[str] | None = None,
-        denied_extensions: set[str] | None = None,
-        max_file_size: int | None = None,
-    ) -> None:
-        """Initialize filesystem security.
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
-        Args:
-            base_directory: Optional sandbox directory. All paths must be within.
-            allowed_extensions: Optional set of allowed extensions (e.g., {".txt", ".md"}).
-            denied_extensions: Optional set of denied extensions (e.g., {".exe", ".sh"}).
-            max_file_size: Optional maximum file size in bytes.
-        """
-        self.base_directory = Path(base_directory).resolve() if base_directory else None
-        self.allowed_extensions = allowed_extensions
-        self.denied_extensions = denied_extensions or set()
-        self.max_file_size = max_file_size
+    base_directory: Path | None = None
+    allowed_extensions: set[str] | None = None
+    denied_extensions: set[str] = set()
+    max_file_size: int | None = None
+
+    @field_validator("base_directory", mode="before")
+    @classmethod
+    def resolve_base_directory(cls, v: Path | str | None) -> Path | None:
+        """Resolve base_directory to an absolute Path."""
+        if v is None:
+            return None
+        return Path(v).resolve()
 
     def validate_path(self, path: str | Path) -> Path:
         """Validate and resolve a path against security constraints.

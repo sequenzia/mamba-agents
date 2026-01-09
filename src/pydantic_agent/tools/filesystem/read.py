@@ -3,16 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 def read_file(
     path: str,
     encoding: str = "utf-8",
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> str:
     """Read contents of a file.
 

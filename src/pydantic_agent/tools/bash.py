@@ -5,10 +5,6 @@ from __future__ import annotations
 import asyncio
 import subprocess
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 @dataclass

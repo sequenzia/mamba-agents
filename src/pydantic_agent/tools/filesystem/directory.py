@@ -4,17 +4,16 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 def list_directory(
     path: str,
     recursive: bool = False,
     max_depth: int = 2,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> list[dict[str, Any]]:
     """List contents of a directory.
 

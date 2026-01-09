@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pydantic_agent.tools.filesystem.security import FilesystemSecurity
+from pydantic_agent.tools.filesystem.security import FilesystemSecurity
 
 
 def write_file(
@@ -14,7 +12,7 @@ def write_file(
     content: str,
     encoding: str = "utf-8",
     create_parents: bool = False,
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> str:
     """Write or overwrite a file.
 
@@ -48,7 +46,7 @@ def append_file(
     path: str,
     content: str,
     encoding: str = "utf-8",
-    security: "FilesystemSecurity | None" = None,
+    security: FilesystemSecurity | None = None,
 ) -> str:
     """Append content to a file.
 
