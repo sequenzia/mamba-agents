@@ -72,16 +72,24 @@ class Agent(Generic[DepsT, OutputT]):
         self._config = config or AgentConfig(system_prompt=system_prompt)
         self._settings = settings or AgentSettings()
 
-        # Construct model from settings if not provided
+        # Determine model name and whether to use settings for connection config
         if model is None:
             if settings is None:
                 raise ValueError("Either 'model' or 'settings' must be provided")
+            model_name: str | None = self._settings.model_backend.model
+        elif isinstance(model, str):
+            model_name = model
+        else:
+            # model is already a Model instance
+            model_name = None
 
+        # Construct model using settings connection config when applicable
+        if model_name is not None and settings is not None:
             from pydantic_ai.models.openai import OpenAIChatModel
             from pydantic_ai.providers.openai import OpenAIProvider
 
             model = OpenAIChatModel(
-                self._settings.model_backend.model,
+                model_name,
                 provider=OpenAIProvider(
                     base_url=self._settings.model_backend.base_url,
                     api_key=(

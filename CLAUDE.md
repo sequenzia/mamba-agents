@@ -151,6 +151,11 @@ def test_file_ops(tmp_sandbox: Path):
 ## Implementation Notes
 
 - The `Agent` class is a wrapper around `pydantic_ai.Agent` - delegate to it for core functionality
+- Agent constructor behavior:
+  - `Agent(settings=s)` - uses `settings.model_backend` for model, api_key, base_url
+  - `Agent("gpt-4", settings=s)` - uses "gpt-4" as model, but api_key/base_url from settings
+  - `Agent("gpt-4")` - passes string directly to pydantic-ai (requires `OPENAI_API_KEY` env var)
+  - `Agent(model_instance)` - uses the Model instance directly
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - MCP supports stdio and SSE transports with optional API key authentication
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)

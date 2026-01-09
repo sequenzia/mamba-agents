@@ -28,12 +28,17 @@ pip install pydantic-agent
 ```python
 from pydantic_agent import Agent, AgentSettings
 
-# Create an agent with default settings
-agent = Agent(model="gpt-4o")
+# Load settings from env vars, .env, ~/agents.env, config.toml
+settings = AgentSettings()
 
-# Or load from configuration
-settings = AgentSettings()  # Reads from env vars, .env, config.toml
-agent = Agent.from_settings(settings)
+# Create agent using settings (model, api_key, base_url from settings)
+agent = Agent(settings=settings)
+
+# Or override the model while using other settings (api_key, base_url)
+agent = Agent("gpt-4o", settings=settings)
+
+# Or use a model string directly (requires OPENAI_API_KEY env var)
+agent = Agent("gpt-4o")
 
 # Run the agent
 result = await agent.run("What files are in the current directory?")
