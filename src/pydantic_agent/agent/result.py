@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Generic, TypeVar
 
 if TYPE_CHECKING:
@@ -24,7 +24,7 @@ class AgentResult(Generic[T]):
         _result: The underlying pydantic-ai RunResult.
     """
 
-    _result: "RunResult[T]"
+    _result: RunResult[T]
 
     @property
     def output(self) -> T:
@@ -44,7 +44,7 @@ class AgentResult(Generic[T]):
         """
         return self._result.output
 
-    def usage(self) -> "Usage":
+    def usage(self) -> Usage:
         """Get token usage statistics for this run.
 
         Returns:

@@ -18,6 +18,8 @@ from pydantic_agent.config.model_backend import ModelBackendSettings
 from pydantic_agent.config.observability import ObservabilityConfig
 from pydantic_agent.config.retry import ErrorRecoveryConfig
 from pydantic_agent.config.streaming import StreamingConfig
+from pydantic_agent.context.config import CompactionConfig
+from pydantic_agent.tokens.config import TokenizerConfig
 
 
 class AgentSettings(BaseSettings):
@@ -41,6 +43,9 @@ class AgentSettings(BaseSettings):
         observability: Observability and tracing settings.
         retry: Error recovery and retry settings.
         streaming: Streaming behavior settings.
+        context: Default context compaction settings.
+        tokenizer: Default tokenizer settings.
+        cost_rates: Custom cost rates per 1000 tokens by model.
     """
 
     model_config = SettingsConfigDict(
@@ -98,6 +103,18 @@ class AgentSettings(BaseSettings):
     streaming: StreamingConfig = Field(
         default_factory=StreamingConfig,
         description="Streaming behavior settings",
+    )
+    context: CompactionConfig = Field(
+        default_factory=CompactionConfig,
+        description="Default context compaction settings",
+    )
+    tokenizer: TokenizerConfig = Field(
+        default_factory=TokenizerConfig,
+        description="Default tokenizer settings",
+    )
+    cost_rates: dict[str, float] = Field(
+        default_factory=dict,
+        description="Custom cost rates per 1000 tokens by model",
     )
 
     @classmethod

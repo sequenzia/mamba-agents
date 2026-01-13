@@ -83,8 +83,9 @@ class UsageTracker:
             tool_name: Optional tool name for tool calls.
         """
         # Extract token counts from pydantic-ai Usage
-        prompt_tokens = usage.request_tokens or 0
-        completion_tokens = usage.response_tokens or 0
+        # Use new API (input_tokens/output_tokens) with fallback to deprecated names
+        prompt_tokens = getattr(usage, "input_tokens", None) or getattr(usage, "request_tokens", None) or 0
+        completion_tokens = getattr(usage, "output_tokens", None) or getattr(usage, "response_tokens", None) or 0
         total_tokens = usage.total_tokens or (prompt_tokens + completion_tokens)
 
         record = UsageRecord(

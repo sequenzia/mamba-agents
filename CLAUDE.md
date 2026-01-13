@@ -67,16 +67,20 @@ src/pydantic_agent/
 ## Key Entry Points
 
 ```python
-# Main exports
-from pydantic_agent import Agent, AgentSettings, AgentConfig, AgentResult
+# Main exports (context and token tracking built into Agent)
+from pydantic_agent import (
+    Agent, AgentSettings, AgentConfig, AgentResult,
+    CompactionConfig, CompactionResult, ContextState,
+    TokenUsage, UsageRecord, CostBreakdown,
+)
 
 # Tools
 from pydantic_agent.tools import read_file, write_file, run_bash, glob_search, grep_search
 
-# Context management
+# Context management (for standalone use)
 from pydantic_agent.context import ContextManager, CompactionConfig
 
-# Token tracking
+# Token tracking (for standalone use)
 from pydantic_agent.tokens import TokenCounter, UsageTracker, CostEstimator
 
 # MCP integration
@@ -143,6 +147,8 @@ def test_file_ops(tmp_sandbox: Path):
 |---------|----------|
 | Root config class | `src/pydantic_agent/config/settings.py` |
 | Agent implementation | `src/pydantic_agent/agent/core.py` |
+| Agent config | `src/pydantic_agent/agent/config.py` |
+| Message conversion utils | `src/pydantic_agent/agent/message_utils.py` |
 | Built-in tools | `src/pydantic_agent/tools/` |
 | Context compaction | `src/pydantic_agent/context/compaction/` |
 | Test fixtures | `tests/conftest.py` |
@@ -156,6 +162,23 @@ def test_file_ops(tmp_sandbox: Path):
   - `Agent("gpt-4", settings=s)` - uses "gpt-4" as model, but api_key/base_url from settings
   - `Agent("gpt-4")` - passes string directly to pydantic-ai (requires `OPENAI_API_KEY` env var)
   - `Agent(model_instance)` - uses the Model instance directly
+- **Agent manages context and token tracking directly** (no separate instantiation needed):
+  - Context tracking enabled by default (`AgentConfig.track_context=True`)
+  - Auto-compaction when threshold reached (`AgentConfig.auto_compact=True`)
+  - Usage tracking always on - accessible via `agent.get_usage()`, `agent.get_cost()`
+  - Messages tracked across runs - accessible via `agent.get_messages()`
+  - Advanced users can access internals: `agent.context_manager`, `agent.usage_tracker`
+- AgentConfig options for context/tracking:
+  - `track_context: bool = True` - enable/disable internal message tracking
+  - `auto_compact: bool = True` - enable/disable auto-compaction
+  - `context: CompactionConfig | None` - custom compaction config (uses settings default if None)
+  - `tokenizer: TokenizerConfig | None` - custom tokenizer config (uses settings default if None)
+- Agent facade methods:
+  - Token counting: `get_token_count(text=None)`
+  - Usage: `get_usage()`, `get_usage_history()`
+  - Cost: `get_cost()`, `get_cost_breakdown()`
+  - Context: `get_messages()`, `should_compact()`, `compact()`, `get_context_state()`
+  - Reset: `clear_context()`, `reset_tracking()`, `reset_all()`
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - MCP supports stdio and SSE transports with optional API key authentication
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)

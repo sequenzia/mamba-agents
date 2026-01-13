@@ -40,9 +40,20 @@ agent = Agent("gpt-4o", settings=settings)
 # Or use a model string directly (requires OPENAI_API_KEY env var)
 agent = Agent("gpt-4o")
 
-# Run the agent
+# Run the agent - context and usage are tracked automatically
 result = await agent.run("What files are in the current directory?")
 print(result.output)
+
+# Multi-turn conversation - context is maintained automatically
+result2 = await agent.run("Can you list only the Python files?")
+print(result2.output)
+
+# Check usage and cost
+print(agent.get_usage())  # TokenUsage(prompt_tokens=..., request_count=2)
+print(agent.get_cost())   # Cost in USD
+
+# Access context state
+print(agent.get_context_state())  # ContextState(token_count=..., message_count=...)
 ```
 
 ## Configuration
@@ -183,7 +194,51 @@ async with MCPClientManager(servers) as manager:
 
 ## Context Management
 
-Manage long conversations with compaction strategies:
+Context is managed automatically by the Agent. Messages are tracked across runs and auto-compacted when thresholds are reached.
+
+### Built-in Agent Context (Recommended)
+
+```python
+from pydantic_agent import Agent, AgentConfig, CompactionConfig
+
+# Context tracking is enabled by default
+agent = Agent("gpt-4o", settings=settings)
+
+# Run multiple turns - context is maintained automatically
+agent.run_sync("Hello, I'm working on a Python project")
+agent.run_sync("Can you help me refactor the main function?")
+
+# Access context via Agent methods
+messages = agent.get_messages()           # Get all tracked messages
+state = agent.get_context_state()         # Get token count, message count
+should_compact = agent.should_compact()   # Check if threshold reached
+
+# Manual compaction
+result = await agent.compact()
+print(f"Removed {result.removed_count} messages")
+
+# Clear context for new conversation
+agent.clear_context()
+
+# Customize compaction settings
+config = AgentConfig(
+    context=CompactionConfig(
+        strategy="hybrid",
+        trigger_threshold_tokens=50000,
+        target_tokens=40000,
+    ),
+    auto_compact=True,  # Auto-compact when threshold reached (default)
+)
+agent = Agent("gpt-4o", settings=settings, config=config)
+
+# Disable context tracking if not needed
+config = AgentConfig(track_context=False)
+agent = Agent("gpt-4o", settings=settings, config=config)
+```
+
+### Standalone Context Manager
+
+For advanced use cases, you can use ContextManager directly:
 
 ```python
 from pydantic_agent.context import (
@@ -228,7 +283,49 @@ if manager.should_compact():
 
 ## Token Management
 
-Track token usage and estimate costs:
+Usage tracking and cost estimation are built into the Agent. Every run automatically records token usage.
+
+### Built-in Agent Tracking (Recommended)
+
+```python
+from pydantic_agent import Agent
+
+agent = Agent("gpt-4o", settings=settings)
+
+# Run some queries
+agent.run_sync("Hello!")
+agent.run_sync("Tell me about Python")
+agent.run_sync("What are decorators?")
+
+# Get aggregate usage
+usage = agent.get_usage()
+print(f"Total tokens: {usage.total_tokens}")
+print(f"Requests: {usage.request_count}")
+
+# Get cost estimate
+cost = agent.get_cost()
+print(f"Estimated cost: ${cost:.4f}")
+
+# Get detailed breakdown
+breakdown = agent.get_cost_breakdown()
+print(f"Prompt cost: ${breakdown.prompt_cost:.4f}")
+print(f"Completion cost: ${breakdown.completion_cost:.4f}")
+
+# Get per-request history
+history = agent.get_usage_history()
+for record in history:
+    print(f"{record.timestamp}: {record.total_tokens} tokens")
+
+# Reset tracking for new session
+agent.reset_tracking()
+
+# Count tokens for arbitrary text
+count = agent.get_token_count("Hello, world!")
+```
+
+### Standalone Token Utilities
+
+For advanced use cases, you can use the token utilities directly:
 
 ```python
 from pydantic_agent.tokens import TokenCounter, UsageTracker, CostEstimator

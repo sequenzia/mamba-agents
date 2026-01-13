@@ -1,6 +1,6 @@
 """Context compaction strategies."""
 
-from pydantic_agent.context.compaction.base import CompactionStrategy
+from pydantic_agent.context.compaction.base import CompactionResult, CompactionStrategy
 from pydantic_agent.context.compaction.hybrid import HybridStrategy
 from pydantic_agent.context.compaction.importance import ImportanceScoringStrategy
 from pydantic_agent.context.compaction.selective import SelectivePruningStrategy
@@ -8,6 +8,7 @@ from pydantic_agent.context.compaction.sliding_window import SlidingWindowStrate
 from pydantic_agent.context.compaction.summarize import SummarizeOlderStrategy
 
 __all__ = [
+    "CompactionResult",
     "CompactionStrategy",
     "SlidingWindowStrategy",
     "SummarizeOlderStrategy",
