@@ -57,6 +57,7 @@ src/pydantic_agent/
 ├── tools/           # Built-in tools (filesystem, bash, glob, grep)
 ├── context/         # Context window management & compaction
 ├── tokens/          # Token counting & cost estimation
+├── workflows/       # Agentic workflow orchestration (ReAct, Plan-Execute, etc.)
 ├── mcp/             # Model Context Protocol integration
 ├── backends/        # OpenAI-compatible model backends
 ├── observability/   # Logging and tracing
@@ -72,6 +73,8 @@ from pydantic_agent import (
     Agent, AgentSettings, AgentConfig, AgentResult,
     CompactionConfig, CompactionResult, ContextState,
     TokenUsage, UsageRecord, CostBreakdown,
+    Workflow, WorkflowConfig, WorkflowHooks,
+    WorkflowResult, WorkflowState, WorkflowStep,
 )
 
 # Tools
@@ -82,6 +85,9 @@ from pydantic_agent.context import ContextManager, CompactionConfig
 
 # Token tracking (for standalone use)
 from pydantic_agent.tokens import TokenCounter, UsageTracker, CostEstimator
+
+# Workflows (for custom workflow implementations)
+from pydantic_agent.workflows import Workflow, WorkflowConfig, WorkflowHooks
 
 # MCP integration
 from pydantic_agent.mcp import MCPClientManager, MCPServerConfig
@@ -151,6 +157,8 @@ def test_file_ops(tmp_sandbox: Path):
 | Message conversion utils | `src/pydantic_agent/agent/message_utils.py` |
 | Built-in tools | `src/pydantic_agent/tools/` |
 | Context compaction | `src/pydantic_agent/context/compaction/` |
+| Workflow base classes | `src/pydantic_agent/workflows/base.py` |
+| Workflow config | `src/pydantic_agent/workflows/config.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
 
@@ -182,3 +190,11 @@ def test_file_ops(tmp_sandbox: Path):
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - MCP supports stdio and SSE transports with optional API key authentication
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
+- **Workflows** provide orchestration patterns for multi-step agent execution:
+  - `Workflow` is an ABC - extend it to create custom patterns (ReAct, Plan-Execute, Reflection)
+  - Workflows take agents as inputs (separate execution layer, not embedded in Agent)
+  - `WorkflowState` tracks steps, iterations, and custom context (independent from ContextManager)
+  - `WorkflowHooks` provides 8 callbacks: workflow start/complete/error, step start/complete/error, iteration start/complete
+  - `WorkflowConfig` controls max_steps, max_iterations, timeouts, and hook enablement
+  - Async-first with `run_sync()` wrapper (matches Agent pattern)
+  - Extend `Workflow` by implementing: `name` property, `_create_initial_state()`, `_execute()`

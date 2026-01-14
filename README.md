@@ -9,6 +9,7 @@ A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydant
 - **MCP Integration** - Connect to Model Context Protocol servers (stdio and SSE transports)
 - **Token Management** - Track usage with tiktoken, estimate costs
 - **Context Compaction** - 5 strategies to manage long conversations
+- **Workflows** - Orchestration patterns for multi-step execution (ReAct, Plan-Execute, etc.)
 - **Model Backends** - OpenAI-compatible adapter for Ollama, vLLM, LM Studio
 - **Observability** - Structured logging, tracing, and OpenTelemetry hooks
 - **Error Handling** - Retry logic with tenacity, circuit breaker pattern
@@ -343,6 +344,85 @@ summary = tracker.get_summary()
 # Estimate costs
 estimator = CostEstimator()
 cost = estimator.estimate(input_tokens=1000, output_tokens=500, model="gpt-4o")
+```
+
+## Workflows
+
+Workflows provide orchestration patterns for multi-step agent execution. Create custom workflows by extending the `Workflow` base class:
+
+```python
+from pydantic_agent import Agent, Workflow, WorkflowConfig, WorkflowState, WorkflowHooks
+
+# Create a custom workflow by extending Workflow
+class MyReActWorkflow(Workflow[None, str, dict]):
+    def __init__(self, agent: Agent, config: WorkflowConfig | None = None):
+        super().__init__(config=config)
+        self.agent = agent
+
+    @property
+    def name(self) -> str:
+        return "react"
+
+    def _create_initial_state(self, prompt: str) -> WorkflowState[dict]:
+        return WorkflowState(context={"prompt": prompt, "observations": []})
+
+    async def _execute(self, prompt: str, state: WorkflowState[dict], deps=None) -> str:
+        # Implement ReAct loop: Reason → Act → Observe → Repeat
+        while state.iteration_count < self._config.max_iterations:
+            state.iteration_count += 1
+            result = await self.agent.run(prompt)
+            # Check for completion, add observations, etc.
+            if self._is_complete(result):
+                return result.output
+        return "Max iterations reached"
+
+# Run the workflow
+agent = Agent("gpt-4o", settings=settings)
+workflow = MyReActWorkflow(agent, config=WorkflowConfig(max_iterations=5))
+
+result = await workflow.run("Research and summarize recent AI papers")
+print(f"Success: {result.success}")
+print(f"Output: {result.output}")
+print(f"Steps: {result.total_steps}")
+```
+
+### Workflow Configuration
+
+```python
+from pydantic_agent import WorkflowConfig
+
+config = WorkflowConfig(
+    max_steps=50,              # Maximum workflow steps
+    max_iterations=10,         # Maximum iterations per step
+    timeout_seconds=300.0,     # Total workflow timeout
+    step_timeout_seconds=30.0, # Per-step timeout
+    enable_hooks=True,         # Enable hook callbacks
+    track_state=True,          # Track detailed state history
+)
+```
+
+### Workflow Hooks
+
+Add observability with lifecycle hooks:
+
+```python
+from pydantic_agent import WorkflowHooks
+
+def on_step_complete(state, step):
+    print(f"Step {step.step_number} completed: {step.description}")
+
+hooks = WorkflowHooks(
+    on_workflow_start=lambda state: print("Workflow started"),
+    on_workflow_complete=lambda result: print(f"Done: {result.success}"),
+    on_workflow_error=lambda state, err: print(f"Error: {err}"),
+    on_step_start=lambda state, num, type_: print(f"Step {num}: {type_}"),
+    on_step_complete=on_step_complete,
+    on_step_error=lambda state, step, err: print(f"Step failed: {err}"),
+    on_iteration_start=lambda state, i: print(f"Iteration {i}"),
+    on_iteration_complete=lambda state, i: print(f"Iteration {i} done"),
+)
+
+workflow = MyReActWorkflow(agent, config=config, hooks=hooks)
 ```
 
 ## Model Backends
