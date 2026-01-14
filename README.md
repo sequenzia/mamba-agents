@@ -348,37 +348,81 @@ cost = estimator.estimate(input_tokens=1000, output_tokens=500, model="gpt-4o")
 
 ## Workflows
 
-Workflows provide orchestration patterns for multi-step agent execution. Create custom workflows by extending the `Workflow` base class:
+Workflows provide orchestration patterns for multi-step agent execution.
+
+### ReAct Workflow (Built-in)
+
+The ReAct (Reasoning and Acting) workflow implements an iterative Thought → Action → Observation loop:
+
+```python
+from pydantic_agent import Agent
+from pydantic_agent.workflows import ReActWorkflow, ReActConfig
+from pydantic_agent.tools import read_file, run_bash, grep_search
+
+# Create agent with tools
+agent = Agent(
+    "gpt-4o",
+    settings=settings,
+    tools=[read_file, run_bash, grep_search],
+)
+
+# Create ReAct workflow
+workflow = ReActWorkflow(
+    agent=agent,
+    config=ReActConfig(
+        max_iterations=15,
+        expose_reasoning=True,  # Include thoughts in output
+    ),
+)
+
+# Run the workflow
+result = await workflow.run("Find and explain the bug in src/utils.py")
+
+print(f"Success: {result.success}")
+print(f"Answer: {result.output}")
+print(f"Iterations: {result.state.iteration_count}")
+
+# Access the reasoning trace
+for entry in result.state.context.scratchpad:
+    print(f"{entry.entry_type}: {entry.content}")
+
+# Or use convenience methods
+print(workflow.get_reasoning_trace())
+print(f"Cost: ${workflow.get_cost():.4f}")
+```
+
+### Custom Workflows
+
+Create custom workflows by extending the `Workflow` base class:
 
 ```python
 from pydantic_agent import Agent, Workflow, WorkflowConfig, WorkflowState, WorkflowHooks
 
 # Create a custom workflow by extending Workflow
-class MyReActWorkflow(Workflow[None, str, dict]):
+class MyWorkflow(Workflow[None, str, dict]):
     def __init__(self, agent: Agent, config: WorkflowConfig | None = None):
         super().__init__(config=config)
         self.agent = agent
 
     @property
     def name(self) -> str:
-        return "react"
+        return "my_workflow"
 
     def _create_initial_state(self, prompt: str) -> WorkflowState[dict]:
         return WorkflowState(context={"prompt": prompt, "observations": []})
 
     async def _execute(self, prompt: str, state: WorkflowState[dict], deps=None) -> str:
-        # Implement ReAct loop: Reason → Act → Observe → Repeat
+        # Implement your workflow logic
         while state.iteration_count < self._config.max_iterations:
             state.iteration_count += 1
             result = await self.agent.run(prompt)
-            # Check for completion, add observations, etc.
             if self._is_complete(result):
                 return result.output
         return "Max iterations reached"
 
 # Run the workflow
 agent = Agent("gpt-4o", settings=settings)
-workflow = MyReActWorkflow(agent, config=WorkflowConfig(max_iterations=5))
+workflow = MyWorkflow(agent, config=WorkflowConfig(max_iterations=5))
 
 result = await workflow.run("Research and summarize recent AI papers")
 print(f"Success: {result.success}")
@@ -390,7 +434,9 @@ print(f"Steps: {result.total_steps}")
 
 ```python
 from pydantic_agent import WorkflowConfig
+from pydantic_agent.workflows import ReActConfig
 
+# Base workflow configuration
 config = WorkflowConfig(
     max_steps=50,              # Maximum workflow steps
     max_iterations=10,         # Maximum iterations per step
@@ -398,6 +444,20 @@ config = WorkflowConfig(
     step_timeout_seconds=30.0, # Per-step timeout
     enable_hooks=True,         # Enable hook callbacks
     track_state=True,          # Track detailed state history
+)
+
+# ReAct-specific configuration (extends WorkflowConfig)
+react_config = ReActConfig(
+    max_iterations=15,
+    expose_reasoning=True,           # Include thoughts in scratchpad
+    reasoning_prefix="Thought: ",    # Prefix for thoughts
+    action_prefix="Action: ",        # Prefix for actions
+    observation_prefix="Observation: ",  # Prefix for observations
+    final_answer_tool_name="final_answer",  # Termination tool name
+    auto_compact_in_workflow=True,   # Auto-compact context
+    compact_threshold_ratio=0.8,     # Compact at 80% of threshold
+    max_consecutive_thoughts=3,      # Force action after N thoughts
+    tool_retry_count=2,              # Retry failed tool calls
 )
 ```
 
@@ -407,7 +467,9 @@ Add observability with lifecycle hooks:
 
 ```python
 from pydantic_agent import WorkflowHooks
+from pydantic_agent.workflows import ReActHooks
 
+# Base workflow hooks
 def on_step_complete(state, step):
     print(f"Step {step.step_number} completed: {step.description}")
 
@@ -422,7 +484,16 @@ hooks = WorkflowHooks(
     on_iteration_complete=lambda state, i: print(f"Iteration {i} done"),
 )
 
-workflow = MyReActWorkflow(agent, config=config, hooks=hooks)
+# ReAct-specific hooks (extends WorkflowHooks)
+react_hooks = ReActHooks(
+    on_thought=lambda state, thought: print(f"Thought: {thought}"),
+    on_action=lambda state, tool, args: print(f"Action: {tool}({args})"),
+    on_observation=lambda state, obs, err: print(f"Observation: {obs}"),
+    on_compaction=lambda result: print(f"Compacted: removed {result.removed_count}"),
+    # Plus all base WorkflowHooks callbacks...
+)
+
+workflow = ReActWorkflow(agent, config=react_config, hooks=react_hooks)
 ```
 
 ## Model Backends

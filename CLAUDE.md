@@ -89,6 +89,9 @@ from pydantic_agent.tokens import TokenCounter, UsageTracker, CostEstimator
 # Workflows (for custom workflow implementations)
 from pydantic_agent.workflows import Workflow, WorkflowConfig, WorkflowHooks
 
+# ReAct workflow (built-in implementation)
+from pydantic_agent.workflows import ReActWorkflow, ReActConfig, ReActState, ReActHooks
+
 # MCP integration
 from pydantic_agent.mcp import MCPClientManager, MCPServerConfig
 
@@ -198,3 +201,11 @@ def test_file_ops(tmp_sandbox: Path):
   - `WorkflowConfig` controls max_steps, max_iterations, timeouts, and hook enablement
   - Async-first with `run_sync()` wrapper (matches Agent pattern)
   - Extend `Workflow` by implementing: `name` property, `_create_initial_state()`, `_execute()`
+- **ReActWorkflow** is a built-in implementation of the ReAct paradigm:
+  - Implements Thought → Action → Observation loop until `final_answer` tool is called
+  - `ReActConfig` extends `WorkflowConfig` with: expose_reasoning, prefixes, termination settings, compaction
+  - `ReActState` tracks scratchpad (thoughts/actions/observations), token counts, termination status
+  - `ReActHooks` extends `WorkflowHooks` with: on_thought, on_action, on_observation, on_compaction
+  - Registers `final_answer` tool on the agent for termination detection
+  - Auto-compacts context when threshold ratio is reached
+  - Access scratchpad via `result.state.context.scratchpad` or `workflow.get_scratchpad()`
