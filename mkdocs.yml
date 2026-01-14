@@ -1,0 +1,186 @@
+site_name: Pydantic Agent
+site_description: A simple, extensible AI Agent framework built on pydantic-ai
+site_url: https://sequenzia.github.io/pydantic-agent
+repo_url: https://github.com/sequenzia/pydantic-agent
+repo_name: sequenzia/pydantic-agent
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - getting-started/index.md
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+      - Configuration: getting-started/configuration.md
+  - User Guide:
+      - user-guide/index.md
+      - Agent Basics: user-guide/agent-basics.md
+      - Working with Tools: user-guide/tools.md
+      - Context Management: user-guide/context-management.md
+      - Token Tracking: user-guide/token-tracking.md
+      - Workflows: user-guide/workflows.md
+      - MCP Integration: user-guide/mcp-integration.md
+      - Model Backends: user-guide/model-backends.md
+      - Error Handling: user-guide/error-handling.md
+      - Observability: user-guide/observability.md
+  - Tutorials:
+      - tutorials/index.md
+      - Building a Code Assistant: tutorials/code-assistant.md
+      - Creating Custom Tools: tutorials/custom-tools.md
+      - ReAct Workflow Deep Dive: tutorials/react-workflow.md
+      - Local LLM Setup: tutorials/local-llm-setup.md
+  - Concepts:
+      - concepts/index.md
+      - Architecture Overview: concepts/architecture.md
+      - Agent Execution Loop: concepts/execution-loop.md
+      - Context Compaction Strategies: concepts/compaction-strategies.md
+      - Workflow Patterns: concepts/workflow-patterns.md
+  - API Reference:
+      - api/index.md
+      - Agent:
+          - api/agent/index.md
+          - Agent: api/agent/agent.md
+          - AgentConfig: api/agent/config.md
+          - AgentResult: api/agent/result.md
+      - Workflows:
+          - api/workflows/index.md
+          - Workflow Base: api/workflows/base.md
+          - ReActWorkflow: api/workflows/react.md
+          - WorkflowConfig: api/workflows/config.md
+          - WorkflowHooks: api/workflows/hooks.md
+      - Context:
+          - api/context/index.md
+          - ContextManager: api/context/manager.md
+          - CompactionConfig: api/context/config.md
+          - Compaction Strategies: api/context/strategies.md
+      - Tokens:
+          - api/tokens/index.md
+          - TokenCounter: api/tokens/counter.md
+          - UsageTracker: api/tokens/tracker.md
+          - CostEstimator: api/tokens/cost.md
+      - Tools:
+          - api/tools/index.md
+          - Filesystem: api/tools/filesystem.md
+          - Bash: api/tools/bash.md
+          - Glob: api/tools/glob.md
+          - Grep: api/tools/grep.md
+          - ToolRegistry: api/tools/registry.md
+      - MCP:
+          - api/mcp/index.md
+          - MCPClientManager: api/mcp/client.md
+          - MCPServerConfig: api/mcp/config.md
+      - Config:
+          - api/config/index.md
+          - AgentSettings: api/config/settings.md
+          - ModelBackendSettings: api/config/model-backend.md
+          - Other Configs: api/config/other.md
+      - Backends:
+          - api/backends/index.md
+          - OpenAICompatibleBackend: api/backends/openai-compat.md
+          - ModelProfile: api/backends/profiles.md
+      - Errors:
+          - api/errors/index.md
+          - Exceptions: api/errors/exceptions.md
+          - CircuitBreaker: api/errors/circuit-breaker.md
+          - Retry: api/errors/retry.md
+      - Observability:
+          - api/observability/index.md
+          - Logging: api/observability/logging.md
+          - Tracing: api/observability/tracing.md
+          - OpenTelemetry: api/observability/otel.md
+  - Changelog: changelog.md
+  - Contributing: contributing.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            docstring_style: google
+            docstring_section_style: spacy
+            merge_init_into_class: true
+            show_signature_annotations: true
+            separate_signature: true
+            signature_crossrefs: true
+            members_order: source
+            filters:
+              - "!^_"
+              - "^__init__$"
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sequenzia/pydantic-agent
+  version:
+    provider: mike
+
+extra_css:
+  - stylesheets/extra.css
