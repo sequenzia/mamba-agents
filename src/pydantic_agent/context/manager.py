@@ -60,6 +60,15 @@ class ContextManager:
         self._compaction_history: list[CompactionResult] = []
         self._strategy = self._create_strategy()
 
+    @property
+    def config(self) -> CompactionConfig:
+        """Get the compaction configuration.
+
+        Returns:
+            CompactionConfig instance.
+        """
+        return self._config
+
     def _create_strategy(self) -> CompactionStrategy:
         """Create the compaction strategy from config.
 

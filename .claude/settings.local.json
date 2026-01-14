@@ -1,6 +1,6 @@
 {
   "enabledPlugins": {
-    "feature-dev@claude-plugins-official": true,
-    "pyright-lsp@claude-plugins-official": true
+    "pyright-lsp@claude-plugins-official": true,
+    "feature-dev@sequenzia-claude-plugins": true
   }
 }

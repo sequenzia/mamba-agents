@@ -97,8 +97,10 @@ class ReActConfig(WorkflowConfig):
     observation_prefix: str = "Observation: "  # Prefix for observations
 
     # Termination strategy
+    # NOTE: Only "tool" termination is implemented in MVP.
+    # "confidence" and "hybrid" are planned for future implementation.
     termination_strategy: Literal["tool", "confidence", "hybrid"] = "tool"
-    confidence_threshold: float = 0.9  # For confidence-based termination
+    confidence_threshold: float = 0.9  # For confidence-based termination (future)
     final_answer_tool_name: str = "final_answer"  # Tool name for tool-based termination
 
     # Context management
@@ -516,6 +518,26 @@ print(f"Answer: {result.output}")
 | Token consumption in long loops | High | Integrate with context compaction, set conservative defaults |
 | Termination detection failures | Medium | Support multiple strategies, hybrid as fallback |
 | Testing with real models | Low | Use TestModel for unit tests, optional integration tests |
+
+---
+
+## 13. Future Work
+
+The following features are planned for future implementation:
+
+### 13.1 Confidence-Based Termination
+
+The MVP implements only tool-based termination (via `final_answer` tool). Future work includes:
+
+- **Confidence parsing**: Parse agent responses for confidence indicators (e.g., structured output with confidence field)
+- **Confidence threshold**: Terminate when confidence exceeds `confidence_threshold` (default 0.9)
+- **Hybrid termination**: Support both tool-based and confidence-based strategies simultaneously
+
+### 13.2 Additional Enhancements
+
+- **Structured output for thoughts/actions**: Use pydantic models for more reliable parsing
+- **Multi-agent ReAct**: Separate reasoning vs execution agents
+- **ReAct variants**: Reflexion, Tree of Thoughts integration
 
 ---
 

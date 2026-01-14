@@ -19,6 +19,15 @@ Example:
     ...     async def _execute(self, prompt, state, deps):
     ...         # Implement workflow logic
     ...         return "result"
+
+ReAct Workflow Example:
+    >>> from pydantic_agent import Agent
+    >>> from pydantic_agent.workflows import ReActWorkflow, ReActConfig
+    >>>
+    >>> agent = Agent("gpt-4o", tools=[read_file, run_bash])
+    >>> workflow = ReActWorkflow(agent, config=ReActConfig(max_iterations=10))
+    >>> result = workflow.run_sync("Find the bug in main.py")
+    >>> print(result.output)
 """
 
 from pydantic_agent.workflows.base import (
@@ -36,20 +45,29 @@ from pydantic_agent.workflows.errors import (
     WorkflowTimeoutError,
 )
 from pydantic_agent.workflows.hooks import WorkflowHooks
+from pydantic_agent.workflows.react import (
+    ReActConfig,
+    ReActHooks,
+    ReActState,
+    ReActWorkflow,
+    ScratchpadEntry,
+)
 
 __all__ = [
-    # Base abstractions
+    "ReActConfig",
+    "ReActHooks",
+    "ReActState",
+    "ReActWorkflow",
+    "ScratchpadEntry",
     "Workflow",
     "WorkflowConfig",
+    "WorkflowError",
+    "WorkflowExecutionError",
     "WorkflowHooks",
-    # Results and state
+    "WorkflowMaxIterationsError",
+    "WorkflowMaxStepsError",
     "WorkflowResult",
     "WorkflowState",
     "WorkflowStep",
-    # Errors
-    "WorkflowError",
-    "WorkflowExecutionError",
-    "WorkflowMaxIterationsError",
-    "WorkflowMaxStepsError",
     "WorkflowTimeoutError",
 ]
