@@ -616,6 +616,23 @@ uv run ruff format
 uv run ruff check --fix
 ```
 
+## Documentation
+
+The documentation is built with [MkDocs](https://www.mkdocs.org/) and the [Material theme](https://squidfunk.github.io/mkdocs-material/).
+
+```bash
+# Serve docs locally (with hot reload)
+uv run mkdocs serve
+
+# Build static site
+uv run mkdocs build
+
+# Deploy to GitHub Pages
+uv run mkdocs gh-deploy
+```
+
+View the live documentation at [sequenzia.github.io/pydantic-agent](https://sequenzia.github.io/pydantic-agent).
+
 ## License
 
 MIT

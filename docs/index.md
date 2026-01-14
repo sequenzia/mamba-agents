@@ -2,49 +2,19 @@
 
 A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydantic.dev/).
 
-<div class="feature-grid" markdown>
+## Installation
 
-<div class="feature-card" markdown>
-### Simple Agent Loop
-Thin wrapper around pydantic-ai with tool-calling support and automatic context management.
-</div>
+=== "uv (recommended)"
 
-<div class="feature-card" markdown>
-### Built-in Tools
-Filesystem, glob, grep, and bash operations with security controls.
-</div>
+    ```bash
+    uv add pydantic-agent
+    ```
 
-<div class="feature-card" markdown>
-### MCP Integration
-Connect to Model Context Protocol servers (stdio and SSE transports).
-</div>
+=== "pip"
 
-<div class="feature-card" markdown>
-### Token Management
-Track usage with tiktoken, estimate costs automatically.
-</div>
-
-<div class="feature-card" markdown>
-### Context Compaction
-5 strategies to manage long conversations without losing important context.
-</div>
-
-<div class="feature-card" markdown>
-### Workflows
-Orchestration patterns for multi-step execution (ReAct, Plan-Execute, etc.).
-</div>
-
-<div class="feature-card" markdown>
-### Model Backends
-OpenAI-compatible adapter for Ollama, vLLM, LM Studio.
-</div>
-
-<div class="feature-card" markdown>
-### Observability
-Structured logging, tracing, and OpenTelemetry hooks.
-</div>
-
-</div>
+    ```bash
+    pip install pydantic-agent
+    ```
 
 ## Quick Start
 
@@ -66,21 +36,126 @@ print(agent.get_usage())  # TokenUsage(prompt_tokens=..., request_count=1)
 print(agent.get_cost())   # Cost in USD
 ```
 
-## Installation
+## Features
 
-=== "uv (recommended)"
+<div class="grid cards" markdown>
 
-    ```bash
-    uv add pydantic-agent
-    ```
+-   :material-robot: **Agent Basics**
 
-=== "pip"
+    ---
 
-    ```bash
-    pip install pydantic-agent
-    ```
+    Thin wrapper around pydantic-ai with tool-calling support and automatic context management.
 
-## Next Steps
+    [:octicons-arrow-right-24: Learn more](user-guide/agent-basics.md)
+
+-   :material-tools: **Built-in Tools**
+
+    ---
+
+    Filesystem, glob, grep, and bash operations with security controls.
+
+    [:octicons-arrow-right-24: Explore tools](user-guide/tools.md)
+
+-   :material-connection: **MCP Integration**
+
+    ---
+
+    Connect to Model Context Protocol servers (stdio and SSE transports).
+
+    [:octicons-arrow-right-24: Setup MCP](user-guide/mcp-integration.md)
+
+-   :material-counter: **Token Tracking**
+
+    ---
+
+    Track usage with tiktoken, estimate costs automatically.
+
+    [:octicons-arrow-right-24: Track usage](user-guide/token-tracking.md)
+
+-   :material-chat-processing: **Context Compaction**
+
+    ---
+
+    5 strategies to manage long conversations without losing important context.
+
+    [:octicons-arrow-right-24: Manage context](user-guide/context-management.md)
+
+-   :material-state-machine: **Workflows**
+
+    ---
+
+    Orchestration patterns for multi-step execution (ReAct, Plan-Execute, etc.).
+
+    [:octicons-arrow-right-24: Build workflows](user-guide/workflows.md)
+
+-   :material-server: **Model Backends**
+
+    ---
+
+    OpenAI-compatible adapter for Ollama, vLLM, LM Studio.
+
+    [:octicons-arrow-right-24: Use local models](user-guide/model-backends.md)
+
+-   :material-chart-timeline: **Observability**
+
+    ---
+
+    Structured logging, tracing, and OpenTelemetry hooks.
+
+    [:octicons-arrow-right-24: Add observability](user-guide/observability.md)
+
+</div>
+
+## Choose Your Path
+
+<div class="grid cards" markdown>
+
+-   :material-rocket-launch: **New to Pydantic Agent?**
+
+    ---
+
+    Get up and running in under 5 minutes with the quick start guide.
+
+    [:octicons-arrow-right-24: Quick Start](getting-started/quickstart.md)
+
+-   :material-laptop: **Want to use local models?**
+
+    ---
+
+    Set up Ollama, vLLM, or LM Studio for offline inference.
+
+    [:octicons-arrow-right-24: Local LLM Setup](tutorials/local-llm-setup.md)
+
+-   :material-code-braces: **Building a code assistant?**
+
+    ---
+
+    Step-by-step tutorial for building an AI coding assistant.
+
+    [:octicons-arrow-right-24: Code Assistant Tutorial](tutorials/code-assistant.md)
+
+-   :material-sync: **Need multi-step workflows?**
+
+    ---
+
+    Learn the ReAct pattern for complex reasoning tasks.
+
+    [:octicons-arrow-right-24: ReAct Workflow](tutorials/react-workflow.md)
+
+</div>
+
+## Quick Reference
+
+| Use Case | Import |
+|----------|--------|
+| Basic agent | `from pydantic_agent import Agent` |
+| With settings | `from pydantic_agent import Agent, AgentSettings` |
+| Built-in tools | `from pydantic_agent.tools import read_file, run_bash, glob_search` |
+| ReAct workflow | `from pydantic_agent.workflows import ReActWorkflow, ReActConfig` |
+| Token tracking | `from pydantic_agent.tokens import TokenCounter, CostEstimator` |
+| MCP servers | `from pydantic_agent.mcp import MCPClientManager, MCPServerConfig` |
+
+## Explore the Docs
 
 <div class="grid cards" markdown>
 
@@ -88,9 +163,9 @@ print(agent.get_cost())   # Cost in USD
 
     ---
 
-    Install the package and run your first agent in under 5 minutes.
+    Install the package and configure your environment.
 
-    [:octicons-arrow-right-24: Quick Start](getting-started/quickstart.md)
+    [:octicons-arrow-right-24: Get started](getting-started/index.md)
 
 -   :material-book-open-variant: **User Guide**
 
@@ -107,6 +182,14 @@ print(agent.get_cost())   # Cost in USD
     Step-by-step guides for common use cases.
 
     [:octicons-arrow-right-24: Tutorials](tutorials/index.md)
+
+-   :material-lightbulb: **Concepts**
+
+    ---
+
+    Understand the architecture and design patterns.
+
+    [:octicons-arrow-right-24: Concepts](concepts/index.md)
 
 -   :material-api: **API Reference**
 
