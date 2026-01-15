@@ -19,6 +19,7 @@ from mamba_agents.config.observability import ObservabilityConfig
 from mamba_agents.config.retry import ErrorRecoveryConfig
 from mamba_agents.config.streaming import StreamingConfig
 from mamba_agents.context.config import CompactionConfig
+from mamba_agents.prompts.config import PromptConfig
 from mamba_agents.tokens.config import TokenizerConfig
 
 
@@ -45,6 +46,7 @@ class AgentSettings(BaseSettings):
         streaming: Streaming behavior settings.
         context: Default context compaction settings.
         tokenizer: Default tokenizer settings.
+        prompts: Default prompt management settings.
         cost_rates: Custom cost rates per 1000 tokens by model.
     """
 
@@ -111,6 +113,10 @@ class AgentSettings(BaseSettings):
     tokenizer: TokenizerConfig = Field(
         default_factory=TokenizerConfig,
         description="Default tokenizer settings",
+    )
+    prompts: PromptConfig = Field(
+        default_factory=PromptConfig,
+        description="Default prompt management settings",
     )
     cost_rates: dict[str, float] = Field(
         default_factory=dict,

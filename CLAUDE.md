@@ -57,6 +57,7 @@ src/mamba_agents/
 ├── tools/           # Built-in tools (filesystem, bash, glob, grep)
 ├── context/         # Context window management & compaction
 ├── tokens/          # Token counting & cost estimation
+├── prompts/         # Prompt template management (Jinja2)
 ├── workflows/       # Agentic workflow orchestration (ReAct, Plan-Execute, etc.)
 ├── mcp/             # Model Context Protocol integration
 ├── backends/        # OpenAI-compatible model backends
@@ -73,6 +74,7 @@ from mamba_agents import (
     Agent, AgentSettings, AgentConfig, AgentResult,
     CompactionConfig, CompactionResult, ContextState,
     TokenUsage, UsageRecord, CostBreakdown,
+    PromptConfig, PromptManager, PromptTemplate, TemplateConfig,
     Workflow, WorkflowConfig, WorkflowHooks,
     WorkflowResult, WorkflowState, WorkflowStep,
 )
@@ -85,6 +87,9 @@ from mamba_agents.context import ContextManager, CompactionConfig
 
 # Token tracking (for standalone use)
 from mamba_agents.tokens import TokenCounter, UsageTracker, CostEstimator
+
+# Prompt management (for standalone use)
+from mamba_agents.prompts import PromptManager, PromptTemplate, PromptConfig, TemplateConfig
 
 # Workflows (for custom workflow implementations)
 from mamba_agents.workflows import Workflow, WorkflowConfig, WorkflowHooks
@@ -160,6 +165,9 @@ def test_file_ops(tmp_sandbox: Path):
 | Message conversion utils | `src/mamba_agents/agent/message_utils.py` |
 | Built-in tools | `src/mamba_agents/tools/` |
 | Context compaction | `src/mamba_agents/context/compaction/` |
+| Prompt management | `src/mamba_agents/prompts/` |
+| Prompt config | `src/mamba_agents/prompts/config.py` |
+| Prompt manager | `src/mamba_agents/prompts/manager.py` |
 | Workflow base classes | `src/mamba_agents/workflows/base.py` |
 | Workflow config | `src/mamba_agents/workflows/config.py` |
 | Test fixtures | `tests/conftest.py` |
@@ -191,6 +199,16 @@ def test_file_ops(tmp_sandbox: Path):
   - Context: `get_messages()`, `should_compact()`, `compact()`, `get_context_state()`
   - Reset: `clear_context()`, `reset_tracking()`, `reset_all()`
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
+- **Prompt Management** provides Jinja2-based template system:
+  - `PromptManager` loads templates from files or registers them programmatically
+  - `PromptTemplate` wraps Jinja2 templates with `render()`, `with_variables()`, `get_variables()`
+  - `TemplateConfig` references templates by name/version with variables
+  - File organization: `prompts/{version}/{category}/{name}.jinja2` (e.g., `prompts/v1/system/assistant.jinja2`)
+  - Supports Jinja2 inheritance with `{% extends %}` and `{% block %}`
+  - Agent accepts `system_prompt: str | TemplateConfig` (backward compatible)
+  - Agent facade methods: `get_system_prompt()`, `set_system_prompt(prompt, **variables)`
+  - `AgentSettings.prompts` provides default `PromptConfig`
+  - ReActWorkflow supports `system_prompt_template` and `iteration_prompt_template` in config
 - MCP supports stdio and SSE transports with optional API key authentication
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:

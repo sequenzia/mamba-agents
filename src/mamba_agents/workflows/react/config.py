@@ -6,6 +6,7 @@ from typing import Literal
 
 from pydantic import Field
 
+from mamba_agents.prompts.config import TemplateConfig
 from mamba_agents.workflows.config import WorkflowConfig
 
 # MVP: only tool-based termination
@@ -31,12 +32,21 @@ class ReActConfig(WorkflowConfig):
         max_consecutive_thoughts: Max thoughts without action before forcing action.
         include_scratchpad: Whether to include full reasoning history in each iteration.
         tool_retry_count: Number of retries for failed tool calls.
+        system_prompt_template: Optional template config for system prompt.
+        iteration_prompt_template: Optional template config for iteration prompts.
 
     Example:
         >>> config = ReActConfig(
         ...     max_iterations=15,
         ...     expose_reasoning=True,
         ...     termination_strategy="tool",
+        ... )
+        >>>
+        >>> # With custom prompt templates
+        >>> from mamba_agents.prompts import TemplateConfig
+        >>> config = ReActConfig(
+        ...     system_prompt_template=TemplateConfig(name="workflow/react_system"),
+        ...     iteration_prompt_template=TemplateConfig(name="workflow/react_iteration"),
         ... )
     """
 
@@ -96,4 +106,14 @@ class ReActConfig(WorkflowConfig):
         default=2,
         ge=0,
         description="Number of retries for failed tool calls",
+    )
+
+    # Prompt templates (optional - uses defaults if not specified)
+    system_prompt_template: TemplateConfig | None = Field(
+        default=None,
+        description="Optional template config for system prompt. Uses default if None.",
+    )
+    iteration_prompt_template: TemplateConfig | None = Field(
+        default=None,
+        description="Optional template config for iteration prompts. Uses default if None.",
     )

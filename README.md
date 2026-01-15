@@ -9,6 +9,7 @@ A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydant
 - **MCP Integration** - Connect to Model Context Protocol servers (stdio and SSE transports)
 - **Token Management** - Track usage with tiktoken, estimate costs
 - **Context Compaction** - 5 strategies to manage long conversations
+- **Prompt Management** - Jinja2-based templates with versioning and inheritance
 - **Workflows** - Orchestration patterns for multi-step execution (ReAct, Plan-Execute, etc.)
 - **Model Backends** - OpenAI-compatible adapter for Ollama, vLLM, LM Studio
 - **Observability** - Structured logging, tracing, and OpenTelemetry hooks
@@ -281,6 +282,129 @@ if manager.should_compact():
 | `selective_pruning` | Remove completed tool call/result pairs |
 | `importance_scoring` | LLM-based scoring, prune lowest importance |
 | `hybrid` | Combine multiple strategies in sequence |
+
+## Prompt Management
+
+Manage system prompts with Jinja2 templates, versioning, and inheritance.
+
+### Using Templates with Agents
+
+```python
+from mamba_agents import Agent
+from mamba_agents.prompts import TemplateConfig, PromptManager
+
+# Option 1: String prompt (backward compatible)
+agent = Agent("gpt-4o", system_prompt="You are a helpful assistant.")
+
+# Option 2: Template config (loads from file)
+agent = Agent(
+    "gpt-4o",
+    system_prompt=TemplateConfig(
+        name="system/assistant",
+        variables={"name": "Code Helper", "expertise": "Python"}
+    )
+)
+
+# Option 3: Pre-render template
+manager = PromptManager()
+prompt = manager.render("system/assistant", name="Code Helper")
+agent = Agent("gpt-4o", system_prompt=prompt)
+
+# Runtime prompt switching
+agent.set_system_prompt(TemplateConfig(
+    name="system/coder",
+    variables={"language": "Python"}
+))
+
+# Get current prompt
+print(agent.get_system_prompt())
+```
+
+### File-Based Templates
+
+Organize templates in a versioned directory structure:
+
+```
+prompts/
+├── v1/
+│   ├── base/
+│   │   └── base.jinja2
+│   ├── system/
+│   │   ├── assistant.jinja2
+│   │   └── coder.jinja2
+│   └── workflow/
+│       └── react.jinja2
+└── v2/
+    └── system/
+        └── assistant.jinja2
+```
+
+Example base template (`prompts/v1/base/base.jinja2`):
+
+```jinja2
+{% block persona %}You are a helpful AI assistant.{% endblock %}
+
+{% block instructions %}{% endblock %}
+
+{% block constraints %}{% endblock %}
+```
+
+Example child template (`prompts/v1/system/coder.jinja2`):
+
+```jinja2
+{% extends "v1/base/base.jinja2" %}
+
+{% block persona %}
+You are an expert {{ language | default("Python") }} developer.
+{% endblock %}
+
+{% block instructions %}
+Help the user write clean, efficient code.
+{% endblock %}
+```
+
+### Standalone PromptManager
+
+```python
+from mamba_agents.prompts import PromptManager, PromptConfig
+
+# Configure prompts directory
+config = PromptConfig(
+    prompts_dir="./prompts",
+    default_version="v1",
+    enable_caching=True,
+    strict_mode=False,  # Raise on missing variables
+)
+manager = PromptManager(config)
+
+# Load and render template
+template = manager.get("system/assistant")
+prompt = template.render(name="Helper", role="coding assistant")
+
+# Or render directly
+prompt = manager.render("system/assistant", name="Helper")
+
+# List available templates
+templates = manager.list_prompts(category="system")
+versions = manager.list_versions("system/assistant")
+
+# Register templates programmatically (useful for testing)
+manager.register("test/greeting", "Hello, {{ name }}!")
+result = manager.render("test/greeting", name="World")
+```
+
+### Workflow Integration
+
+```python
+from mamba_agents.workflows import ReActWorkflow, ReActConfig
+from mamba_agents.prompts import TemplateConfig
+
+config = ReActConfig(
+    system_prompt_template=TemplateConfig(name="workflow/react_system"),
+    iteration_prompt_template=TemplateConfig(name="workflow/react_iteration"),
+)
+workflow = ReActWorkflow(agent, config=config)
+```
 
 ## Token Management
 

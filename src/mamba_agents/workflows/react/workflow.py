@@ -24,6 +24,7 @@ from mamba_agents.workflows.react.tools import create_final_answer_tool
 
 if TYPE_CHECKING:
     from mamba_agents import Agent
+    from mamba_agents.prompts import PromptManager
     from mamba_agents.tokens.tracker import TokenUsage
 
 DepsT = TypeVar("DepsT")
@@ -60,6 +61,7 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
         agent: Agent[DepsT, Any],
         config: ReActConfig | None = None,
         hooks: ReActHooks | None = None,
+        prompt_manager: PromptManager | None = None,
     ) -> None:
         """Initialize the ReAct workflow.
 
@@ -67,6 +69,7 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
             agent: Agent instance to use for execution.
             config: ReAct-specific configuration.
             hooks: Optional hooks for observability.
+            prompt_manager: Optional PromptManager for template resolution.
         """
         self._react_config = config or ReActConfig()
         super().__init__(self._react_config, hooks)
@@ -74,6 +77,7 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
         self._agent = agent
         self._react_hooks: ReActHooks = hooks or ReActHooks()
         self._last_state: ReActState | None = None
+        self._prompt_manager = prompt_manager
 
         # Register the final_answer tool
         self._agent.tool_plain(
@@ -96,6 +100,69 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
     def react_config(self) -> ReActConfig:
         """Get the ReAct-specific configuration."""
         return self._react_config
+
+    @property
+    def prompt_manager(self) -> PromptManager | None:
+        """Get the prompt manager.
+
+        Returns None if no prompt manager was provided or created.
+        """
+        return self._prompt_manager
+
+    def _get_prompt_manager(self) -> PromptManager:
+        """Get or create the prompt manager.
+
+        Returns:
+            PromptManager instance.
+        """
+        if self._prompt_manager is not None:
+            return self._prompt_manager
+
+        # Try to use agent's prompt manager
+        if self._agent.prompt_manager is not None:
+            return self._agent.prompt_manager
+
+        # Create from agent settings
+        from mamba_agents.prompts import PromptManager
+
+        self._prompt_manager = PromptManager(config=self._agent.settings.prompts)
+        return self._prompt_manager
+
+    def _build_iteration_prompt(
+        self,
+        react_state: ReActState,
+        force_action: bool = False,
+    ) -> str:
+        """Build the prompt for a ReAct iteration.
+
+        Uses template if configured, otherwise falls back to default.
+
+        Args:
+            react_state: Current ReAct state.
+            force_action: Whether to force action prompt.
+
+        Returns:
+            Prompt string for the iteration.
+        """
+        # Check if custom template is configured
+        template_config = self._react_config.iteration_prompt_template
+        if template_config is not None:
+            manager = self._get_prompt_manager()
+            return manager.render(
+                name=template_config.name,
+                version=template_config.version,
+                scratchpad=react_state.get_scratchpad_text(self._react_config),
+                force_action=force_action,
+                config=self._react_config,
+                **template_config.variables,
+            )
+
+        # Fall back to default implementation
+        return build_iteration_prompt(
+            self._react_config,
+            react_state.get_scratchpad_text(self._react_config),
+            force_action=force_action,
+        )
 
     def _create_initial_state(self, prompt: str) -> WorkflowState[ReActState]:
         """Create initial workflow state.
@@ -159,9 +226,8 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
                 iteration_prompt = prompt
             else:
                 # Subsequent iterations: include scratchpad
-                iteration_prompt = build_iteration_prompt(
-                    self._react_config,
-                    react_state.get_scratchpad_text(self._react_config),
+                iteration_prompt = self._build_iteration_prompt(
+                    react_state,
                     force_action=force_action,
                 )
 

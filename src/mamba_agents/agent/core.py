@@ -14,6 +14,7 @@ from mamba_agents.agent.result import AgentResult
 from mamba_agents.config.settings import AgentSettings
 from mamba_agents.context import ContextManager, ContextState
 from mamba_agents.context.compaction import CompactionResult
+from mamba_agents.prompts.config import TemplateConfig
 from mamba_agents.tokens import CostEstimator, TokenCounter, UsageTracker
 from mamba_agents.tokens.cost import CostBreakdown
 from mamba_agents.tokens.tracker import TokenUsage, UsageRecord
@@ -23,6 +24,8 @@ if TYPE_CHECKING:
     from pydantic_ai.result import StreamedRunResult
     from pydantic_ai.tools import ToolDefinition
     from pydantic_ai.usage import UsageLimits
+
+    from mamba_agents.prompts import PromptManager
 
 
 DepsT = TypeVar("DepsT")
@@ -36,15 +39,28 @@ class Agent(Generic[DepsT, OutputT]):
     - Configuration via AgentSettings
     - Context management and compaction
     - Token usage tracking
+    - Prompt template support
     - Enhanced observability
 
     Example:
         >>> from mamba_agents import Agent
         >>>
+        >>> # Option 1: String prompt (backward compatible)
         >>> agent = Agent(
         ...     "openai:gpt-4",
         ...     system_prompt="You are a helpful assistant.",
         ... )
+        >>>
+        >>> # Option 2: Template config
+        >>> from mamba_agents.prompts import TemplateConfig
+        >>> agent = Agent(
+        ...     "openai:gpt-4",
+        ...     system_prompt=TemplateConfig(
+        ...         name="system/assistant",
+        ...         variables={"name": "Code Helper"}
+        ...     )
+        ... )
+        >>>
         >>> result = await agent.run("Hello, world!")
         >>> print(result.output)
     """
@@ -54,11 +70,12 @@ class Agent(Generic[DepsT, OutputT]):
         model: str | Model | None = None,
         *,
         tools: Sequence[Callable[..., Any] | ToolDefinition] | None = None,
-        system_prompt: str = "",
+        system_prompt: str | TemplateConfig = "",
         deps_type: type[DepsT] | None = None,
         output_type: type[OutputT] | None = None,
         config: AgentConfig | None = None,
         settings: AgentSettings | None = None,
+        prompt_manager: PromptManager | None = None,
     ) -> None:
         """Initialize the agent.
 
@@ -66,17 +83,19 @@ class Agent(Generic[DepsT, OutputT]):
             model: Model to use (string identifier or Model instance).
                 If not provided, uses settings.model_backend configuration.
             tools: Optional list of tools to register.
-            system_prompt: System prompt for the agent.
+            system_prompt: System prompt for the agent. Can be a string or TemplateConfig.
             deps_type: Type of dependencies for tool calls.
             output_type: Expected output type.
             config: Agent execution configuration.
             settings: Full agent settings (for model backend, etc.).
+            prompt_manager: Optional PromptManager for template resolution.
 
         Raises:
             ValueError: If neither model nor settings is provided.
         """
         self._config = config or AgentConfig(system_prompt=system_prompt)
         self._settings = settings or AgentSettings()
+        self._prompt_manager = prompt_manager
 
         # Determine model name and whether to use settings for connection config
         if model is None:
@@ -106,9 +125,12 @@ class Agent(Generic[DepsT, OutputT]):
                 ),
             )
 
+        # Resolve system prompt from template if needed
+        self._resolved_system_prompt = self._resolve_system_prompt(self._config.system_prompt)
+
         # Create the underlying pydantic-ai agent
         agent_kwargs: dict[str, Any] = {
-            "system_prompt": self._config.system_prompt,
+            "system_prompt": self._resolved_system_prompt,
         }
 
         if tools:
@@ -138,10 +160,41 @@ class Agent(Generic[DepsT, OutputT]):
                 config=context_cfg,
                 token_counter=self._token_counter,
             )
-            if self._config.system_prompt:
-                self._context_manager.set_system_prompt(self._config.system_prompt)
+            if self._resolved_system_prompt:
+                self._context_manager.set_system_prompt(self._resolved_system_prompt)
         else:
             self._context_manager = None
+
+    def _resolve_system_prompt(self, prompt: str | TemplateConfig) -> str:
+        """Resolve a system prompt from string or template config.
+
+        Args:
+            prompt: String prompt or TemplateConfig.
+
+        Returns:
+            Resolved prompt string.
+        """
+        if isinstance(prompt, str):
+            return prompt
+
+        # Get or create prompt manager
+        manager = self._get_prompt_manager()
+        return manager.render_config(prompt)
+
+    def _get_prompt_manager(self) -> PromptManager:
+        """Get or create the prompt manager.
+
+        Returns:
+            PromptManager instance.
+        """
+        if self._prompt_manager is not None:
+            return self._prompt_manager
+
+        # Create from settings
+        from mamba_agents.prompts import PromptManager
+
+        self._prompt_manager = PromptManager(config=self._settings.prompts)
+        return self._prompt_manager
 
     @classmethod
     def from_settings(
@@ -509,6 +562,56 @@ class Agent(Generic[DepsT, OutputT]):
     def model_name(self) -> str | None:
         """Get the model name used by this agent."""
         return self._model_name
+
+    @property
+    def prompt_manager(self) -> PromptManager | None:
+        """Get the prompt manager.
+
+        Returns None if no prompt manager was provided or created.
+        """
+        return self._prompt_manager
+
+    # === System Prompt Facade Methods ===
+
+    def get_system_prompt(self) -> str:
+        """Get the current resolved system prompt.
+
+        Returns:
+            The resolved system prompt string.
+        """
+        return self._resolved_system_prompt
+
+    def set_system_prompt(
+        self,
+        prompt: str | TemplateConfig,
+        **variables: Any,
+    ) -> None:
+        """Set a new system prompt at runtime.
+
+        This updates the system prompt and refreshes the context manager.
+
+        Args:
+            prompt: New system prompt. Can be a string or TemplateConfig.
+            **variables: Additional variables to merge with TemplateConfig variables.
+
+        Note:
+            This does not update the underlying pydantic-ai agent's system prompt.
+            The new prompt will be used for context tracking and can be retrieved
+            via get_system_prompt().
+        """
+        # Handle additional variables for TemplateConfig
+        if isinstance(prompt, TemplateConfig) and variables:
+            prompt = TemplateConfig(
+                name=prompt.name,
+                version=prompt.version,
+                variables={**prompt.variables, **variables},
+            )
+
+        self._resolved_system_prompt = self._resolve_system_prompt(prompt)
+
+        # Update context manager if enabled
+        if self._context_manager is not None:
+            self._context_manager.set_system_prompt(self._resolved_system_prompt)
 
     # === Token Counting Facade Methods ===
 

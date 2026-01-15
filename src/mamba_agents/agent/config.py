@@ -5,6 +5,7 @@ from __future__ import annotations
 from pydantic import BaseModel, Field
 
 from mamba_agents.context.config import CompactionConfig
+from mamba_agents.prompts.config import TemplateConfig
 from mamba_agents.tokens.config import TokenizerConfig
 
 
@@ -13,7 +14,7 @@ class AgentConfig(BaseModel):
 
     Attributes:
         max_iterations: Maximum tool-calling iterations before stopping.
-        system_prompt: System prompt for the agent.
+        system_prompt: System prompt for the agent. Can be a string or TemplateConfig.
         context: Context compaction configuration. None uses settings default.
         tokenizer: Tokenizer configuration. None uses settings default.
         track_context: Whether to track messages internally across runs.
@@ -25,9 +26,9 @@ class AgentConfig(BaseModel):
         gt=0,
         description="Maximum tool-calling iterations",
     )
-    system_prompt: str = Field(
+    system_prompt: str | TemplateConfig = Field(
         default="",
-        description="System prompt for the agent",
+        description="System prompt for the agent. Can be a string or TemplateConfig.",
     )
     context: CompactionConfig | None = Field(
         default=None,
