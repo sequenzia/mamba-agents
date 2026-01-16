@@ -175,6 +175,7 @@ def test_file_ops(tmp_sandbox: Path):
 | MCP config | `src/mamba_agents/mcp/config.py` |
 | MCP lifecycle | `src/mamba_agents/mcp/lifecycle.py` |
 | MCP auth | `src/mamba_agents/mcp/auth.py` |
+| MCP env resolution | `src/mamba_agents/mcp/env.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
 
@@ -221,9 +222,10 @@ def test_file_ops(tmp_sandbox: Path):
   - Use `MCPClientManager.as_toolsets()` to create servers from config (recommended)
   - pydantic-ai handles MCP server lifecycle automatically (no manual connect/disconnect)
   - Supports stdio (subprocess) and SSE (HTTP) transports
-  - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix
+  - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix, env_file, env_vars
   - `MCPAuthConfig` handles API key auth via direct key or env var (`key_env` or `${VAR}` syntax)
   - `tool_prefix` avoids name conflicts when using multiple servers
+  - `env_file` and `env_vars` configure environment for stdio servers (precedence: env_vars > env_file > system env)
   - Deprecated: `connect_all()`, `disconnect_all()`, `get_toolsets()`, async context manager
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:

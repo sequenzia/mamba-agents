@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -45,6 +46,8 @@ class MCPServerConfig(BaseModel):
         url: Server URL (SSE transport).
         auth: Authentication configuration.
         tool_prefix: Prefix for tool names from this server.
+        env_file: Path to .env file for environment variables.
+        env_vars: Environment variables (highest precedence).
     """
 
     name: str = Field(description="Unique server name")
@@ -75,4 +78,13 @@ class MCPServerConfig(BaseModel):
     tool_prefix: str | None = Field(
         default=None,
         description="Prefix for tool names from this server",
+    )
+    # Environment variables
+    env_file: str | Path | None = Field(
+        default=None,
+        description="Path to .env file for environment variables",
+    )
+    env_vars: dict[str, str] | None = Field(
+        default=None,
+        description="Environment variables (highest precedence)",
     )

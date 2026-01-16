@@ -9,6 +9,7 @@ from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
 
 from mamba_agents.mcp.auth import build_auth_headers
 from mamba_agents.mcp.config import MCPServerConfig
+from mamba_agents.mcp.env import resolve_server_env
 from mamba_agents.mcp.lifecycle import ServerLifecycleManager, ServerStatus
 
 if TYPE_CHECKING:
@@ -90,9 +91,11 @@ class MCPClientManager:
             if not config.command:
                 raise ValueError(f"Command required for stdio transport: {config.name}")
 
+            env = resolve_server_env(config)
             return MCPServerStdio(
                 config.command,
                 args=config.args,
+                env=env,
                 tool_prefix=config.tool_prefix,
             )
         elif config.transport == "sse":
