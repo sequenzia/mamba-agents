@@ -75,6 +75,7 @@ from mamba_agents import (
     CompactionConfig, CompactionResult, ContextState,
     TokenUsage, UsageRecord, CostBreakdown,
     PromptConfig, PromptManager, PromptTemplate, TemplateConfig,
+    MCPClientManager, MCPServerConfig, MCPAuthConfig,
     Workflow, WorkflowConfig, WorkflowHooks,
     WorkflowResult, WorkflowState, WorkflowStep,
 )
@@ -98,7 +99,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig, WorkflowHooks
 from mamba_agents.workflows import ReActWorkflow, ReActConfig, ReActState, ReActHooks
 
 # MCP integration
-from mamba_agents.mcp import MCPClientManager, MCPServerConfig
+from mamba_agents.mcp import MCPClientManager, MCPServerConfig, MCPAuthConfig
 
 # Model backends
 from mamba_agents.backends import create_ollama_backend, create_vllm_backend
@@ -170,6 +171,10 @@ def test_file_ops(tmp_sandbox: Path):
 | Prompt manager | `src/mamba_agents/prompts/manager.py` |
 | Workflow base classes | `src/mamba_agents/workflows/base.py` |
 | Workflow config | `src/mamba_agents/workflows/config.py` |
+| MCP client manager | `src/mamba_agents/mcp/client.py` |
+| MCP config | `src/mamba_agents/mcp/config.py` |
+| MCP lifecycle | `src/mamba_agents/mcp/lifecycle.py` |
+| MCP auth | `src/mamba_agents/mcp/auth.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
 
@@ -181,6 +186,8 @@ def test_file_ops(tmp_sandbox: Path):
   - `Agent("gpt-4", settings=s)` - uses "gpt-4" as model, but api_key/base_url from settings
   - `Agent("gpt-4")` - passes string directly to pydantic-ai (requires `OPENAI_API_KEY` env var)
   - `Agent(model_instance)` - uses the Model instance directly
+  - `Agent("gpt-4", tools=[...])` - registers tool functions
+  - `Agent("gpt-4", toolsets=[...])` - registers MCP servers (use for MCP, not `tools`)
 - **Agent manages context and token tracking directly** (no separate instantiation needed):
   - Context tracking enabled by default (`AgentConfig.track_context=True`)
   - Auto-compaction when threshold reached (`AgentConfig.auto_compact=True`)
@@ -209,7 +216,15 @@ def test_file_ops(tmp_sandbox: Path):
   - Agent facade methods: `get_system_prompt()`, `set_system_prompt(prompt, **variables)`
   - `AgentSettings.prompts` provides default `PromptConfig`
   - ReActWorkflow supports `system_prompt_template` and `iteration_prompt_template` in config
-- MCP supports stdio and SSE transports with optional API key authentication
+- **MCP Integration** provides Model Context Protocol support:
+  - Agent accepts `toolsets` parameter for MCP servers: `Agent("gpt-4", toolsets=[...])`
+  - Use `MCPClientManager.as_toolsets()` to create servers from config (recommended)
+  - pydantic-ai handles MCP server lifecycle automatically (no manual connect/disconnect)
+  - Supports stdio (subprocess) and SSE (HTTP) transports
+  - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix
+  - `MCPAuthConfig` handles API key auth via direct key or env var (`key_env` or `${VAR}` syntax)
+  - `tool_prefix` avoids name conflicts when using multiple servers
+  - Deprecated: `connect_all()`, `disconnect_all()`, `get_toolsets()`, async context manager
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
   - `Workflow` is an ABC - extend it to create custom patterns (ReAct, Plan-Execute, Reflection)
