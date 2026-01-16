@@ -297,7 +297,7 @@ class Workflow(ABC, Generic[DepsT, OutputT, StateT]):
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             duration = (datetime.now(UTC) - start_time).total_seconds()
             state.is_failed = True
             return WorkflowResult.fail(

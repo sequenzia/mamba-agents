@@ -29,6 +29,12 @@ from mamba_agents import (
     WorkflowResult,
     WorkflowState,
     WorkflowStep,
+
+    # Prompts
+    PromptConfig,
+    PromptManager,
+    PromptTemplate,
+    TemplateConfig,
 )
 ```
 
@@ -47,6 +53,7 @@ from mamba_agents import (
 |--------|-------------|
 | [Context](context/index.md) | Context management and compaction |
 | [Tokens](tokens/index.md) | Token counting and cost estimation |
+| [Prompts](prompts/index.md) | Jinja2 prompt templates |
 | [Workflows](workflows/index.md) | Workflow orchestration |
 | [Tools](tools/index.md) | Built-in tools |
 
@@ -80,6 +87,9 @@ from mamba_agents.workflows import ReActWorkflow, ReActConfig
 
 # Context (advanced)
 from mamba_agents.context import ContextManager, CompactionConfig
+
+# Prompts
+from mamba_agents.prompts import PromptManager, TemplateConfig
 
 # MCP
 from mamba_agents.mcp import MCPClientManager, MCPServerConfig

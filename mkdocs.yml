@@ -52,6 +52,7 @@ nav:
       - Working with Tools: user-guide/tools.md
       - Context Management: user-guide/context-management.md
       - Token Tracking: user-guide/token-tracking.md
+      - Prompt Management: user-guide/prompt-management.md
       - Workflows: user-guide/workflows.md
       - MCP Integration: user-guide/mcp-integration.md
       - Model Backends: user-guide/model-backends.md
@@ -92,6 +93,12 @@ nav:
           - TokenCounter: api/tokens/counter.md
           - UsageTracker: api/tokens/tracker.md
           - CostEstimator: api/tokens/cost.md
+      - Prompts:
+          - api/prompts/index.md
+          - PromptManager: api/prompts/manager.md
+          - PromptTemplate: api/prompts/template.md
+          - Configuration: api/prompts/config.md
+          - Errors: api/prompts/errors.md
       - Tools:
           - api/tools/index.md
           - Filesystem: api/tools/filesystem.md

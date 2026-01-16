@@ -38,6 +38,14 @@ This guide covers all the features of Mamba Agents in detail.
 
     [:octicons-arrow-right-24: Token Tracking](token-tracking.md)
 
+-   :material-text-box-edit: **Prompt Management**
+
+    ---
+
+    Create and manage Jinja2-based prompt templates with versioning.
+
+    [:octicons-arrow-right-24: Prompt Management](prompt-management.md)
+
 </div>
 
 ## Advanced Features
@@ -94,6 +102,7 @@ This guide covers all the features of Mamba Agents in detail.
 | Tools | `mamba_agents.tools` | `read_file`, `run_bash`, `glob_search` |
 | Context | `mamba_agents.context` | `ContextManager`, `CompactionConfig` |
 | Tokens | `mamba_agents.tokens` | `TokenCounter`, `UsageTracker`, `CostEstimator` |
+| Prompts | `mamba_agents.prompts` | `PromptManager`, `PromptTemplate`, `TemplateConfig` |
 | Workflows | `mamba_agents.workflows` | `Workflow`, `ReActWorkflow` |
 | MCP | `mamba_agents.mcp` | `MCPClientManager`, `MCPServerConfig` |
 | Backends | `mamba_agents.backends` | `OpenAICompatibleBackend` |

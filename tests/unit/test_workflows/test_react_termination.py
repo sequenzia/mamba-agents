@@ -5,8 +5,6 @@ from __future__ import annotations
 from typing import Any
 from unittest.mock import Mock
 
-import pytest
-
 from mamba_agents.workflows.react.termination import (
     detect_final_answer,
     extract_text_content,
