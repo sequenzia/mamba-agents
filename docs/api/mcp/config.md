@@ -40,6 +40,8 @@ config = MCPServerConfig(
 | `url` | str | Server URL (sse) |
 | `auth` | MCPAuthConfig | Authentication |
 | `tool_prefix` | str | Prefix for tools |
+| `env_file` | str | Path to .env file |
+| `env_vars` | dict | Environment variables |
 
 ### MCPAuthConfig
 

@@ -99,7 +99,11 @@ from mamba_agents.workflows import Workflow, WorkflowConfig, WorkflowHooks
 from mamba_agents.workflows import ReActWorkflow, ReActConfig, ReActState, ReActHooks
 
 # MCP integration
-from mamba_agents.mcp import MCPClientManager, MCPServerConfig, MCPAuthConfig
+from mamba_agents.mcp import (
+    MCPClientManager, MCPServerConfig, MCPAuthConfig,
+    load_mcp_json,  # Load from .mcp.json files
+    MCPConfigError, MCPFileNotFoundError, MCPFileParseError, MCPServerValidationError,
+)
 
 # Model backends
 from mamba_agents.backends import create_ollama_backend, create_vllm_backend
@@ -175,6 +179,8 @@ def test_file_ops(tmp_sandbox: Path):
 | MCP config | `src/mamba_agents/mcp/config.py` |
 | MCP auth | `src/mamba_agents/mcp/auth.py` |
 | MCP env resolution | `src/mamba_agents/mcp/env.py` |
+| MCP file loader | `src/mamba_agents/mcp/loader.py` |
+| MCP errors | `src/mamba_agents/mcp/errors.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
 
@@ -225,6 +231,14 @@ def test_file_ops(tmp_sandbox: Path):
   - `MCPAuthConfig` handles API key auth via direct key or env var (`key_env` or `${VAR}` syntax)
   - `tool_prefix` avoids name conflicts when using multiple servers
   - `env_file` and `env_vars` configure environment for stdio servers (precedence: env_vars > env_file > system env)
+  - **File-based config**: Load from `.mcp.json` files (Claude Desktop compatible format)
+    - `MCPClientManager.from_mcp_json(path)` - create manager from file
+    - `manager.add_from_file(path)` - add configs from file to existing manager
+    - `load_mcp_json(path)` - load configs directly (returns `list[MCPServerConfig]`)
+    - Supports standard fields: command, args, env, url
+    - Extended fields: tool_prefix, env_file (mamba-agents additions)
+    - Transport auto-detected: url → SSE, command → stdio
+  - MCP errors: `MCPConfigError`, `MCPFileNotFoundError`, `MCPFileParseError`, `MCPServerValidationError`
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
   - `Workflow` is an ABC - extend it to create custom patterns (ReAct, Plan-Execute, Reflection)

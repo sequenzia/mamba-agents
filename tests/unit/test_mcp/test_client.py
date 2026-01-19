@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import pytest
 from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
 
-from mamba_agents.mcp import MCPClientManager, MCPServerConfig
+from mamba_agents.mcp import MCPClientManager, MCPFileNotFoundError, MCPServerConfig
 
 
 class TestMCPClientManager:
@@ -131,3 +134,125 @@ class TestMCPClientManagerAsToolsets:
 
         with pytest.raises(ValueError, match="URL required for SSE transport"):
             manager.as_toolsets()
+
+
+class TestMCPClientManagerFromFile:
+    """Tests for from_mcp_json() and add_from_file() methods."""
+
+    def test_from_mcp_json_creates_manager(self, tmp_path: Path) -> None:
+        """Test that from_mcp_json creates a manager with loaded configs."""
+        mcp_json = {
+            "mcpServers": {
+                "filesystem": {
+                    "command": "npx",
+                    "args": ["-y", "@modelcontextprotocol/server-filesystem"],
+                },
+                "web-search": {
+                    "url": "http://localhost:8080/sse",
+                },
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        manager = MCPClientManager.from_mcp_json(config_file)
+
+        assert len(manager.configs) == 2
+        names = {c.name for c in manager.configs}
+        assert names == {"filesystem", "web-search"}
+
+    def test_from_mcp_json_with_string_path(self, tmp_path: Path) -> None:
+        """Test from_mcp_json with string path."""
+        mcp_json = {
+            "mcpServers": {
+                "test": {"command": "test-cmd"}
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        manager = MCPClientManager.from_mcp_json(str(config_file))
+
+        assert len(manager.configs) == 1
+        assert manager.configs[0].name == "test"
+
+    def test_from_mcp_json_file_not_found(self) -> None:
+        """Test that from_mcp_json raises error for missing file."""
+        with pytest.raises(MCPFileNotFoundError):
+            MCPClientManager.from_mcp_json("/nonexistent/.mcp.json")
+
+    def test_add_from_file_appends_configs(self, tmp_path: Path) -> None:
+        """Test that add_from_file appends to existing configs."""
+        # Create initial manager with one config
+        initial_config = MCPServerConfig(name="existing", command="existing-cmd")
+        manager = MCPClientManager([initial_config])
+
+        # Create .mcp.json with another config
+        mcp_json = {
+            "mcpServers": {
+                "new-server": {"command": "new-cmd"}
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        manager.add_from_file(config_file)
+
+        assert len(manager.configs) == 2
+        names = {c.name for c in manager.configs}
+        assert names == {"existing", "new-server"}
+
+    def test_add_from_file_preserves_existing(self, tmp_path: Path) -> None:
+        """Test that add_from_file preserves existing config details."""
+        # Create initial manager with specific config
+        initial_config = MCPServerConfig(
+            name="existing",
+            command="existing-cmd",
+            args=["--flag"],
+            tool_prefix="ex"
+        )
+        manager = MCPClientManager([initial_config])
+
+        # Create empty .mcp.json
+        mcp_json = {"mcpServers": {}}
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        manager.add_from_file(config_file)
+
+        # Original config should be unchanged
+        assert len(manager.configs) == 1
+        assert manager.configs[0].name == "existing"
+        assert manager.configs[0].command == "existing-cmd"
+        assert manager.configs[0].args == ["--flag"]
+        assert manager.configs[0].tool_prefix == "ex"
+
+    def test_add_from_file_multiple_files(self, tmp_path: Path) -> None:
+        """Test adding configs from multiple files."""
+        manager = MCPClientManager()
+
+        # First file
+        file1 = tmp_path / "project.mcp.json"
+        file1.write_text(json.dumps({
+            "mcpServers": {"server1": {"command": "cmd1"}}
+        }))
+
+        # Second file
+        file2 = tmp_path / "user.mcp.json"
+        file2.write_text(json.dumps({
+            "mcpServers": {"server2": {"command": "cmd2"}}
+        }))
+
+        manager.add_from_file(file1)
+        manager.add_from_file(file2)
+
+        assert len(manager.configs) == 2
+        names = {c.name for c in manager.configs}
+        assert names == {"server1", "server2"}
+
+    def test_add_from_file_raises_for_missing_file(self, tmp_path: Path) -> None:
+        """Test that add_from_file raises error for missing file."""
+        manager = MCPClientManager()
+
+        with pytest.raises(MCPFileNotFoundError):
+            manager.add_from_file(tmp_path / "nonexistent.mcp.json")

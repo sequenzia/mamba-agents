@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
@@ -9,6 +10,7 @@ from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio
 from mamba_agents.mcp.auth import build_auth_headers
 from mamba_agents.mcp.config import MCPServerConfig
 from mamba_agents.mcp.env import resolve_server_env
+from mamba_agents.mcp.loader import load_mcp_json
 
 if TYPE_CHECKING:
     from pydantic_ai.mcp import MCPServer
@@ -111,3 +113,52 @@ class MCPClientManager:
     def configs(self) -> list[MCPServerConfig]:
         """Get all server configurations."""
         return self._configs.copy()
+
+    @classmethod
+    def from_mcp_json(cls, path: str | Path) -> MCPClientManager:
+        """Create an MCPClientManager from a .mcp.json file.
+
+        Parses the .mcp.json file format (compatible with Claude Desktop) and
+        creates a manager with the loaded configurations.
+
+        Args:
+            path: Path to the .mcp.json file. Can be a string or Path object.
+                  Supports ~ expansion for user home directory.
+
+        Returns:
+            MCPClientManager instance with loaded configurations.
+
+        Raises:
+            MCPFileNotFoundError: If the file does not exist.
+            MCPFileParseError: If the file is not valid JSON.
+            MCPServerValidationError: If a server entry is invalid.
+
+        Example:
+            >>> manager = MCPClientManager.from_mcp_json(".mcp.json")
+            >>> agent = Agent("gpt-4o", toolsets=manager.as_toolsets())
+        """
+        configs = load_mcp_json(path)
+        return cls(configs)
+
+    def add_from_file(self, path: str | Path) -> None:
+        """Add server configurations from a .mcp.json file.
+
+        Parses the .mcp.json file and appends configurations to the existing
+        list. Useful for merging multiple configuration sources.
+
+        Args:
+            path: Path to the .mcp.json file. Can be a string or Path object.
+                  Supports ~ expansion for user home directory.
+
+        Raises:
+            MCPFileNotFoundError: If the file does not exist.
+            MCPFileParseError: If the file is not valid JSON.
+            MCPServerValidationError: If a server entry is invalid.
+
+        Example:
+            >>> manager = MCPClientManager(existing_configs)
+            >>> manager.add_from_file("project/.mcp.json")
+            >>> manager.add_from_file("~/.mcp.json")  # User defaults
+        """
+        configs = load_mcp_json(path)
+        self._configs.extend(configs)
