@@ -110,6 +110,8 @@ nav:
           - api/mcp/index.md
           - MCPClientManager: api/mcp/client.md
           - MCPServerConfig: api/mcp/config.md
+          - load_mcp_json: api/mcp/loader.md
+          - MCP Errors: api/mcp/errors.md
       - Config:
           - api/config/index.md
           - AgentSettings: api/config/settings.md
