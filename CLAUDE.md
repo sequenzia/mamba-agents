@@ -227,10 +227,11 @@ def test_file_ops(tmp_sandbox: Path):
   - Use `MCPClientManager.as_toolsets()` to create servers from config (recommended)
   - pydantic-ai handles MCP server lifecycle automatically (no manual connect/disconnect)
   - Supports stdio (subprocess) and SSE (HTTP) transports
-  - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix, env_file, env_vars
+  - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix, env_file, env_vars, timeout, read_timeout
   - `MCPAuthConfig` handles API key auth via direct key or env var (`key_env` or `${VAR}` syntax)
   - `tool_prefix` avoids name conflicts when using multiple servers
   - `env_file` and `env_vars` configure environment for stdio servers (precedence: env_vars > env_file > system env)
+  - `timeout` (default: 30s) and `read_timeout` (default: 300s) control MCP server initialization and read timeouts
   - **File-based config**: Load from `.mcp.json` files (Claude Desktop compatible format)
     - `MCPClientManager.from_mcp_json(path)` - create manager from file
     - `manager.add_from_file(path)` - add configs from file to existing manager
