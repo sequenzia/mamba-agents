@@ -93,3 +93,20 @@ class TestMCPServerConfig:
         """Test that default args is empty list."""
         config = MCPServerConfig(name="test", command="test-cmd")
         assert config.args == []
+
+    def test_default_timeout_values(self) -> None:
+        """Test that default timeout values are set correctly."""
+        config = MCPServerConfig(name="test", command="test-cmd")
+        assert config.timeout == 30.0
+        assert config.read_timeout == 300.0
+
+    def test_custom_timeout_values(self) -> None:
+        """Test MCPServerConfig with custom timeout values."""
+        config = MCPServerConfig(
+            name="slow-server",
+            command="slow-cmd",
+            timeout=60.0,
+            read_timeout=600.0,
+        )
+        assert config.timeout == 60.0
+        assert config.read_timeout == 600.0

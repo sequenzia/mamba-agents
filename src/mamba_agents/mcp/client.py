@@ -96,6 +96,8 @@ class MCPClientManager:
                 args=config.args,
                 env=env,
                 tool_prefix=config.tool_prefix,
+                timeout=config.timeout,
+                read_timeout=config.read_timeout,
             )
         elif config.transport == "sse":
             if not config.url:
@@ -105,7 +107,13 @@ class MCPClientManager:
             if config.auth:
                 headers = build_auth_headers(config.auth)
 
-            return MCPServerSSE(config.url, headers=headers, tool_prefix=config.tool_prefix)
+            return MCPServerSSE(
+                config.url,
+                headers=headers,
+                tool_prefix=config.tool_prefix,
+                timeout=config.timeout,
+                read_timeout=config.read_timeout,
+            )
         else:
             raise ValueError(f"Unknown transport: {config.transport}")
 

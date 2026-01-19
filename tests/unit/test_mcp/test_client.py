@@ -136,6 +136,86 @@ class TestMCPClientManagerAsToolsets:
             manager.as_toolsets()
 
 
+class TestMCPClientManagerTimeouts:
+    """Tests for timeout configuration in MCPClientManager."""
+
+    def test_stdio_server_uses_default_timeouts(self) -> None:
+        """Test that stdio server uses default timeout values."""
+        configs = [
+            MCPServerConfig(
+                name="test",
+                transport="stdio",
+                command="test-cmd",
+            ),
+        ]
+        manager = MCPClientManager(configs)
+        toolsets = manager.as_toolsets()
+
+        assert len(toolsets) == 1
+        server = toolsets[0]
+        assert isinstance(server, MCPServerStdio)
+        assert server.timeout == 30.0
+        assert server.read_timeout == 300.0
+
+    def test_stdio_server_uses_custom_timeouts(self) -> None:
+        """Test that stdio server uses custom timeout values from config."""
+        configs = [
+            MCPServerConfig(
+                name="slow-server",
+                transport="stdio",
+                command="slow-cmd",
+                timeout=60.0,
+                read_timeout=600.0,
+            ),
+        ]
+        manager = MCPClientManager(configs)
+        toolsets = manager.as_toolsets()
+
+        assert len(toolsets) == 1
+        server = toolsets[0]
+        assert isinstance(server, MCPServerStdio)
+        assert server.timeout == 60.0
+        assert server.read_timeout == 600.0
+
+    def test_sse_server_uses_default_timeouts(self) -> None:
+        """Test that SSE server uses default timeout values."""
+        configs = [
+            MCPServerConfig(
+                name="test",
+                transport="sse",
+                url="http://localhost:8080/sse",
+            ),
+        ]
+        manager = MCPClientManager(configs)
+        toolsets = manager.as_toolsets()
+
+        assert len(toolsets) == 1
+        server = toolsets[0]
+        assert isinstance(server, MCPServerSSE)
+        assert server.timeout == 30.0
+        assert server.read_timeout == 300.0
+
+    def test_sse_server_uses_custom_timeouts(self) -> None:
+        """Test that SSE server uses custom timeout values from config."""
+        configs = [
+            MCPServerConfig(
+                name="slow-server",
+                transport="sse",
+                url="http://localhost:8080/sse",
+                timeout=120.0,
+                read_timeout=1200.0,
+            ),
+        ]
+        manager = MCPClientManager(configs)
+        toolsets = manager.as_toolsets()
+
+        assert len(toolsets) == 1
+        server = toolsets[0]
+        assert isinstance(server, MCPServerSSE)
+        assert server.timeout == 120.0
+        assert server.read_timeout == 1200.0
+
+
 class TestMCPClientManagerFromFile:
     """Tests for from_mcp_json() and add_from_file() methods."""
 

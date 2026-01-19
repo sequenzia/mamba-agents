@@ -48,6 +48,8 @@ class MCPServerConfig(BaseModel):
         tool_prefix: Prefix for tool names from this server.
         env_file: Path to .env file for environment variables.
         env_vars: Environment variables (highest precedence).
+        timeout: Initialization timeout in seconds (default: 30).
+        read_timeout: Read timeout for long-lived connections in seconds (default: 300).
     """
 
     name: str = Field(description="Unique server name")
@@ -87,4 +89,13 @@ class MCPServerConfig(BaseModel):
     env_vars: dict[str, str] | None = Field(
         default=None,
         description="Environment variables (highest precedence)",
+    )
+    # Timeouts
+    timeout: float = Field(
+        default=30.0,
+        description="Initialization timeout in seconds (default: 30)",
+    )
+    read_timeout: float = Field(
+        default=300.0,
+        description="Read timeout for long-lived connections in seconds (default: 300)",
     )
