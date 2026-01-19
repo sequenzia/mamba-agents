@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "pg-mcp-server": {
+      "type": "stdio",
+        "command": "uv",
+        "args": [
+          "--directory",
+          "/Users/sequenzia/dev/repos/pg-mcp-server",
+          "run",
+          "pg-mcp-server",
+          "--env-file",
+          "/Users/sequenzia/dev/repos/pg-mcp-server/.env"
+        ]
+    }
+  }
+}
