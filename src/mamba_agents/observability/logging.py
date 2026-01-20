@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
-from typing import Any
+from typing import Any, ClassVar
 
 from mamba_agents.config.logging_config import LoggingConfig
 
@@ -12,7 +12,7 @@ from mamba_agents.config.logging_config import LoggingConfig
 class SensitiveDataFilter(logging.Filter):
     """Filter to redact sensitive data from log messages."""
 
-    SENSITIVE_PATTERNS = [
+    SENSITIVE_PATTERNS: ClassVar[list[str]] = [
         "api_key",
         "api-key",
         "apikey",

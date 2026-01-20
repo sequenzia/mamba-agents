@@ -67,10 +67,7 @@ def _should_retry(exception: BaseException) -> bool:
         return False
 
     # Retry connection and timeout errors
-    if isinstance(exception, (ConnectionError, TimeoutError)):
-        return True
-
-    return False
+    return bool(isinstance(exception, (ConnectionError, TimeoutError)))
 
 
 def create_retry_decorator(

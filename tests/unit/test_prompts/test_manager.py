@@ -180,9 +180,9 @@ class TestPromptManagerCaching:
         manager.register("test/cached", "Cached: {{ x }}")
 
         # First access
-        template1 = manager.get("test/cached")
+        manager.get("test/cached")
         # Second access should return same instance from cache
-        template2 = manager.get("test/cached")
+        manager.get("test/cached")
 
         # Note: for registered templates, they're stored directly
         # Cache is mainly for file-based templates

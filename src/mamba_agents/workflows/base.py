@@ -6,7 +6,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from mamba_agents.workflows.config import WorkflowConfig
@@ -18,7 +18,7 @@ StateT = TypeVar("StateT")
 
 
 @dataclass
-class WorkflowStep(Generic[OutputT]):
+class WorkflowStep[OutputT]:
     """A single step in workflow execution.
 
     Attributes:
@@ -59,7 +59,7 @@ class WorkflowStep(Generic[OutputT]):
 
 
 @dataclass
-class WorkflowState(Generic[StateT]):
+class WorkflowState[StateT]:
     """Current state of workflow execution.
 
     Tracks progress, decisions, and execution history.
@@ -101,7 +101,7 @@ class WorkflowState(Generic[StateT]):
 
 
 @dataclass
-class WorkflowResult(Generic[OutputT, StateT]):
+class WorkflowResult[OutputT, StateT]:
     """Result of workflow execution.
 
     Attributes:
@@ -163,7 +163,7 @@ class WorkflowResult(Generic[OutputT, StateT]):
         )
 
 
-class Workflow(ABC, Generic[DepsT, OutputT, StateT]):
+class Workflow[DepsT, OutputT, StateT](ABC):
     """Abstract base class for agentic workflows.
 
     Workflows orchestrate Agent instances through multi-step execution patterns.

@@ -39,10 +39,18 @@ class TestReActHooks:
 
     def test_set_react_hooks(self) -> None:
         """Test setting ReAct-specific hooks."""
-        thought_callback = lambda state, thought: None
-        action_callback = lambda state, name, args: None
-        observation_callback = lambda state, obs, is_error: None
-        compaction_callback = lambda result: None
+
+        def thought_callback(state, thought):
+            return None
+
+        def action_callback(state, name, args):
+            return None
+
+        def observation_callback(state, obs, is_error):
+            return None
+
+        def compaction_callback(result):
+            return None
 
         hooks = ReActHooks(
             on_thought=thought_callback,
@@ -58,8 +66,12 @@ class TestReActHooks:
 
     def test_set_inherited_hooks(self) -> None:
         """Test setting inherited workflow hooks."""
-        start_callback = lambda state: None
-        complete_callback = lambda result: None
+
+        def start_callback(state):
+            return None
+
+        def complete_callback(result):
+            return None
 
         hooks = ReActHooks(
             on_workflow_start=start_callback,

@@ -68,10 +68,7 @@ def model_messages_to_dicts(messages: list[ModelMessage]) -> list[dict[str, Any]
                 elif part_type == "ToolCallPart":
                     args = getattr(part, "args", {})
                     # Convert args to JSON string if it's a dict
-                    if isinstance(args, dict):
-                        args_str = json.dumps(args)
-                    else:
-                        args_str = str(args)
+                    args_str = json.dumps(args) if isinstance(args, dict) else str(args)
 
                     tool_calls.append(
                         {

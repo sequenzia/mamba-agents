@@ -6,7 +6,7 @@ import asyncio
 import functools
 import inspect
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from mamba_agents.workflows.base import WorkflowResult, WorkflowState, WorkflowStep
@@ -46,7 +46,7 @@ IterationCompleteHook = Callable[
 ]
 
 
-class WorkflowHooks(Generic[StateT, OutputT]):
+class WorkflowHooks[StateT, OutputT]:
     """Hook callbacks for workflow execution events.
 
     All hooks are optional and receive workflow state/context.

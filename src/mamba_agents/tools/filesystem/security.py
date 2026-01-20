@@ -55,7 +55,7 @@ class FilesystemSecurity(BaseModel):
             except ValueError:
                 raise PermissionError(
                     f"Path outside allowed directory: {path} not in {self.base_directory}"
-                )
+                ) from None
 
         # Check extension constraints
         suffix = resolved.suffix.lower()

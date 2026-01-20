@@ -145,18 +145,18 @@ class TestLoadMcpJson:
 
         assert configs == []
 
-    def test_load_supports_tilde_expansion(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    def test_load_supports_tilde_expansion(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
         """Test that ~ in path expands to home directory."""
-        mcp_json = {
-            "mcpServers": {
-                "test": {"command": "test-cmd"}
-            }
-        }
+        mcp_json = {"mcpServers": {"test": {"command": "test-cmd"}}}
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
         # Mock expanduser to return our temp path
-        monkeypatch.setattr(Path, "expanduser", lambda self: tmp_path / ".mcp.json" if "~" in str(self) else self)
+        monkeypatch.setattr(
+            Path, "expanduser", lambda self: tmp_path / ".mcp.json" if "~" in str(self) else self
+        )
 
         configs = load_mcp_json("~/.mcp.json")
 
@@ -177,42 +177,31 @@ class TestLoadMcpJson:
 
     def test_missing_command_and_url(self, tmp_path: Path) -> None:
         """Test validation error when neither command nor url is specified."""
-        mcp_json = {
-            "mcpServers": {
-                "broken": {
-                    "args": ["arg1", "arg2"]
-                }
-            }
-        }
+        mcp_json = {"mcpServers": {"broken": {"args": ["arg1", "arg2"]}}}
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
-        with pytest.raises(MCPServerValidationError, match="Either 'command' or 'url' must be specified"):
+        with pytest.raises(
+            MCPServerValidationError, match="Either 'command' or 'url' must be specified"
+        ):
             load_mcp_json(config_file)
 
     def test_both_command_and_url(self, tmp_path: Path) -> None:
         """Test validation error when both command and url are specified."""
         mcp_json = {
-            "mcpServers": {
-                "broken": {
-                    "command": "npx",
-                    "url": "http://localhost:8080/sse"
-                }
-            }
+            "mcpServers": {"broken": {"command": "npx", "url": "http://localhost:8080/sse"}}
         }
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
-        with pytest.raises(MCPServerValidationError, match="Cannot specify both 'command' and 'url'"):
+        with pytest.raises(
+            MCPServerValidationError, match="Cannot specify both 'command' and 'url'"
+        ):
             load_mcp_json(config_file)
 
     def test_load_with_string_path(self, tmp_path: Path) -> None:
         """Test loading with string path (not Path object)."""
-        mcp_json = {
-            "mcpServers": {
-                "test": {"command": "test-cmd"}
-            }
-        }
+        mcp_json = {"mcpServers": {"test": {"command": "test-cmd"}}}
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
@@ -230,12 +219,9 @@ class TestLoadMcpJson:
                     "args": ["-y", "@modelcontextprotocol/server-filesystem", "/project"],
                     "env": {"NODE_ENV": "production"},
                     "tool_prefix": "fs",
-                    "env_file": ".env.local"
+                    "env_file": ".env.local",
                 },
-                "web-search": {
-                    "url": "http://localhost:8080/sse",
-                    "tool_prefix": "web"
-                }
+                "web-search": {"url": "http://localhost:8080/sse", "tool_prefix": "web"},
             }
         }
         config_file = tmp_path / ".mcp.json"

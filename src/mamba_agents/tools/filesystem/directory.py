@@ -31,10 +31,7 @@ def list_directory(
         NotADirectoryError: If the path is not a directory.
         PermissionError: If access is denied or path is outside sandbox.
     """
-    if security is not None:
-        validated_path = security.validate_path(path)
-    else:
-        validated_path = Path(path)
+    validated_path = security.validate_path(path) if security is not None else Path(path)
 
     if not validated_path.exists():
         raise FileNotFoundError(f"Directory not found: {path}")

@@ -64,7 +64,7 @@ class ImportanceScoringStrategy(CompactionStrategy):
         scores = await self._score_messages(messages)
 
         # Create list of (index, message, score) for sorting
-        indexed = [(i, m, s) for i, (m, s) in enumerate(zip(messages, scores))]
+        indexed = [(i, m, s) for i, (m, s) in enumerate(zip(messages, scores, strict=False))]
 
         # Separate preserved messages
         if preserve_recent > 0:
@@ -144,11 +144,8 @@ class ImportanceScoringStrategy(CompactionStrategy):
             elif role == "user":
                 role_score = 0.7  # User messages are fairly important
             elif role == "assistant":
-                # Check for tool calls
-                if msg.get("tool_calls"):
-                    role_score = 0.5  # Tool calls less important once done
-                else:
-                    role_score = 0.6
+                # Tool calls less important once done, otherwise moderate importance
+                role_score = 0.5 if msg.get("tool_calls") else 0.6
             elif role == "tool":
                 role_score = 0.3  # Tool results least important once processed
             else:

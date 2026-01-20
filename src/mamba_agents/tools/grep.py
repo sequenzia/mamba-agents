@@ -59,21 +59,14 @@ def grep_search(
         FileNotFoundError: If the path doesn't exist.
         PermissionError: If access is denied.
     """
-    if security is not None:
-        search_path = security.validate_path(path)
-    else:
-        search_path = Path(path)
+    search_path = security.validate_path(path) if security is not None else Path(path)
 
     if not search_path.exists():
         raise FileNotFoundError(f"Path not found: {path}")
 
-    # Compile the pattern
+    # Compile the pattern (escape for literal search if not regex mode)
     flags = re.IGNORECASE if ignore_case else 0
-    if regex:
-        compiled = re.compile(pattern, flags)
-    else:
-        # Escape special regex characters for literal search
-        compiled = re.compile(re.escape(pattern), flags)
+    compiled = re.compile(pattern, flags) if regex else re.compile(re.escape(pattern), flags)
 
     matches: list[GrepMatch] = []
 

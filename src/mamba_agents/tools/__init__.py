@@ -16,20 +16,20 @@ from mamba_agents.tools.grep import grep_search
 from mamba_agents.tools.registry import ToolRegistry
 
 __all__ = [
-    # Filesystem tools
-    "read_file",
-    "write_file",
+    # Registry
+    "ToolRegistry",
     "append_file",
-    "list_directory",
-    "file_info",
-    "delete_file",
-    "move_file",
     "copy_file",
+    "delete_file",
+    "file_info",
     # Search tools
     "glob_search",
     "grep_search",
+    "list_directory",
+    "move_file",
+    # Filesystem tools
+    "read_file",
     # Shell tools
     "run_bash",
-    # Registry
-    "ToolRegistry",
+    "write_file",
 ]

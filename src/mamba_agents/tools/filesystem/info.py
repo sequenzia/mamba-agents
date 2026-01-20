@@ -33,10 +33,7 @@ def file_info(
         FileNotFoundError: If the file does not exist.
         PermissionError: If access is denied or path is outside sandbox.
     """
-    if security is not None:
-        validated_path = security.validate_path(path)
-    else:
-        validated_path = Path(path)
+    validated_path = security.validate_path(path) if security is not None else Path(path)
 
     if not validated_path.exists():
         raise FileNotFoundError(f"File not found: {path}")

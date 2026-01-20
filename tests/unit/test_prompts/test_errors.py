@@ -1,6 +1,5 @@
 """Tests for prompt error classes."""
 
-
 from mamba_agents.prompts.errors import (
     PromptError,
     PromptNotFoundError,

@@ -126,5 +126,6 @@ class ModelBackend(ABC):
         """Close any open connections.
 
         Override this method to clean up resources.
+        Default implementation does nothing.
         """
-        pass
+        return

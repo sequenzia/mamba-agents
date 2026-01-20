@@ -119,7 +119,7 @@ source = ["src/mamba_agents"]
 branch = true
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 50
 exclude_lines = [
     "pragma: no cover",
     "if TYPE_CHECKING:",

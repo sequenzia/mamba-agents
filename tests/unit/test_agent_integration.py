@@ -227,7 +227,7 @@ class TestAgentRunIntegration:
         assert agent.get_usage().request_count == 0
 
         # Run the agent
-        result = await agent.run("Hello")
+        await agent.run("Hello")
 
         # Usage should be tracked
         usage = agent.get_usage()
@@ -243,7 +243,7 @@ class TestAgentRunIntegration:
         assert len(agent.get_messages()) == 0
 
         # Run the agent
-        result = await agent.run("Hello")
+        await agent.run("Hello")
 
         # Messages should be tracked
         messages = agent.get_messages()
@@ -258,7 +258,7 @@ class TestAgentRunIntegration:
         assert agent.get_usage().request_count == 0
 
         # Run the agent
-        result = agent.run_sync("Hello")
+        agent.run_sync("Hello")
 
         # Usage should be tracked
         usage = agent.get_usage()
@@ -273,7 +273,7 @@ class TestAgentRunIntegration:
         assert len(agent.get_messages()) == 0
 
         # Run the agent
-        result = agent.run_sync("Hello")
+        agent.run_sync("Hello")
 
         # Messages should be tracked
         messages = agent.get_messages()

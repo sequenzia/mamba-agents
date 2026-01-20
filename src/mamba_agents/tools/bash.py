@@ -78,7 +78,7 @@ def run_bash(
 async def run_bash_async(
     command: str,
     working_dir: str = ".",
-    timeout: int = 30,
+    timeout_seconds: int = 30,
     env: dict[str, str] | None = None,
 ) -> BashResult:
     """Execute a shell command asynchronously.
@@ -86,7 +86,7 @@ async def run_bash_async(
     Args:
         command: The shell command to execute.
         working_dir: Working directory for the command.
-        timeout: Timeout in seconds (default: 30).
+        timeout_seconds: Timeout in seconds (default: 30).
         env: Optional environment variables to add.
 
     Returns:
@@ -110,7 +110,7 @@ async def run_bash_async(
 
         stdout, stderr = await asyncio.wait_for(
             proc.communicate(),
-            timeout=timeout,
+            timeout=timeout_seconds,
         )
 
         return BashResult(

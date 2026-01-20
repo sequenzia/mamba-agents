@@ -7,7 +7,7 @@ import time
 from collections import deque
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -83,7 +83,7 @@ class CircuitBreakerOpenError(Exception):
         )
 
 
-class CircuitBreaker(Generic[T]):
+class CircuitBreaker[T]:
     """Circuit breaker for protecting against cascading failures.
 
     The circuit breaker monitors calls to a service and trips
@@ -133,9 +133,8 @@ class CircuitBreaker(Generic[T]):
     @property
     def state(self) -> CircuitState:
         """Get current circuit state, transitioning if needed."""
-        if self._state == CircuitState.OPEN:
-            if self._should_attempt_reset():
-                self._transition_to(CircuitState.HALF_OPEN)
+        if self._state == CircuitState.OPEN and self._should_attempt_reset():
+            self._transition_to(CircuitState.HALF_OPEN)
         return self._state
 
     @property
@@ -190,13 +189,8 @@ class CircuitBreaker(Generic[T]):
         """
         current_state = self.state  # This may trigger transition
 
-        if current_state == CircuitState.CLOSED:
-            return True
-        elif current_state == CircuitState.HALF_OPEN:
-            # Allow limited requests in half-open
-            return True
-        else:  # OPEN
-            return False
+        # Allow requests in CLOSED or HALF_OPEN states, deny in OPEN
+        return current_state != CircuitState.OPEN
 
     def record_success(self) -> None:
         """Record a successful call."""
@@ -225,9 +219,11 @@ class CircuitBreaker(Generic[T]):
         if self._state == CircuitState.HALF_OPEN:
             # Immediate trip back to open on failure in half-open
             self._transition_to(CircuitState.OPEN)
-        elif self._state == CircuitState.CLOSED:
-            if self._count_recent_failures() >= self.config.failure_threshold:
-                self._transition_to(CircuitState.OPEN)
+        elif (
+            self._state == CircuitState.CLOSED
+            and self._count_recent_failures() >= self.config.failure_threshold
+        ):
+            self._transition_to(CircuitState.OPEN)
 
     def get_time_until_retry(self) -> float:
         """Get seconds until retry is allowed.

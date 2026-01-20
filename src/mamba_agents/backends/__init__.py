@@ -18,17 +18,17 @@ from mamba_agents.backends.profiles import (
 __all__ = [
     # Base classes
     "ModelBackend",
-    "ModelResponse",
-    "StreamChunk",
-    # OpenAI compatible
-    "OpenAICompatibleBackend",
-    "create_ollama_backend",
-    "create_vllm_backend",
-    "create_lmstudio_backend",
     # Profiles
     "ModelProfile",
+    "ModelResponse",
+    # OpenAI compatible
+    "OpenAICompatibleBackend",
+    "StreamChunk",
+    "create_lmstudio_backend",
+    "create_ollama_backend",
+    "create_vllm_backend",
     "get_profile",
-    "register_profile",
-    "list_profiles",
     "get_profiles_by_provider",
+    "list_profiles",
+    "register_profile",
 ]

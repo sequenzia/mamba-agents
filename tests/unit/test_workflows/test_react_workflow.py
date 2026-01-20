@@ -278,7 +278,7 @@ class TestReActWorkflowIntegration:
         )
 
         workflow = ReActWorkflow(agent, config=config, hooks=hooks)
-        result = await workflow.run("Test")
+        await workflow.run("Test")
 
         # Workflow hooks should be called even on failure
         assert "workflow_start" in log

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
@@ -25,7 +25,7 @@ class ToolConfig(BaseModel):
 
 
 @dataclass
-class ToolResult(Generic[T]):
+class ToolResult[T]:
     """Result from a tool execution.
 
     Attributes:

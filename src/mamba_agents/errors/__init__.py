@@ -27,22 +27,22 @@ from mamba_agents.errors.retry import (
 __all__ = [
     # Exceptions
     "AgentError",
-    "ConfigurationError",
-    "ModelBackendError",
-    "ToolExecutionError",
-    "ContextOverflowError",
-    "MCPError",
-    "RateLimitError",
     "AuthenticationError",
-    "TimeoutError",
     # Circuit breaker
     "CircuitBreaker",
     "CircuitBreakerConfig",
     "CircuitBreakerOpenError",
     "CircuitState",
     "CircuitStats",
+    "ConfigurationError",
+    "ContextOverflowError",
+    "MCPError",
+    "ModelBackendError",
+    "RateLimitError",
+    "RetryContext",
+    "TimeoutError",
+    "ToolExecutionError",
+    "create_model_retry_decorator",
     # Retry
     "create_retry_decorator",
-    "create_model_retry_decorator",
-    "RetryContext",
 ]

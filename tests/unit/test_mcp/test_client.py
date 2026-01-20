@@ -243,11 +243,7 @@ class TestMCPClientManagerFromFile:
 
     def test_from_mcp_json_with_string_path(self, tmp_path: Path) -> None:
         """Test from_mcp_json with string path."""
-        mcp_json = {
-            "mcpServers": {
-                "test": {"command": "test-cmd"}
-            }
-        }
+        mcp_json = {"mcpServers": {"test": {"command": "test-cmd"}}}
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
@@ -268,11 +264,7 @@ class TestMCPClientManagerFromFile:
         manager = MCPClientManager([initial_config])
 
         # Create .mcp.json with another config
-        mcp_json = {
-            "mcpServers": {
-                "new-server": {"command": "new-cmd"}
-            }
-        }
+        mcp_json = {"mcpServers": {"new-server": {"command": "new-cmd"}}}
         config_file = tmp_path / ".mcp.json"
         config_file.write_text(json.dumps(mcp_json))
 
@@ -286,10 +278,7 @@ class TestMCPClientManagerFromFile:
         """Test that add_from_file preserves existing config details."""
         # Create initial manager with specific config
         initial_config = MCPServerConfig(
-            name="existing",
-            command="existing-cmd",
-            args=["--flag"],
-            tool_prefix="ex"
+            name="existing", command="existing-cmd", args=["--flag"], tool_prefix="ex"
         )
         manager = MCPClientManager([initial_config])
 
@@ -313,15 +302,11 @@ class TestMCPClientManagerFromFile:
 
         # First file
         file1 = tmp_path / "project.mcp.json"
-        file1.write_text(json.dumps({
-            "mcpServers": {"server1": {"command": "cmd1"}}
-        }))
+        file1.write_text(json.dumps({"mcpServers": {"server1": {"command": "cmd1"}}}))
 
         # Second file
         file2 = tmp_path / "user.mcp.json"
-        file2.write_text(json.dumps({
-            "mcpServers": {"server2": {"command": "cmd2"}}
-        }))
+        file2.write_text(json.dumps({"mcpServers": {"server2": {"command": "cmd2"}}}))
 
         manager.add_from_file(file1)
         manager.add_from_file(file2)

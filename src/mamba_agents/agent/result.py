@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 if TYPE_CHECKING:
     from pydantic_ai.result import RunResult
@@ -14,7 +14,7 @@ T = TypeVar("T")
 
 
 @dataclass
-class AgentResult(Generic[T]):
+class AgentResult[T]:
     """Wrapper for agent run results with additional metadata.
 
     Provides convenient access to the result output, message history,

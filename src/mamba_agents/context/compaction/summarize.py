@@ -87,7 +87,7 @@ class SummarizeOlderStrategy(CompactionStrategy):
             "content": f"[Previous conversation summary: {summary}]",
         }
 
-        result_messages = [summary_message] + to_preserve
+        result_messages = [summary_message, *to_preserve]
         tokens_after = self._count_tokens(result_messages)
 
         return CompactionResult(

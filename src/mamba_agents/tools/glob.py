@@ -29,10 +29,7 @@ def glob_search(
     Raises:
         PermissionError: If access is denied or path is outside sandbox.
     """
-    if security is not None:
-        root = security.validate_path(root_dir)
-    else:
-        root = Path(root_dir)
+    root = security.validate_path(root_dir) if security is not None else Path(root_dir)
 
     if not root.exists():
         raise FileNotFoundError(f"Directory not found: {root_dir}")
@@ -41,10 +38,7 @@ def glob_search(
         raise NotADirectoryError(f"Not a directory: {root_dir}")
 
     # Use rglob for recursive, glob for non-recursive
-    if recursive:
-        matches = root.rglob(pattern)
-    else:
-        matches = root.glob(pattern)
+    matches = root.rglob(pattern) if recursive else root.glob(pattern)
 
     results: list[str] = []
     for match in matches:

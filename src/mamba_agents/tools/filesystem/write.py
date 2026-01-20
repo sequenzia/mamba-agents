@@ -30,10 +30,7 @@ def write_file(
         PermissionError: If access is denied or path is outside sandbox.
         FileNotFoundError: If parent directory doesn't exist and create_parents is False.
     """
-    if security is not None:
-        validated_path = security.validate_path(path)
-    else:
-        validated_path = Path(path)
+    validated_path = security.validate_path(path) if security is not None else Path(path)
 
     if create_parents:
         validated_path.parent.mkdir(parents=True, exist_ok=True)
@@ -64,10 +61,7 @@ def append_file(
     Raises:
         PermissionError: If access is denied or path is outside sandbox.
     """
-    if security is not None:
-        validated_path = security.validate_path(path)
-    else:
-        validated_path = Path(path)
+    validated_path = security.validate_path(path) if security is not None else Path(path)
 
     with validated_path.open("a", encoding=encoding) as f:
         f.write(content)

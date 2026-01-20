@@ -62,7 +62,7 @@ class TestFilesystemSecurity:
         assert result == tmp_sandbox / "file1.txt"
 
         # py should be denied
-        with pytest.raises(PermissionError, match="Extension .py not allowed"):
+        with pytest.raises(PermissionError, match=r"Extension \.py not allowed"):
             security.validate_path(str(tmp_sandbox / "file2.py"))
 
     def test_denied_extensions(self, tmp_sandbox: Path) -> None:
@@ -80,7 +80,7 @@ class TestFilesystemSecurity:
         sh_file = tmp_sandbox / "script.sh"
         sh_file.touch()
 
-        with pytest.raises(PermissionError, match="Extension .sh is denied"):
+        with pytest.raises(PermissionError, match=r"Extension \.sh is denied"):
             security.validate_path(str(sh_file))
 
 
@@ -317,7 +317,7 @@ class TestMoveFile:
         source = tmp_sandbox / "source.txt"
         source.write_text("move me")
 
-        result = move_file(str(source), str(tmp_sandbox / "subdir"))
+        move_file(str(source), str(tmp_sandbox / "subdir"))
 
         assert not source.exists()
         assert (tmp_sandbox / "subdir" / "source.txt").exists()
@@ -350,7 +350,7 @@ class TestCopyFile:
         """Test copying file into a directory."""
         source = tmp_sandbox / "file1.txt"
 
-        result = copy_file(str(source), str(tmp_sandbox / "subdir"))
+        copy_file(str(source), str(tmp_sandbox / "subdir"))
 
         assert source.exists()
         assert (tmp_sandbox / "subdir" / "file1.txt").exists()

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Callable, Sequence
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic_ai import Agent as PydanticAgent
 from pydantic_ai.models import Model
@@ -33,7 +33,7 @@ DepsT = TypeVar("DepsT")
 OutputT = TypeVar("OutputT")
 
 
-class Agent(Generic[DepsT, OutputT]):
+class Agent[DepsT, OutputT]:
     """AI Agent with tool-calling capabilities.
 
     This is a thin wrapper around pydantic-ai's Agent class that adds:
