@@ -256,23 +256,45 @@ class Agent[DepsT, OutputT]:
             settings=settings,
         )
 
-    async def _post_run_hook(self, result: AgentResult[OutputT]) -> None:
-        """Handle post-run tracking and context management.
+    def _do_post_run_tracking(self, result: AgentResult[OutputT]) -> bool:
+        """Handle post-run tracking. Returns True if compaction needed.
 
         Args:
             result: The result from the run.
-        """
-        # 1. Always record usage
-        self._usage_tracker.record_usage(result.usage(), model=self._model_name)
 
-        # 2. Track messages in context manager if enabled
+        Returns:
+            True if compaction should be triggered, False otherwise.
+        """
+        self._usage_tracker.record_usage(result.usage(), model=self._model_name)
         if self._context_manager is not None:
             new_messages = model_messages_to_dicts(result.new_messages())
             self._context_manager.add_messages(new_messages)
+            return self._config.auto_compact and self._context_manager.should_compact()
+        return False
 
-            # 3. Auto-compact if enabled and threshold reached
-            if self._config.auto_compact and self._context_manager.should_compact():
-                await self._context_manager.compact()
+    async def _post_run_hook(self, result: AgentResult[OutputT]) -> None:
+        """Handle post-run tracking and context management (async)."""
+        if self._do_post_run_tracking(result) and self._context_manager:
+            await self._context_manager.compact()
+
+    def _resolve_message_history(
+        self, message_history: list[ModelMessage] | None
+    ) -> list[ModelMessage] | None:
+        """Resolve message history from explicit input or internal context.
+
+        Args:
+            message_history: Explicit message history, or None to use internal context.
+
+        Returns:
+            Resolved message history, or None if no history available.
+        """
+        if message_history is not None:
+            return message_history
+        if self._context_manager is not None:
+            internal_messages = self._context_manager.get_messages()
+            if internal_messages:
+                return dicts_to_model_messages(internal_messages)
+        return None
 
     async def run(
         self,
@@ -300,15 +322,9 @@ class Agent[DepsT, OutputT]:
         if usage_limits is not None:
             kwargs["usage_limits"] = usage_limits
 
-        # Determine message history to use
-        if message_history is not None:
-            # Explicit history provided - use it
-            kwargs["message_history"] = message_history
-        elif self._context_manager is not None:
-            # Use internal context (convert to pydantic-ai format)
-            internal_messages = self._context_manager.get_messages()
-            if internal_messages:
-                kwargs["message_history"] = dicts_to_model_messages(internal_messages)
+        resolved_history = self._resolve_message_history(message_history)
+        if resolved_history is not None:
+            kwargs["message_history"] = resolved_history
 
         result = await self._agent.run(prompt, **kwargs)
         wrapped_result = AgentResult(result)
@@ -319,25 +335,11 @@ class Agent[DepsT, OutputT]:
         return wrapped_result
 
     def _post_run_hook_sync(self, result: AgentResult[OutputT]) -> None:
-        """Handle post-run tracking and context management (synchronous version).
+        """Handle post-run tracking and context management (sync)."""
+        if self._do_post_run_tracking(result) and self._context_manager:
+            import asyncio
 
-        Args:
-            result: The result from the run.
-        """
-        # 1. Always record usage
-        self._usage_tracker.record_usage(result.usage(), model=self._model_name)
-
-        # 2. Track messages in context manager if enabled
-        if self._context_manager is not None:
-            new_messages = model_messages_to_dicts(result.new_messages())
-            self._context_manager.add_messages(new_messages)
-
-            # 3. Auto-compact if enabled and threshold reached
-            # Note: For sync version, we use asyncio.run for compaction
-            if self._config.auto_compact and self._context_manager.should_compact():
-                import asyncio
-
-                asyncio.run(self._context_manager.compact())
+            asyncio.run(self._context_manager.compact())
 
     def run_sync(
         self,
@@ -365,15 +367,9 @@ class Agent[DepsT, OutputT]:
         if usage_limits is not None:
             kwargs["usage_limits"] = usage_limits
 
-        # Determine message history to use
-        if message_history is not None:
-            # Explicit history provided - use it
-            kwargs["message_history"] = message_history
-        elif self._context_manager is not None:
-            # Use internal context (convert to pydantic-ai format)
-            internal_messages = self._context_manager.get_messages()
-            if internal_messages:
-                kwargs["message_history"] = dicts_to_model_messages(internal_messages)
+        resolved_history = self._resolve_message_history(message_history)
+        if resolved_history is not None:
+            kwargs["message_history"] = resolved_history
 
         result = self._agent.run_sync(prompt, **kwargs)
         wrapped_result = AgentResult(result)
@@ -412,15 +408,9 @@ class Agent[DepsT, OutputT]:
         if usage_limits is not None:
             kwargs["usage_limits"] = usage_limits
 
-        # Determine message history to use
-        if message_history is not None:
-            # Explicit history provided - use it
-            kwargs["message_history"] = message_history
-        elif self._context_manager is not None:
-            # Use internal context (convert to pydantic-ai format)
-            internal_messages = self._context_manager.get_messages()
-            if internal_messages:
-                kwargs["message_history"] = dicts_to_model_messages(internal_messages)
+        resolved_history = self._resolve_message_history(message_history)
+        if resolved_history is not None:
+            kwargs["message_history"] = resolved_history
 
         async with self._agent.run_stream(prompt, **kwargs) as result:
             yield result
