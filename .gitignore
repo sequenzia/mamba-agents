@@ -2,3 +2,6 @@
 .env
 site/
 **/config.toml
+
+# Auto-generated version file
+src/mamba_agents/_version.py

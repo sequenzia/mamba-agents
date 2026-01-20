@@ -32,35 +32,34 @@ from mamba_agents.workflows import (
 )
 
 __all__ = [
-    # Core
     "Agent",
     "AgentConfig",
     "AgentResult",
     "AgentSettings",
-    # Context management
     "CompactionConfig",
     "CompactionResult",
     "ContextState",
-    # MCP integration
+    "CostBreakdown",
     "MCPAuthConfig",
     "MCPClientManager",
     "MCPServerConfig",
-    # Prompt management
     "PromptConfig",
     "PromptManager",
     "PromptTemplate",
     "TemplateConfig",
-    # Token tracking
-    "CostBreakdown",
     "TokenUsage",
     "UsageRecord",
-    # Workflows
     "Workflow",
     "WorkflowConfig",
     "WorkflowHooks",
     "WorkflowResult",
     "WorkflowState",
     "WorkflowStep",
+    "__version__",
 ]
 
-__version__ = "0.1.0"
+# Version is dynamically set by hatch-vcs during build
+try:
+    from mamba_agents._version import __version__
+except ImportError:
+    __version__ = "0.0.0.dev0"

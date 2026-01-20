@@ -1391,7 +1391,6 @@ wheels = [
 
 [[package]]
 name = "mamba-agents"
-version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },

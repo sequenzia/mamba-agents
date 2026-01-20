@@ -738,7 +738,33 @@ uv run ruff format
 
 # Lint code
 uv run ruff check --fix
+
+# Build package
+uv build
 ```
+
+## Versioning & Releases
+
+This project uses [Semantic Versioning](https://semver.org/) with git tag-based version management via [hatch-vcs](https://github.com/ofek/hatch-vcs).
+
+- **Version source**: Git tags (e.g., `v0.1.0` → version `0.1.0`)
+- **Development versions**: Commits without tags get versions like `0.1.0.dev12`
+- **CI/CD**: GitHub Actions for testing and PyPI publishing
+
+### Creating a Release
+
+```bash
+# Create and push a version tag
+git tag -a v0.2.0 -m "Release v0.2.0"
+git push origin v0.2.0
+```
+
+This triggers the release workflow which:
+1. Builds the package
+2. Publishes to TestPyPI
+3. Publishes to PyPI
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## Documentation
 

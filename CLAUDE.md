@@ -46,6 +46,39 @@ uv run ruff check --fix
 
 # Type check (when ty is configured)
 uv run ty check
+
+# Build package
+uv build
+```
+
+## Versioning & Build System
+
+- **Build backend**: hatchling with hatch-vcs for version management
+- **Version source**: Git tags (e.g., `v0.1.0` → version `0.1.0`)
+- **Version file**: `src/mamba_agents/_version.py` (auto-generated, gitignored)
+- **Development versions**: Commits without tags get versions like `0.1.0.dev12`
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `pyproject.toml` | Package metadata, build config, tool settings |
+| `.github/workflows/ci.yml` | CI: lint, test (3.12 & 3.13), build |
+| `.github/workflows/release.yml` | Release: build → TestPyPI → PyPI |
+| `CHANGELOG.md` | Release history (Keep a Changelog format) |
+
+### Release Process
+
+1. Update `CHANGELOG.md` with release notes
+2. Create annotated tag: `git tag -a v0.2.0 -m "Release v0.2.0"`
+3. Push tag: `git push origin v0.2.0`
+4. GitHub Actions automatically publishes to PyPI via OIDC trusted publishing
+
+### Version Access in Code
+
+```python
+from mamba_agents import __version__
+print(__version__)  # e.g., "0.1.0" or "0.1.0.dev12"
 ```
 
 ## Architecture
