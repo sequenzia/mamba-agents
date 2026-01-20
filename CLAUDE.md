@@ -91,7 +91,7 @@ src/mamba_agents/
 ├── context/         # Context window management & compaction
 ├── tokens/          # Token counting & cost estimation
 ├── prompts/         # Prompt template management (Jinja2)
-├── workflows/       # Agentic workflow orchestration (ReAct, Plan-Execute, etc.)
+├── workflows/       # Agentic workflow orchestration (ReAct implemented)
 ├── mcp/             # Model Context Protocol integration
 ├── backends/        # OpenAI-compatible model backends
 ├── observability/   # Logging and tracing
@@ -113,23 +113,39 @@ from mamba_agents import (
     WorkflowResult, WorkflowState, WorkflowStep,
 )
 
+# Agent message utilities (for serializing/deserializing pydantic-ai messages)
+from mamba_agents.agent import dicts_to_model_messages, model_messages_to_dicts
+
 # Tools
-from mamba_agents.tools import read_file, write_file, run_bash, glob_search, grep_search
+from mamba_agents.tools import (
+    read_file, write_file, append_file, delete_file, copy_file, move_file,
+    list_directory, file_info,
+    run_bash,
+    glob_search, grep_search,
+    ToolRegistry,
+)
 
 # Context management (for standalone use)
 from mamba_agents.context import ContextManager, CompactionConfig
 
 # Token tracking (for standalone use)
-from mamba_agents.tokens import TokenCounter, UsageTracker, CostEstimator
+from mamba_agents.tokens import TokenCounter, UsageTracker, CostEstimator, TokenizerConfig
 
 # Prompt management (for standalone use)
 from mamba_agents.prompts import PromptManager, PromptTemplate, PromptConfig, TemplateConfig
 
 # Workflows (for custom workflow implementations)
-from mamba_agents.workflows import Workflow, WorkflowConfig, WorkflowHooks
+from mamba_agents.workflows import (
+    Workflow, WorkflowConfig, WorkflowHooks,
+    WorkflowResult, WorkflowState, WorkflowStep,
+    WorkflowError, WorkflowExecutionError, WorkflowTimeoutError,
+    WorkflowMaxStepsError, WorkflowMaxIterationsError,
+)
 
 # ReAct workflow (built-in implementation)
-from mamba_agents.workflows import ReActWorkflow, ReActConfig, ReActState, ReActHooks
+from mamba_agents.workflows import (
+    ReActWorkflow, ReActConfig, ReActState, ReActHooks, ScratchpadEntry,
+)
 
 # MCP integration
 from mamba_agents.mcp import (
@@ -139,7 +155,10 @@ from mamba_agents.mcp import (
 )
 
 # Model backends
-from mamba_agents.backends import create_ollama_backend, create_vllm_backend
+from mamba_agents.backends import (
+    create_ollama_backend, create_vllm_backend, create_lmstudio_backend,
+    ModelBackend, ModelProfile, get_profile, register_profile,
+)
 ```
 
 ## Configuration System
@@ -275,7 +294,8 @@ def test_file_ops(tmp_sandbox: Path):
   - MCP errors: `MCPConfigError`, `MCPFileNotFoundError`, `MCPFileParseError`, `MCPServerValidationError`
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
-  - `Workflow` is an ABC - extend it to create custom patterns (ReAct, Plan-Execute, Reflection)
+  - `Workflow` is an ABC - extend it to create custom patterns
+  - Currently only ReAct is built-in; extend `Workflow` for Plan-Execute, Reflection, or other patterns
   - Workflows take agents as inputs (separate execution layer, not embedded in Agent)
   - `WorkflowState` tracks steps, iterations, and custom context (independent from ContextManager)
   - `WorkflowHooks` provides 8 callbacks: workflow start/complete/error, step start/complete/error, iteration start/complete
