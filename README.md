@@ -1,5 +1,11 @@
 # Mamba Agents
 
+[![PyPI version](https://img.shields.io/pypi/v/mamba-agents.svg)](https://pypi.org/project/mamba-agents/)
+[![Python Version](https://img.shields.io/pypi/pyversions/mamba-agents.svg)](https://pypi.org/project/mamba-agents/)
+[![CI](https://github.com/sequenzia/mamba-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/sequenzia/mamba-agents/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue)](https://sequenzia.github.io/mamba-agents)
+
 A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydantic.dev/).
 
 ## Features
@@ -10,12 +16,67 @@ A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydant
 - **Token Management** - Track usage with tiktoken, estimate costs
 - **Context Compaction** - 5 strategies to manage long conversations
 - **Prompt Management** - Jinja2-based templates with versioning and inheritance
-- **Workflows** - Orchestration patterns for multi-step execution (ReAct, Plan-Execute, etc.)
+- **Workflows** - Orchestration patterns for multi-step execution (ReAct built-in, extensible for custom patterns)
 - **Model Backends** - OpenAI-compatible adapter for Ollama, vLLM, LM Studio
 - **Observability** - Structured logging, tracing, and OpenTelemetry hooks
 - **Error Handling** - Retry logic with tenacity, circuit breaker pattern
 
+## Architecture Overview
+
+```
+                        ┌─────────────────┐
+                        │      Agent      │
+                        │  (pydantic-ai)  │
+                        └────────┬────────┘
+                                 │
+         ┌───────────────────────┼───────────────────────┐
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│     Context     │    │     Token       │    │     Prompt      │
+│    Management   │    │    Tracking     │    │    Management   │
+└────────┬────────┘    └─────────────────┘    └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Compaction    │  (5 strategies: sliding_window, summarize_older,
+│   Strategies    │   selective_pruning, importance_scoring, hybrid)
+└─────────────────┘
+
+External Integrations:
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  MCP Servers    │    │ Model Backends  │    │  Observability  │
+│ (stdio & SSE)   │    │ (Ollama, vLLM)  │    │ (OTEL, logging) │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Agent Patterns](#agent-patterns)
+- [Configuration](#configuration)
+- [Built-in Tools](#built-in-tools)
+- [MCP Integration](#mcp-integration)
+- [Context Management](#context-management)
+- [Prompt Management](#prompt-management)
+- [Token Management](#token-management)
+- [Workflows](#workflows)
+- [Model Backends](#model-backends)
+- [Error Handling](#error-handling)
+- [Observability](#observability)
+- [Development](#development)
+- [License](#license)
+
+## Requirements
+
+- **Python 3.12+** required
+- An API key for your model provider (OpenAI, Anthropic, etc.) or a local model server (Ollama, vLLM, LM Studio)
+
 ## Installation
+
+Install from [PyPI](https://pypi.org/project/mamba-agents/):
 
 ```bash
 # Using uv (recommended)
@@ -27,36 +88,112 @@ pip install mamba-agents
 
 ## Quick Start
 
+### Synchronous Usage (Simplest)
+
 ```python
 from mamba_agents import Agent, AgentSettings
 
 # Load settings from env vars, .env, ~/mamba.env, config.toml
 settings = AgentSettings()
 
-# Create agent using settings (model, api_key, base_url from settings)
-agent = Agent(settings=settings)
-
-# Or override the model while using other settings (api_key, base_url)
+# Create agent
 agent = Agent("gpt-4o", settings=settings)
 
-# Or use a model string directly (requires OPENAI_API_KEY env var)
-agent = Agent("gpt-4o")
-
-# Run the agent - context and usage are tracked automatically
-result = await agent.run("What files are in the current directory?")
+# Run a query
+result = agent.run_sync("What is 2 + 2?")
 print(result.output)
 
-# Multi-turn conversation - context is maintained automatically
-result2 = await agent.run("Can you list only the Python files?")
-print(result2.output)
+# Multi-turn conversation (context maintained automatically)
+agent.run_sync("Remember my name is Alice")
+result = agent.run_sync("What's my name?")
+print(result.output)  # "Alice"
 
 # Check usage and cost
-print(agent.get_usage())  # TokenUsage(prompt_tokens=..., request_count=2)
-print(agent.get_cost())   # Cost in USD
-
-# Access context state
-print(agent.get_context_state())  # ContextState(token_count=..., message_count=...)
+print(f"Tokens used: {agent.get_usage().total_tokens}")
+print(f"Estimated cost: ${agent.get_cost():.4f}")
 ```
+
+### Async Usage
+
+```python
+import asyncio
+from mamba_agents import Agent, AgentSettings
+
+async def main():
+    settings = AgentSettings()
+    agent = Agent("gpt-4o", settings=settings)
+
+    # Run async queries
+    result = await agent.run("What files are in the current directory?")
+    print(result.output)
+
+    # Multi-turn conversation
+    result2 = await agent.run("Can you list only the Python files?")
+    print(result2.output)
+
+    # Access context state
+    state = agent.get_context_state()
+    print(f"Messages: {state.message_count}, Tokens: {state.token_count}")
+
+asyncio.run(main())
+```
+
+## Agent Patterns
+
+The `Agent` class supports multiple initialization patterns:
+
+### Using Settings (Recommended)
+
+```python
+from mamba_agents import Agent, AgentSettings
+
+# Load from env vars, .env, ~/mamba.env, config.toml
+settings = AgentSettings()
+
+# Uses model, api_key, and base_url from settings.model_backend
+agent = Agent(settings=settings)
+
+# Override model but use api_key/base_url from settings
+agent = Agent("gpt-4o-mini", settings=settings)
+```
+
+### Direct Model String
+
+```python
+# Requires OPENAI_API_KEY environment variable
+agent = Agent("gpt-4o")
+```
+
+### With a Model Instance
+
+```python
+from pydantic_ai.models.openai import OpenAIModel
+
+model = OpenAIModel("gpt-4o")
+agent = Agent(model)
+```
+
+### With Tools
+
+```python
+from mamba_agents.tools import read_file, run_bash, grep_search
+
+agent = Agent("gpt-4o", tools=[read_file, run_bash, grep_search], settings=settings)
+```
+
+### With MCP Toolsets
+
+```python
+from mamba_agents.mcp import MCPClientManager
+
+# Load MCP servers from .mcp.json file
+manager = MCPClientManager.from_mcp_json(".mcp.json")
+
+# Pass toolsets to Agent (pydantic-ai manages server lifecycle)
+agent = Agent("gpt-4o", toolsets=manager.as_toolsets(), settings=settings)
+```
+
+> **Security Note:** API keys are stored using Pydantic's `SecretStr` and are never logged or exposed in error messages.
 
 ## Configuration
 
@@ -168,30 +305,82 @@ content = read_file("data.txt", security=security)
 
 ## MCP Integration
 
-Connect to Model Context Protocol servers:
+Connect to Model Context Protocol servers for extended tool capabilities.
+
+### Basic Usage with Agent
 
 ```python
-from mamba_agents.mcp import MCPServerConfig, MCPClientManager
+from mamba_agents import Agent
+from mamba_agents.mcp import MCPClientManager, MCPServerConfig
 
 # Configure MCP servers
-servers = [
+configs = [
     MCPServerConfig(
         name="filesystem",
         transport="stdio",
         command="npx",
-        args=["-y", "@modelcontextprotocol/server-filesystem", "/path"],
-    ),
-    MCPServerConfig(
-        name="web",
-        transport="sse",
-        url="http://localhost:8080/sse",
+        args=["-y", "@modelcontextprotocol/server-filesystem", "/project"],
+        tool_prefix="fs",  # Tools become fs_read, fs_write, etc.
     ),
 ]
 
-# Connect and get tools
-async with MCPClientManager(servers) as manager:
-    toolsets = manager.get_toolsets()
-    # Use tools in your agent
+# Create manager and pass to Agent via toolsets parameter
+manager = MCPClientManager(configs)
+agent = Agent("gpt-4o", toolsets=manager.as_toolsets(), settings=settings)
+
+# pydantic-ai handles server lifecycle automatically
+result = agent.run_sync("List the files in /project")
+```
+
+### Loading from .mcp.json Files
+
+Compatible with Claude Desktop configuration format:
+
+```python
+from mamba_agents import Agent
+from mamba_agents.mcp import MCPClientManager, load_mcp_json
+
+# Create manager directly from file
+manager = MCPClientManager.from_mcp_json(".mcp.json")
+
+# Or load and merge multiple files
+manager = MCPClientManager()
+manager.add_from_file("project/.mcp.json")
+manager.add_from_file("~/.mcp.json")  # User defaults
+
+agent = Agent("gpt-4o", toolsets=manager.as_toolsets())
+```
+
+Example `.mcp.json` file:
+
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/project"],
+      "tool_prefix": "fs"
+    },
+    "web": {
+      "url": "http://localhost:8080/sse"
+    }
+  }
+}
+```
+
+### SSE Transport with Authentication
+
+```python
+from mamba_agents.mcp import MCPServerConfig, MCPAuthConfig
+
+config = MCPServerConfig(
+    name="api-server",
+    transport="sse",
+    url="https://api.example.com/mcp/sse",
+    auth=MCPAuthConfig(key_env="MCP_API_KEY"),  # Read from environment
+    timeout=60,        # Connection timeout (seconds)
+    read_timeout=300,  # Read timeout for long operations
+)
 ```
 
 ## Context Management
@@ -553,6 +742,8 @@ print(f"Success: {result.success}")
 print(f"Output: {result.output}")
 print(f"Steps: {result.total_steps}")
 ```
+
+> **Note:** Currently only ReAct is built-in. Create custom workflows by extending the `Workflow` base class for patterns like Plan-Execute, Reflection, or Tree of Thoughts.
 
 ### Workflow Configuration
 
