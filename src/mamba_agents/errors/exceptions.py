@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 
 class AgentError(Exception):
@@ -15,7 +15,12 @@ class AgentError(Exception):
         message: Human-readable error message.
         cause: Original exception that caused this error.
         details: Additional error context as key-value pairs.
+
+    Details can be accessed as attributes (e.g., error.config_key).
     """
+
+    # Map attribute names to default values when not in details
+    _defaults: ClassVar[dict[str, Any]] = {}
 
     def __init__(
         self,
@@ -36,6 +41,14 @@ class AgentError(Exception):
         self.cause = cause
         self.details = details
 
+    def __getattr__(self, name: str) -> Any:
+        """Access details as attributes."""
+        if name in self.details:
+            return self.details[name]
+        if name in self._defaults:
+            return self._defaults[name]
+        raise AttributeError(f"'{type(self).__name__}' has no attribute '{name}'")
+
     def __str__(self) -> str:
         """Return string representation."""
         if self.cause:
@@ -48,19 +61,9 @@ class ConfigurationError(AgentError):
 
     Raised when configuration is invalid, missing required fields,
     or contains incompatible settings.
+
+    Attributes from details: config_key, expected, actual.
     """
-
-    @property
-    def config_key(self) -> str | None:
-        return self.details.get("config_key")
-
-    @property
-    def expected(self) -> Any:
-        return self.details.get("expected")
-
-    @property
-    def actual(self) -> Any:
-        return self.details.get("actual")
 
 
 class ModelBackendError(AgentError):
@@ -68,23 +71,11 @@ class ModelBackendError(AgentError):
 
     Raised when the underlying model API returns an error,
     times out, or is unavailable.
+
+    Attributes from details: model, status_code, response_body, retryable (default: False).
     """
 
-    @property
-    def model(self) -> str | None:
-        return self.details.get("model")
-
-    @property
-    def status_code(self) -> int | None:
-        return self.details.get("status_code")
-
-    @property
-    def response_body(self) -> str | None:
-        return self.details.get("response_body")
-
-    @property
-    def retryable(self) -> bool:
-        return self.details.get("retryable", False)
+    _defaults: ClassVar[dict[str, Any]] = {"retryable": False}
 
 
 class ToolExecutionError(AgentError):
@@ -92,6 +83,8 @@ class ToolExecutionError(AgentError):
 
     Raised when a tool fails to execute properly, either due to
     invalid arguments, permission issues, or runtime errors.
+
+    Attributes from details: tool_name, tool_args.
     """
 
     def __init__(
@@ -110,33 +103,17 @@ class ToolExecutionError(AgentError):
             }
         super().__init__(message, tool_name=tool_name, tool_args=tool_args, **kwargs)
 
-    @property
-    def tool_name(self) -> str | None:
-        return self.details.get("tool_name")
-
-    @property
-    def tool_args(self) -> dict[str, Any] | None:
-        return self.details.get("tool_args")
-
 
 class ContextOverflowError(AgentError):
     """Context window exceeded.
 
     Raised when the conversation context exceeds the model's
     maximum context window and cannot be compacted further.
+
+    Attributes from details: current_tokens, max_tokens, compaction_attempted (default: False).
     """
 
-    @property
-    def current_tokens(self) -> int | None:
-        return self.details.get("current_tokens")
-
-    @property
-    def max_tokens(self) -> int | None:
-        return self.details.get("max_tokens")
-
-    @property
-    def compaction_attempted(self) -> bool:
-        return self.details.get("compaction_attempted", False)
+    _defaults: ClassVar[dict[str, Any]] = {"compaction_attempted": False}
 
 
 class MCPError(AgentError):
@@ -144,30 +121,24 @@ class MCPError(AgentError):
 
     Raised when communication with an MCP server fails,
     the server returns an error, or authentication fails.
+
+    Attributes from details: server_name, server_url.
     """
-
-    @property
-    def server_name(self) -> str | None:
-        return self.details.get("server_name")
-
-    @property
-    def server_url(self) -> str | None:
-        return self.details.get("server_url")
 
 
 class RateLimitError(ModelBackendError):
     """Rate limit exceeded.
 
     Raised when the model API rate limit is hit.
+
+    Attributes from details: retry_after.
     """
+
+    _defaults: ClassVar[dict[str, Any]] = {"retryable": True}
 
     def __init__(self, message: str, **kwargs: Any) -> None:
         kwargs.setdefault("retryable", True)
         super().__init__(message, **kwargs)
-
-    @property
-    def retry_after(self) -> float | None:
-        return self.details.get("retry_after")
 
 
 class AuthenticationError(AgentError):
@@ -184,12 +155,6 @@ class TimeoutError(AgentError):
     """Operation timed out.
 
     Raised when an operation exceeds its timeout limit.
+
+    Attributes from details: timeout_seconds, operation.
     """
-
-    @property
-    def timeout_seconds(self) -> float | None:
-        return self.details.get("timeout_seconds")
-
-    @property
-    def operation(self) -> str | None:
-        return self.details.get("operation")

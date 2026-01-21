@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from mamba_agents.context.compaction.base import CompactionResult, CompactionStrategy
+from mamba_agents.context.compaction.base import CompactionStrategy
 
 
 class SelectivePruningStrategy(CompactionStrategy):
@@ -19,33 +19,24 @@ class SelectivePruningStrategy(CompactionStrategy):
     def name(self) -> str:
         return "selective_pruning"
 
-    async def compact(
+    async def _do_compact(
         self,
         messages: list[dict[str, Any]],
         target_tokens: int,
-        preserve_recent: int = 0,
-    ) -> CompactionResult:
+        preserve_recent: int,
+        tokens_before: int,
+    ) -> tuple[list[dict[str, Any]], int]:
         """Compact by removing completed tool call pairs.
 
         Args:
             messages: Messages to compact.
             target_tokens: Target token count.
             preserve_recent: Number of recent messages to preserve.
+            tokens_before: Token count before compaction (unused here).
 
         Returns:
-            CompactionResult with compacted messages.
+            Tuple of (compacted_messages, removed_count).
         """
-        tokens_before = self._count_tokens(messages)
-
-        if tokens_before <= target_tokens:
-            return CompactionResult(
-                messages=messages,
-                removed_count=0,
-                tokens_before=tokens_before,
-                tokens_after=tokens_before,
-                strategy=self.name,
-            )
-
         # Identify tool call/result pairs
         tool_call_pairs = self._find_tool_call_pairs(messages)
 
@@ -100,15 +91,7 @@ class SelectivePruningStrategy(CompactionStrategy):
                     )
                 ]
 
-        tokens_after = self._count_tokens(result_messages)
-
-        return CompactionResult(
-            messages=result_messages,
-            removed_count=removed_count,
-            tokens_before=tokens_before,
-            tokens_after=tokens_after,
-            strategy=self.name,
-        )
+        return result_messages, removed_count
 
     def _find_tool_call_pairs(self, messages: list[dict[str, Any]]) -> list[tuple[int, int]]:
         """Find indices of tool call and result pairs.

@@ -12,8 +12,6 @@ from mamba_agents.config import (
     ErrorRecoveryConfig,
     LoggingConfig,
     ModelBackendSettings,
-    ObservabilityConfig,
-    StreamingConfig,
 )
 
 
@@ -119,27 +117,6 @@ class TestLoggingConfig:
             assert config.level == level
 
 
-class TestObservabilityConfig:
-    """Tests for ObservabilityConfig."""
-
-    def test_default_values(self) -> None:
-        """Test default observability configuration."""
-        config = ObservabilityConfig()
-
-        assert config.request_id_format == "uuid4"
-        assert config.propagate_trace_context is True
-        assert config.enable_otel_instrumentation is False
-        assert config.metrics_enabled is True
-
-    def test_request_id_format_options(self) -> None:
-        """Test request ID format options."""
-        config_uuid = ObservabilityConfig(request_id_format="uuid4")
-        assert config_uuid.request_id_format == "uuid4"
-
-        config_ulid = ObservabilityConfig(request_id_format="ulid")
-        assert config_ulid.request_id_format == "ulid"
-
-
 class TestErrorRecoveryConfig:
     """Tests for ErrorRecoveryConfig."""
 
@@ -206,18 +183,6 @@ class TestErrorRecoveryConfig:
         assert config.get_model_retries() == 10
 
 
-class TestStreamingConfig:
-    """Tests for StreamingConfig."""
-
-    def test_default_values(self) -> None:
-        """Test default streaming configuration."""
-        config = StreamingConfig()
-
-        assert config.stream_model_responses is True
-        assert config.stream_tool_results is True
-        assert config.chunk_size == 1024
-
-
 class TestAgentSettings:
     """Tests for AgentSettings (root configuration)."""
 
@@ -227,9 +192,7 @@ class TestAgentSettings:
 
         assert isinstance(settings.model_backend, ModelBackendSettings)
         assert isinstance(settings.logging, LoggingConfig)
-        assert isinstance(settings.observability, ObservabilityConfig)
         assert isinstance(settings.retry, ErrorRecoveryConfig)
-        assert isinstance(settings.streaming, StreamingConfig)
 
     def test_nested_env_variables(self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
         """Test loading nested settings from environment variables."""

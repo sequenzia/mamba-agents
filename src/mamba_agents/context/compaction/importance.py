@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from mamba_agents.context.compaction.base import CompactionResult, CompactionStrategy
+from mamba_agents.context.compaction.base import CompactionStrategy
 
 if TYPE_CHECKING:
     from pydantic_ai import Agent
@@ -33,33 +33,24 @@ class ImportanceScoringStrategy(CompactionStrategy):
     def name(self) -> str:
         return "importance_scoring"
 
-    async def compact(
+    async def _do_compact(
         self,
         messages: list[dict[str, Any]],
         target_tokens: int,
-        preserve_recent: int = 0,
-    ) -> CompactionResult:
+        preserve_recent: int,
+        tokens_before: int,
+    ) -> tuple[list[dict[str, Any]], int]:
         """Compact by removing low-importance messages.
 
         Args:
             messages: Messages to compact.
             target_tokens: Target token count.
             preserve_recent: Number of recent messages to preserve.
+            tokens_before: Token count before compaction (unused here).
 
         Returns:
-            CompactionResult with compacted messages.
+            Tuple of (compacted_messages, removed_count).
         """
-        tokens_before = self._count_tokens(messages)
-
-        if tokens_before <= target_tokens:
-            return CompactionResult(
-                messages=messages,
-                removed_count=0,
-                tokens_before=tokens_before,
-                tokens_after=tokens_before,
-                strategy=self.name,
-            )
-
         # Score messages
         scores = await self._score_messages(messages)
 
@@ -90,16 +81,7 @@ class ImportanceScoringStrategy(CompactionStrategy):
 
         # Reconstruct messages in original order
         remaining = sorted(removable + preserved, key=lambda x: x[0])
-        result_messages = [x[1] for x in remaining]
-        tokens_after = self._count_tokens(result_messages)
-
-        return CompactionResult(
-            messages=result_messages,
-            removed_count=removed_count,
-            tokens_before=tokens_before,
-            tokens_after=tokens_after,
-            strategy=self.name,
-        )
+        return [x[1] for x in remaining], removed_count
 
     async def _score_messages(self, messages: list[dict[str, Any]]) -> list[float]:
         """Score messages by importance.

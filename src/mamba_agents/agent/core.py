@@ -172,6 +172,32 @@ class Agent[DepsT, OutputT]:
         else:
             self._context_manager = None
 
+    def _build_kwargs(self, **params: Any) -> dict[str, Any]:
+        """Build kwargs dict, filtering out None values.
+
+        Args:
+            **params: Key-value pairs to include if not None.
+
+        Returns:
+            Dictionary with only non-None values.
+        """
+        return {k: v for k, v in params.items() if v is not None}
+
+    def _ensure_context_enabled(self) -> ContextManager:
+        """Ensure context tracking is enabled.
+
+        Returns:
+            The context manager instance.
+
+        Raises:
+            RuntimeError: If context tracking is disabled.
+        """
+        if self._context_manager is None:
+            raise RuntimeError(
+                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
+            )
+        return self._context_manager
+
     def _resolve_system_prompt(self, prompt: str | TemplateConfig) -> str:
         """Resolve a system prompt from string or template config.
 
@@ -316,15 +342,11 @@ class Agent[DepsT, OutputT]:
         Returns:
             AgentResult containing the output and metadata.
         """
-        kwargs: dict[str, Any] = {}
-        if deps is not None:
-            kwargs["deps"] = deps
-        if usage_limits is not None:
-            kwargs["usage_limits"] = usage_limits
-
-        resolved_history = self._resolve_message_history(message_history)
-        if resolved_history is not None:
-            kwargs["message_history"] = resolved_history
+        kwargs = self._build_kwargs(
+            deps=deps,
+            usage_limits=usage_limits,
+            message_history=self._resolve_message_history(message_history),
+        )
 
         result = await self._agent.run(prompt, **kwargs)
         wrapped_result = AgentResult(result)
@@ -361,15 +383,11 @@ class Agent[DepsT, OutputT]:
         Returns:
             AgentResult containing the output and metadata.
         """
-        kwargs: dict[str, Any] = {}
-        if deps is not None:
-            kwargs["deps"] = deps
-        if usage_limits is not None:
-            kwargs["usage_limits"] = usage_limits
-
-        resolved_history = self._resolve_message_history(message_history)
-        if resolved_history is not None:
-            kwargs["message_history"] = resolved_history
+        kwargs = self._build_kwargs(
+            deps=deps,
+            usage_limits=usage_limits,
+            message_history=self._resolve_message_history(message_history),
+        )
 
         result = self._agent.run_sync(prompt, **kwargs)
         wrapped_result = AgentResult(result)
@@ -402,15 +420,11 @@ class Agent[DepsT, OutputT]:
         Note:
             Usage and context tracking occurs after the stream is consumed.
         """
-        kwargs: dict[str, Any] = {}
-        if deps is not None:
-            kwargs["deps"] = deps
-        if usage_limits is not None:
-            kwargs["usage_limits"] = usage_limits
-
-        resolved_history = self._resolve_message_history(message_history)
-        if resolved_history is not None:
-            kwargs["message_history"] = resolved_history
+        kwargs = self._build_kwargs(
+            deps=deps,
+            usage_limits=usage_limits,
+            message_history=self._resolve_message_history(message_history),
+        )
 
         async with self._agent.run_stream(prompt, **kwargs) as result:
             yield result
@@ -421,6 +435,36 @@ class Agent[DepsT, OutputT]:
                 self._context_manager.add_messages(new_messages)
                 if self._config.auto_compact and self._context_manager.should_compact():
                     await self._context_manager.compact()
+
+    def _register_tool(
+        self,
+        func: Callable[..., Any] | None,
+        method: Callable[..., Any],
+        name: str | None,
+        description: str | None,
+        retries: int | None,
+    ) -> Callable[..., Any]:
+        """Register a tool using the specified pydantic-ai method.
+
+        Args:
+            func: The tool function to register, or None for decorator usage.
+            method: The pydantic-ai method to use (tool or tool_plain).
+            name: Optional custom name for the tool.
+            description: Optional description override.
+            retries: Optional retry count override.
+
+        Returns:
+            The decorated function or a decorator.
+        """
+        kwargs = self._build_kwargs(name=name, description=description, retries=retries)
+
+        if func is not None:
+            return method(**kwargs)(func)
+
+        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
+            return method(**kwargs)(f)
+
+        return decorator
 
     def tool(
         self,
@@ -448,21 +492,7 @@ class Agent[DepsT, OutputT]:
             ... async def read_file(path: str) -> str:
             ...     return Path(path).read_text()
         """
-        kwargs: dict[str, Any] = {}
-        if name:
-            kwargs["name"] = name
-        if description:
-            kwargs["description"] = description
-        if retries is not None:
-            kwargs["retries"] = retries
-
-        if func is not None:
-            return self._agent.tool(**kwargs)(func)
-
-        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-            return self._agent.tool(**kwargs)(f)
-
-        return decorator
+        return self._register_tool(func, self._agent.tool, name, description, retries)
 
     def tool_plain(
         self,
@@ -485,21 +515,7 @@ class Agent[DepsT, OutputT]:
         Returns:
             The decorated function.
         """
-        kwargs: dict[str, Any] = {}
-        if name:
-            kwargs["name"] = name
-        if description:
-            kwargs["description"] = description
-        if retries is not None:
-            kwargs["retries"] = retries
-
-        if func is not None:
-            return self._agent.tool_plain(**kwargs)(func)
-
-        def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-            return self._agent.tool_plain(**kwargs)(f)
-
-        return decorator
+        return self._register_tool(func, self._agent.tool_plain, name, description, retries)
 
     def override(
         self,
@@ -518,12 +534,7 @@ class Agent[DepsT, OutputT]:
         Returns:
             Context manager for the override.
         """
-        kwargs: dict[str, Any] = {}
-        if model is not None:
-            kwargs["model"] = model
-        if deps is not None:
-            kwargs["deps"] = deps
-        return self._agent.override(**kwargs)
+        return self._agent.override(**self._build_kwargs(model=model, deps=deps))
 
     @property
     def config(self) -> AgentConfig:
@@ -630,11 +641,7 @@ class Agent[DepsT, OutputT]:
         if text is not None:
             return self._token_counter.count(text)
 
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        return self._context_manager.get_token_count()
+        return self._ensure_context_enabled().get_token_count()
 
     # === Usage Tracking Facade Methods ===
 
@@ -693,11 +700,7 @@ class Agent[DepsT, OutputT]:
         Raises:
             RuntimeError: If context tracking is disabled.
         """
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        return self._context_manager.get_messages()
+        return self._ensure_context_enabled().get_messages()
 
     def should_compact(self) -> bool:
         """Check if context compaction threshold is reached.
@@ -708,11 +711,7 @@ class Agent[DepsT, OutputT]:
         Raises:
             RuntimeError: If context tracking is disabled.
         """
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        return self._context_manager.should_compact()
+        return self._ensure_context_enabled().should_compact()
 
     async def compact(self) -> CompactionResult:
         """Manually trigger context compaction.
@@ -723,11 +722,7 @@ class Agent[DepsT, OutputT]:
         Raises:
             RuntimeError: If context tracking is disabled.
         """
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        return await self._context_manager.compact()
+        return await self._ensure_context_enabled().compact()
 
     def get_context_state(self) -> ContextState:
         """Get the current context state.
@@ -738,11 +733,7 @@ class Agent[DepsT, OutputT]:
         Raises:
             RuntimeError: If context tracking is disabled.
         """
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        return self._context_manager.get_context_state()
+        return self._ensure_context_enabled().get_context_state()
 
     # === Reset Operations ===
 
@@ -752,11 +743,7 @@ class Agent[DepsT, OutputT]:
         Raises:
             RuntimeError: If context tracking is disabled.
         """
-        if self._context_manager is None:
-            raise RuntimeError(
-                "Context tracking is disabled. Enable with AgentConfig(track_context=True)"
-            )
-        self._context_manager.clear()
+        self._ensure_context_enabled().clear()
 
     def reset_tracking(self) -> None:
         """Reset usage tracking data (keeps context)."""

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from mamba_agents.context.compaction.base import CompactionResult, CompactionStrategy
+from mamba_agents.context.compaction.base import CompactionStrategy
 
 if TYPE_CHECKING:
     from pydantic_ai import Agent
@@ -33,33 +33,24 @@ class SummarizeOlderStrategy(CompactionStrategy):
     def name(self) -> str:
         return "summarize_older"
 
-    async def compact(
+    async def _do_compact(
         self,
         messages: list[dict[str, Any]],
         target_tokens: int,
-        preserve_recent: int = 0,
-    ) -> CompactionResult:
+        preserve_recent: int,
+        tokens_before: int,
+    ) -> tuple[list[dict[str, Any]], int]:
         """Compact by summarizing older messages.
 
         Args:
             messages: Messages to compact.
             target_tokens: Target token count.
             preserve_recent: Number of recent messages to keep verbatim.
+            tokens_before: Token count before compaction (unused here).
 
         Returns:
-            CompactionResult with compacted messages.
+            Tuple of (compacted_messages, removed_count).
         """
-        tokens_before = self._count_tokens(messages)
-
-        if tokens_before <= target_tokens:
-            return CompactionResult(
-                messages=messages,
-                removed_count=0,
-                tokens_before=tokens_before,
-                tokens_after=tokens_before,
-                strategy=self.name,
-            )
-
         # Separate messages to preserve and summarize
         if preserve_recent > 0 and len(messages) > preserve_recent:
             to_preserve = messages[-preserve_recent:]
@@ -69,14 +60,8 @@ class SummarizeOlderStrategy(CompactionStrategy):
             to_summarize = []
 
         if not to_summarize:
-            # Nothing to summarize, fall back to sliding window
-            return CompactionResult(
-                messages=to_preserve,
-                removed_count=0,
-                tokens_before=tokens_before,
-                tokens_after=self._count_tokens(to_preserve),
-                strategy=self.name,
-            )
+            # Nothing to summarize, return preserved messages unchanged
+            return to_preserve, 0
 
         # Create summary
         summary = await self._create_summary(to_summarize)
@@ -87,16 +72,7 @@ class SummarizeOlderStrategy(CompactionStrategy):
             "content": f"[Previous conversation summary: {summary}]",
         }
 
-        result_messages = [summary_message, *to_preserve]
-        tokens_after = self._count_tokens(result_messages)
-
-        return CompactionResult(
-            messages=result_messages,
-            removed_count=len(to_summarize),
-            tokens_before=tokens_before,
-            tokens_after=tokens_after,
-            strategy=self.name,
-        )
+        return [summary_message, *to_preserve], len(to_summarize)
 
     async def _create_summary(self, messages: list[dict[str, Any]]) -> str:
         """Create a summary of messages.

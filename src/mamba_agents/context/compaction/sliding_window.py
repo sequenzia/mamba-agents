@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from mamba_agents.context.compaction.base import CompactionResult, CompactionStrategy
+from mamba_agents.context.compaction.base import CompactionStrategy
 
 
 class SlidingWindowStrategy(CompactionStrategy):
@@ -19,33 +19,24 @@ class SlidingWindowStrategy(CompactionStrategy):
     def name(self) -> str:
         return "sliding_window"
 
-    async def compact(
+    async def _do_compact(
         self,
         messages: list[dict[str, Any]],
         target_tokens: int,
-        preserve_recent: int = 0,
-    ) -> CompactionResult:
+        preserve_recent: int,
+        tokens_before: int,
+    ) -> tuple[list[dict[str, Any]], int]:
         """Compact by removing oldest messages.
 
         Args:
             messages: Messages to compact.
             target_tokens: Target token count.
             preserve_recent: Number of recent messages to always keep.
+            tokens_before: Token count before compaction (unused here).
 
         Returns:
-            CompactionResult with compacted messages.
+            Tuple of (compacted_messages, removed_count).
         """
-        tokens_before = self._count_tokens(messages)
-
-        if tokens_before <= target_tokens:
-            return CompactionResult(
-                messages=messages,
-                removed_count=0,
-                tokens_before=tokens_before,
-                tokens_after=tokens_before,
-                strategy=self.name,
-            )
-
         # Separate preserved and removable messages
         if preserve_recent > 0 and len(messages) > preserve_recent:
             preserved = messages[-preserve_recent:]
@@ -60,13 +51,4 @@ class SlidingWindowStrategy(CompactionStrategy):
             removable.pop(0)
             removed_count += 1
 
-        result_messages = removable + preserved
-        tokens_after = self._count_tokens(result_messages)
-
-        return CompactionResult(
-            messages=result_messages,
-            removed_count=removed_count,
-            tokens_before=tokens_before,
-            tokens_after=tokens_after,
-            strategy=self.name,
-        )
+        return removable + preserved, removed_count

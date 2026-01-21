@@ -15,9 +15,7 @@ from pydantic_settings import (
 
 from mamba_agents.config.logging_config import LoggingConfig
 from mamba_agents.config.model_backend import ModelBackendSettings
-from mamba_agents.config.observability import ObservabilityConfig
 from mamba_agents.config.retry import ErrorRecoveryConfig
-from mamba_agents.config.streaming import StreamingConfig
 from mamba_agents.context.config import CompactionConfig
 from mamba_agents.prompts.config import PromptConfig
 from mamba_agents.tokens.config import TokenizerConfig
@@ -41,9 +39,7 @@ class AgentSettings(BaseSettings):
     Attributes:
         model_backend: Model backend connection settings.
         logging: Logging configuration.
-        observability: Observability and tracing settings.
         retry: Error recovery and retry settings.
-        streaming: Streaming behavior settings.
         context: Default context compaction settings.
         tokenizer: Default tokenizer settings.
         prompts: Default prompt management settings.
@@ -94,17 +90,9 @@ class AgentSettings(BaseSettings):
         default_factory=LoggingConfig,
         description="Logging configuration",
     )
-    observability: ObservabilityConfig = Field(
-        default_factory=ObservabilityConfig,
-        description="Observability and tracing settings",
-    )
     retry: ErrorRecoveryConfig = Field(
         default_factory=ErrorRecoveryConfig,
         description="Error recovery and retry settings",
-    )
-    streaming: StreamingConfig = Field(
-        default_factory=StreamingConfig,
-        description="Streaming behavior settings",
     )
     context: CompactionConfig = Field(
         default_factory=CompactionConfig,

@@ -95,14 +95,24 @@ class WorkflowHooks[StateT, OutputT]:
         self.on_iteration_start = on_iteration_start
         self.on_iteration_complete = on_iteration_complete
 
+    async def _trigger(self, hook_name: str, *args: Any) -> None:
+        """Trigger a hook by attribute name if it exists.
+
+        Args:
+            hook_name: The name of the hook attribute to trigger.
+            *args: Arguments to pass to the hook.
+        """
+        hook = getattr(self, hook_name, None)
+        if hook:
+            await self._call_hook(hook, *args)
+
     async def trigger_workflow_start(self, state: WorkflowState[StateT]) -> None:
         """Trigger workflow start hook.
 
         Args:
             state: Current workflow state.
         """
-        if self.on_workflow_start:
-            await self._call_hook(self.on_workflow_start, state)
+        await self._trigger("on_workflow_start", state)
 
     async def trigger_workflow_complete(
         self,
@@ -113,8 +123,7 @@ class WorkflowHooks[StateT, OutputT]:
         Args:
             result: Workflow result.
         """
-        if self.on_workflow_complete:
-            await self._call_hook(self.on_workflow_complete, result)
+        await self._trigger("on_workflow_complete", result)
 
     async def trigger_workflow_error(
         self,
@@ -127,8 +136,7 @@ class WorkflowHooks[StateT, OutputT]:
             state: Current workflow state.
             error: The exception that caused the failure.
         """
-        if self.on_workflow_error:
-            await self._call_hook(self.on_workflow_error, state, error)
+        await self._trigger("on_workflow_error", state, error)
 
     async def trigger_step_start(
         self,
@@ -143,8 +151,7 @@ class WorkflowHooks[StateT, OutputT]:
             step_number: The step number about to execute.
             step_type: Type identifier of the step.
         """
-        if self.on_step_start:
-            await self._call_hook(self.on_step_start, state, step_number, step_type)
+        await self._trigger("on_step_start", state, step_number, step_type)
 
     async def trigger_step_complete(
         self,
@@ -157,8 +164,7 @@ class WorkflowHooks[StateT, OutputT]:
             state: Current workflow state.
             step: The completed step.
         """
-        if self.on_step_complete:
-            await self._call_hook(self.on_step_complete, state, step)
+        await self._trigger("on_step_complete", state, step)
 
     async def trigger_step_error(
         self,
@@ -173,8 +179,7 @@ class WorkflowHooks[StateT, OutputT]:
             step: The failed step.
             error: The exception that caused the failure.
         """
-        if self.on_step_error:
-            await self._call_hook(self.on_step_error, state, step, error)
+        await self._trigger("on_step_error", state, step, error)
 
     async def trigger_iteration_start(
         self,
@@ -187,8 +192,7 @@ class WorkflowHooks[StateT, OutputT]:
             state: Current workflow state.
             iteration: The iteration number starting.
         """
-        if self.on_iteration_start:
-            await self._call_hook(self.on_iteration_start, state, iteration)
+        await self._trigger("on_iteration_start", state, iteration)
 
     async def trigger_iteration_complete(
         self,
@@ -201,8 +205,7 @@ class WorkflowHooks[StateT, OutputT]:
             state: Current workflow state.
             iteration: The iteration number completed.
         """
-        if self.on_iteration_complete:
-            await self._call_hook(self.on_iteration_complete, state, iteration)
+        await self._trigger("on_iteration_complete", state, iteration)
 
     @staticmethod
     async def _call_hook(hook: Callable[..., Any], *args: Any) -> None:

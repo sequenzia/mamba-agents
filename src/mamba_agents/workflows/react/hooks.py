@@ -92,8 +92,7 @@ class ReActHooks(WorkflowHooks["ReActState", str]):
             state: Current ReAct state.
             thought: The generated thought/reasoning.
         """
-        if self.on_thought:
-            await self._call_hook(self.on_thought, state, thought)
+        await self._trigger("on_thought", state, thought)
 
     async def trigger_action(
         self,
@@ -108,8 +107,7 @@ class ReActHooks(WorkflowHooks["ReActState", str]):
             tool_name: Name of the tool being called.
             tool_args: Arguments passed to the tool.
         """
-        if self.on_action:
-            await self._call_hook(self.on_action, state, tool_name, tool_args)
+        await self._trigger("on_action", state, tool_name, tool_args)
 
     async def trigger_observation(
         self,
@@ -124,8 +122,7 @@ class ReActHooks(WorkflowHooks["ReActState", str]):
             observation: The tool result or error message.
             is_error: Whether this observation is an error.
         """
-        if self.on_observation:
-            await self._call_hook(self.on_observation, state, observation, is_error)
+        await self._trigger("on_observation", state, observation, is_error)
 
     async def trigger_compaction(self, result: CompactionResult) -> None:
         """Trigger the on_compaction hook.
@@ -133,5 +130,4 @@ class ReActHooks(WorkflowHooks["ReActState", str]):
         Args:
             result: The compaction result with details.
         """
-        if self.on_compaction:
-            await self._call_hook(self.on_compaction, result)
+        await self._trigger("on_compaction", result)
