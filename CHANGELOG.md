@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-01-22
+
+### Added
+
+- Add graceful tool error handling that converts tool exceptions to `ModelRetry`, allowing the LLM to receive error messages and attempt recovery instead of crashing the agent loop
+- Add `graceful_tool_errors` config option to `AgentConfig` (default: `True`)
+- Add `graceful_errors` parameter to `tool()` and `tool_plain()` decorators for per-tool override
+
 ## [0.1.1] - 2026-01-21
 
 ### Changed
@@ -49,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/sequenzia/mamba-agents/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sequenzia/mamba-agents/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sequenzia/mamba-agents/releases/tag/v0.1.0
