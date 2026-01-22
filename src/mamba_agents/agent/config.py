@@ -46,3 +46,7 @@ class AgentConfig(BaseModel):
         default=True,
         description="Auto-compact when threshold reached",
     )
+    graceful_tool_errors: bool = Field(
+        default=True,
+        description="Convert tool exceptions to ModelRetry for LLM error handling",
+    )
