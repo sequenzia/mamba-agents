@@ -4247,13 +4247,13 @@
 <a href="#mamba_agents.workflows.base.Workflow" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">Workflow</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">config</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowConfig (mamba_agents.workflows.config.WorkflowConfig)" href="../config/#mamba_agents.workflows.config.WorkflowConfig">WorkflowConfig</a></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">hooks</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">hooks</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
             <p class="doc doc-class-bases">
-              Bases: <code><span title="abc.ABC">ABC</span></code>, <code><span title="typing.Generic">Generic</span>[<span title="mamba_agents.workflows.base.DepsT">DepsT</span>, <span title="mamba_agents.workflows.base.OutputT">OutputT</span>, <span title="mamba_agents.workflows.base.StateT">StateT</span>]</code></p>
+              Bases: <code><span title="abc.ABC">ABC</span></code></p>
 
 
 
@@ -4327,7 +4327,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a>[<span title="mamba_agents.workflows.base.StateT">StateT</span>, <span title="mamba_agents.workflows.base.OutputT">OutputT</span>] | None</code>
+                      <code><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a>[<span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span>, <span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span>] | None</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -4478,7 +4478,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
   </span>
 
 <a href="#mamba_agents.workflows.base.Workflow.hooks" class="headerlink" title="Permanent link">&para;</a></h3>
-<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">hooks</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">]</span>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">hooks</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowHooks (mamba_agents.workflows.hooks.WorkflowHooks)" href="../hooks/#mamba_agents.workflows.hooks.WorkflowHooks">WorkflowHooks</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4505,13 +4505,13 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
 <a href="#mamba_agents.workflows.base.Workflow.run" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">deps</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.DepsT">DepsT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">deps</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[DepsT]">DepsT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowResult
 
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4554,7 +4554,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="mamba_agents.workflows.base.DepsT">DepsT</span> | None</code>
+                      <code><span title="mamba_agents.workflows.base.Workflow[DepsT]">DepsT</span> | None</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -4583,7 +4583,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a>[<span title="mamba_agents.workflows.base.OutputT">OutputT</span>, <span title="mamba_agents.workflows.base.StateT">StateT</span>]</code>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a>[<span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span>, <span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -4754,13 +4754,13 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
 <a href="#mamba_agents.workflows.base.Workflow.run_sync" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">run_sync</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">deps</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.DepsT">DepsT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">prompt</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n">deps</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[DepsT]">DepsT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowResult
 
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -4803,7 +4803,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-param-annotation">
                     <b>TYPE:</b>
-                      <code><span title="mamba_agents.workflows.base.DepsT">DepsT</span> | None</code>
+                      <code><span title="mamba_agents.workflows.base.Workflow[DepsT]">DepsT</span> | None</code>
                   </span>
                   <span class="doc-param-default">
                     <b>DEFAULT:</b>
@@ -4832,7 +4832,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a>[<span title="mamba_agents.workflows.base.OutputT">OutputT</span>, <span title="mamba_agents.workflows.base.StateT">StateT</span>]</code>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a>[<span title="mamba_agents.workflows.base.Workflow[OutputT]">OutputT</span>, <span title="mamba_agents.workflows.base.Workflow[StateT]">StateT</span>]</code>
                 </span>
             </td>
             <td class="doc-returns-details">
@@ -4915,14 +4915,12 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
   
       dataclass
    (mamba_agents.workflows.base.WorkflowStep)" href="#mamba_agents.workflows.base.WorkflowStep">WorkflowStep</a></span><span class="p">[</span><span class="n"><span title="typing.Any">Any</span></span><span class="p">]]</span> <span class="o">=</span> <span class="n"><span title="list">list</span></span><span class="p">(),</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">context</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">context</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowState[StateT]">StateT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">metadata</span><span class="p">:</span> <span class="n"><span title="dict">dict</span></span><span class="p">[</span><span class="n"><span title="str">str</span></span><span class="p">,</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">]</span> <span class="o">=</span> <span class="n"><span title="dict">dict</span></span><span class="p">(),</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
-            <p class="doc doc-class-bases">
-              Bases: <code><span title="typing.Generic">Generic</span>[<span title="mamba_agents.workflows.base.StateT">StateT</span>]</code></p>
 
 
 
@@ -5036,7 +5034,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-attribute-annotation">
                     <b>TYPE:</b>
-                      <code><span title="mamba_agents.workflows.base.StateT">StateT</span> | None</code>
+                      <code><span title="mamba_agents.workflows.base.WorkflowState[StateT]">StateT</span> | None</code>
                   </span>
               </p>
             </td>
@@ -5213,7 +5211,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">step_type</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">description</span><span class="p">:</span> <span class="n"><span title="str">str</span></span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">input_data</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">output_data</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">output_data</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowStep[OutputT]">OutputT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">agent_result</span><span class="p">:</span> <span class="n"><span title="typing.Any">Any</span></span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">error</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">started_at</span><span class="p">:</span> <span class="n"><span title="datetime.datetime">datetime</span></span> <span class="o">=</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n"><span title="datetime.datetime.now">now</span></span><span class="p">(</span><span class="n"><span title="datetime.UTC">UTC</span></span><span class="p">))(),</span>
@@ -5223,8 +5221,6 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
-            <p class="doc doc-class-bases">
-              Bases: <code><span title="typing.Generic">Generic</span>[<span title="mamba_agents.workflows.base.OutputT">OutputT</span>]</code></p>
 
 
 
@@ -5304,7 +5300,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-attribute-annotation">
                     <b>TYPE:</b>
-                      <code><span title="mamba_agents.workflows.base.OutputT">OutputT</span> | None</code>
+                      <code><span title="mamba_agents.workflows.base.WorkflowStep[OutputT]">OutputT</span> | None</code>
                   </span>
               </p>
             </td>
@@ -5474,13 +5470,13 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 <a href="#mamba_agents.workflows.base.WorkflowResult" class="headerlink" title="Permanent link">&para;</a></h2>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">WorkflowResult</span><span class="p">(</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">success</span><span class="p">:</span> <span class="n"><span title="bool">bool</span></span><span class="p">,</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">output</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[OutputT]">OutputT</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">state</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowState
 
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">error</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">total_steps</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">total_iterations</span><span class="p">:</span> <span class="n"><span title="int">int</span></span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
@@ -5490,8 +5486,6 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 </span></code></pre></div>
 
     <div class="doc doc-contents first">
-            <p class="doc doc-class-bases">
-              Bases: <code><span title="typing.Generic">Generic</span>[<span title="mamba_agents.workflows.base.OutputT">OutputT</span>, <span title="mamba_agents.workflows.base.StateT">StateT</span>]</code></p>
 
 
 
@@ -5529,7 +5523,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
               <p>
                   <span class="doc-attribute-annotation">
                     <b>TYPE:</b>
-                      <code><span title="mamba_agents.workflows.base.OutputT">OutputT</span> | None</code>
+                      <code><span title="mamba_agents.workflows.base.WorkflowResult[OutputT]">OutputT</span> | None</code>
                   </span>
               </p>
             </td>
@@ -5548,7 +5542,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a>[<span title="mamba_agents.workflows.base.StateT">StateT</span>] | None</code>
+   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a>[<span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span>] | None</code>
                   </span>
               </p>
             </td>
@@ -5660,13 +5654,13 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
 <a href="#mamba_agents.workflows.base.WorkflowResult.ok" class="headerlink" title="Permanent link">&para;</a></h3>
 <div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">ok</span><span class="p">(</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">output</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">,</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">output</span><span class="p">:</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[OutputT]">OutputT</span></span><span class="p">,</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">state</span><span class="p">:</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowState
 
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">],</span>
+   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span></span><span class="p">],</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">duration</span><span class="p">:</span> <span class="n"><span title="float">float</span></span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">reason</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;completed&quot;</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowResult
@@ -5674,7 +5668,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.OutputT">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[OutputT]">OutputT</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">
@@ -5744,7 +5738,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+   (mamba_agents.workflows.base.WorkflowState)" href="#mamba_agents.workflows.base.WorkflowState">WorkflowState</a></span><span class="p">[</span><span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span></span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    <span class="n">duration</span><span class="p">:</span> <span class="n"><span title="float">float</span></span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">reason</span><span class="p">:</span> <span class="n"><span title="str">str</span></span> <span class="o">=</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n"><a class="autorefs autorefs-internal" title="            WorkflowResult
@@ -5752,7 +5746,7 @@ from mamba_agents.workflows import Workflow, WorkflowConfig</p>
 
   
       dataclass
-   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.StateT">StateT</span></span><span class="p">]</span>
+   (mamba_agents.workflows.base.WorkflowResult)" href="#mamba_agents.workflows.base.WorkflowResult">WorkflowResult</a></span><span class="p">[</span><span class="n"><span title="typing.Any">Any</span></span><span class="p">,</span> <span class="n"><span title="mamba_agents.workflows.base.WorkflowResult[StateT]">StateT</span></span><span class="p">]</span>
 </span></code></pre></div>
 
     <div class="doc doc-contents ">

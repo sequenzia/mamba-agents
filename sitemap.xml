@@ -2,310 +2,310 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/changelog/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/contributing/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/agent/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/agent/agent/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/agent/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/agent/result/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/backends/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/backends/openai-compat/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/backends/profiles/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/config/model-backend/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/config/other/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/config/settings/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/context/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/context/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/context/manager/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/context/strategies/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/errors/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/errors/circuit-breaker/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/errors/exceptions/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/errors/retry/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/mcp/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/mcp/client/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/mcp/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/mcp/errors/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/mcp/loader/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/observability/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/observability/logging/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/observability/otel/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/observability/tracing/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/prompts/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/prompts/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/prompts/errors/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/prompts/manager/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/prompts/template/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tokens/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tokens/cost/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tokens/counter/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tokens/tracker/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/bash/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/filesystem/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/glob/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/grep/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/tools/registry/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/workflows/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/workflows/base/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/workflows/config/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/workflows/hooks/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/api/workflows/react/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/concepts/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/concepts/architecture/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/concepts/compaction-strategies/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/concepts/execution-loop/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/concepts/workflow-patterns/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/getting-started/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/getting-started/configuration/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/getting-started/installation/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/getting-started/quickstart/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/tutorials/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/tutorials/code-assistant/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/tutorials/custom-tools/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/tutorials/local-llm-setup/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/tutorials/react-workflow/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/agent-basics/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/context-management/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/error-handling/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/mcp-integration/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/model-backends/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/observability/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/prompt-management/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/token-tracking/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/tools/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
     <url>
          <loc>https://sequenzia.github.io/mamba-agents/user-guide/workflows/</loc>
-         <lastmod>2026-01-19</lastmod>
+         <lastmod>2026-01-22</lastmod>
     </url>
 </urlset>
