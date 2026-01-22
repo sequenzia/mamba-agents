@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import functools
+import inspect
+import logging
 from collections.abc import AsyncIterator, Callable, Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic_ai import Agent as PydanticAgent
+from pydantic_ai import ModelRetry
 from pydantic_ai.models import Model
 from pydantic_ai.toolsets import AbstractToolset
 
@@ -19,6 +23,8 @@ from mamba_agents.prompts.config import TemplateConfig
 from mamba_agents.tokens import CostEstimator, TokenCounter, UsageTracker
 from mamba_agents.tokens.cost import CostBreakdown
 from mamba_agents.tokens.tracker import TokenUsage, UsageRecord
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from pydantic_ai.messages import ModelMessage
@@ -228,6 +234,57 @@ class Agent[DepsT, OutputT]:
 
         self._prompt_manager = PromptManager(config=self._settings.prompts)
         return self._prompt_manager
+
+    def _wrap_tool_with_graceful_errors(self, func: Callable[..., Any]) -> Callable[..., Any]:
+        """Wrap a tool function to convert exceptions to ModelRetry.
+
+        This allows the LLM to receive error messages and potentially
+        retry with different parameters instead of crashing the agent loop.
+
+        Args:
+            func: The tool function to wrap.
+
+        Returns:
+            Wrapped function that converts exceptions to ModelRetry.
+        """
+        if inspect.iscoroutinefunction(func):
+
+            @functools.wraps(func)
+            async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return await func(*args, **kwargs)
+                except ModelRetry:
+                    # Pass through ModelRetry unchanged (no double-wrapping)
+                    raise
+                except Exception as exc:
+                    error_msg = f"{type(exc).__name__}: {exc}"
+                    logger.debug(
+                        "Tool %s raised %s, converting to ModelRetry",
+                        func.__name__,
+                        error_msg,
+                    )
+                    raise ModelRetry(error_msg) from exc
+
+            return async_wrapper
+        else:
+
+            @functools.wraps(func)
+            def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
+                try:
+                    return func(*args, **kwargs)
+                except ModelRetry:
+                    # Pass through ModelRetry unchanged (no double-wrapping)
+                    raise
+                except Exception as exc:
+                    error_msg = f"{type(exc).__name__}: {exc}"
+                    logger.debug(
+                        "Tool %s raised %s, converting to ModelRetry",
+                        func.__name__,
+                        error_msg,
+                    )
+                    raise ModelRetry(error_msg) from exc
+
+            return sync_wrapper
 
     @classmethod
     def from_settings(
@@ -443,6 +500,7 @@ class Agent[DepsT, OutputT]:
         name: str | None,
         description: str | None,
         retries: int | None,
+        graceful_errors: bool | None,
     ) -> Callable[..., Any]:
         """Register a tool using the specified pydantic-ai method.
 
@@ -452,17 +510,28 @@ class Agent[DepsT, OutputT]:
             name: Optional custom name for the tool.
             description: Optional description override.
             retries: Optional retry count override.
+            graceful_errors: Whether to convert exceptions to ModelRetry.
+                None uses the agent config setting.
 
         Returns:
             The decorated function or a decorator.
         """
         kwargs = self._build_kwargs(name=name, description=description, retries=retries)
 
+        # Resolve effective graceful_errors setting: per-tool override > agent config
+        effective_graceful = (
+            graceful_errors if graceful_errors is not None else self._config.graceful_tool_errors
+        )
+
+        def apply_wrapper(f: Callable[..., Any]) -> Callable[..., Any]:
+            wrapped = self._wrap_tool_with_graceful_errors(f) if effective_graceful else f
+            return method(**kwargs)(wrapped)
+
         if func is not None:
-            return method(**kwargs)(func)
+            return apply_wrapper(func)
 
         def decorator(f: Callable[..., Any]) -> Callable[..., Any]:
-            return method(**kwargs)(f)
+            return apply_wrapper(f)
 
         return decorator
 
@@ -473,6 +542,7 @@ class Agent[DepsT, OutputT]:
         name: str | None = None,
         description: str | None = None,
         retries: int | None = None,
+        graceful_errors: bool | None = None,
     ) -> Callable[..., Any]:
         """Register a tool function with the agent.
 
@@ -483,6 +553,9 @@ class Agent[DepsT, OutputT]:
             name: Optional custom name for the tool.
             description: Optional description override.
             retries: Optional retry count override.
+            graceful_errors: Whether to convert exceptions to ModelRetry.
+                None uses the agent config setting (default: True).
+                Set False to propagate exceptions directly.
 
         Returns:
             The decorated function.
@@ -492,7 +565,9 @@ class Agent[DepsT, OutputT]:
             ... async def read_file(path: str) -> str:
             ...     return Path(path).read_text()
         """
-        return self._register_tool(func, self._agent.tool, name, description, retries)
+        return self._register_tool(
+            func, self._agent.tool, name, description, retries, graceful_errors
+        )
 
     def tool_plain(
         self,
@@ -501,6 +576,7 @@ class Agent[DepsT, OutputT]:
         name: str | None = None,
         description: str | None = None,
         retries: int | None = None,
+        graceful_errors: bool | None = None,
     ) -> Callable[..., Any]:
         """Register a plain tool function (no RunContext).
 
@@ -511,11 +587,16 @@ class Agent[DepsT, OutputT]:
             name: Optional custom name for the tool.
             description: Optional description override.
             retries: Optional retry count override.
+            graceful_errors: Whether to convert exceptions to ModelRetry.
+                None uses the agent config setting (default: True).
+                Set False to propagate exceptions directly.
 
         Returns:
             The decorated function.
         """
-        return self._register_tool(func, self._agent.tool_plain, name, description, retries)
+        return self._register_tool(
+            func, self._agent.tool_plain, name, description, retries, graceful_errors
+        )
 
     def override(
         self,
