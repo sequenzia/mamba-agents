@@ -38,28 +38,6 @@ config = ErrorRecoveryConfig(
 | `max_retries` | int | 3 | Max attempts |
 | `base_wait` | float | 1.0 | Initial backoff |
 
-## ObservabilityConfig
-
-```python
-from mamba_agents.config import ObservabilityConfig
-
-config = ObservabilityConfig(
-    enable_tracing=True,
-    service_name="my-agent",
-)
-```
-
-## StreamingConfig
-
-```python
-from mamba_agents.config import StreamingConfig
-
-config = StreamingConfig(
-    enabled=True,
-    chunk_size=1024,
-)
-```
-
 ## API Reference
 
 ::: mamba_agents.config.logging_config.LoggingConfig
@@ -67,9 +45,5 @@ config = StreamingConfig(
       show_root_heading: true
 
 ::: mamba_agents.config.retry.ErrorRecoveryConfig
-    options:
-      show_root_heading: true
-
-::: mamba_agents.config.observability.ObservabilityConfig
     options:
       show_root_heading: true

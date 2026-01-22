@@ -26,9 +26,7 @@ settings = AgentSettings(
 |---------|------|-------------|
 | `model_backend` | ModelBackendSettings | Model connection |
 | `logging` | LoggingConfig | Logging settings |
-| `observability` | ObservabilityConfig | Tracing settings |
 | `retry` | ErrorRecoveryConfig | Retry behavior |
-| `streaming` | StreamingConfig | Streaming options |
 | `context` | CompactionConfig | Default compaction |
 | `tokenizer` | TokenizerConfig | Tokenizer settings |
 | `cost_rates` | dict | Custom cost rates |
