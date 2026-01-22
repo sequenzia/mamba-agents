@@ -233,6 +233,97 @@ async def call_with_fallback(query):
         raise
 ```
 
+## Graceful Tool Error Handling
+
+By default, tool exceptions are automatically converted to `ModelRetry`, allowing the LLM to receive error feedback and attempt recovery instead of crashing the agent loop.
+
+### How It Works
+
+When a tool raises an exception:
+
+1. The exception is caught by the agent
+2. The error is formatted as `"ExceptionType: message"`
+3. A `ModelRetry` is raised with this error message
+4. The LLM receives the error and can retry with different parameters
+
+```python
+@agent.tool_plain
+def read_file(path: str) -> str:
+    """Read a file's contents."""
+    return Path(path).read_text()  # FileNotFoundError handled automatically
+```
+
+If the LLM calls `read_file("missing.txt")`, it receives:
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'missing.txt'
+```
+
+The LLM can then try a different path or ask the user for clarification.
+
+### Configuration
+
+Graceful error handling is enabled by default via `AgentConfig.graceful_tool_errors=True`.
+
+```python
+from mamba_agents import Agent, AgentConfig
+
+# Default: graceful errors enabled
+agent = Agent("gpt-4o")
+
+# Disable globally for all tools
+config = AgentConfig(graceful_tool_errors=False)
+agent = Agent("gpt-4o", config=config)
+```
+
+### Per-Tool Override
+
+Override the global setting for individual tools using the `graceful_errors` parameter:
+
+```python
+# This tool uses graceful errors (default)
+@agent.tool_plain
+def search_files(pattern: str) -> list[str]:
+    """Search for files matching a pattern."""
+    return glob.glob(pattern)
+
+# This tool propagates exceptions (opt-out)
+@agent.tool_plain(graceful_errors=False)
+def delete_file(path: str) -> str:
+    """Delete a file - failures should stop execution."""
+    Path(path).unlink()
+    return f"Deleted {path}"
+```
+
+### When to Disable Graceful Errors
+
+Disable graceful error handling for tools where:
+
+- **Failures indicate critical problems** that should stop execution
+- **Side effects have already occurred** and recovery is dangerous
+- **You need detailed exception information** for debugging
+- **The tool is part of a transaction** that must be atomic
+
+```python
+@agent.tool_plain(graceful_errors=False)
+def commit_transaction(tx_id: str) -> str:
+    """Commit a database transaction - must not silently fail."""
+    db.commit(tx_id)
+    return "Committed"
+```
+
+### Exception Chain Preservation
+
+When graceful error handling converts an exception, the original exception is preserved in the chain. This is useful for debugging:
+
+```python
+try:
+    result = await agent.run("Read the config file")
+except ModelRetry as e:
+    # Access the original exception
+    original = e.__cause__
+    print(f"Original error: {original}")
+```
+
 ## Configuration Reference
 
 ### ErrorRecoveryConfig

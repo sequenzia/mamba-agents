@@ -29,6 +29,7 @@ agent = Agent("gpt-4o", config=config)
 | `max_iterations` | int | 10 | Maximum tool-calling iterations |
 | `track_context` | bool | True | Enable message tracking |
 | `auto_compact` | bool | True | Auto-compact when threshold reached |
+| `graceful_tool_errors` | bool | True | Convert tool exceptions to ModelRetry |
 | `context` | CompactionConfig | None | Custom compaction settings |
 | `tokenizer` | TokenizerConfig | None | Custom tokenizer settings |
 

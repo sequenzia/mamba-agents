@@ -213,7 +213,38 @@ def search_database(
 
 ### Error Handling
 
-Return meaningful errors instead of raising exceptions:
+By default, Mamba Agents automatically converts tool exceptions to `ModelRetry`, allowing the LLM to receive error feedback and attempt recovery instead of crashing the agent loop.
+
+```python
+@agent.tool_plain
+def read_config(path: str) -> str:
+    """Read a configuration file."""
+    with open(path) as f:
+        return f.read()  # FileNotFoundError is caught automatically
+```
+
+If the LLM calls this tool with a non-existent path, it receives an error message like `"FileNotFoundError: [Errno 2] No such file or directory: 'missing.txt'"` and can try a different path.
+
+#### Disabling Graceful Errors
+
+For critical tools that must fail immediately (propagating the exception):
+
+```python
+# Per-tool opt-out
+@agent.tool_plain(graceful_errors=False)
+def critical_operation(data: str) -> str:
+    """Critical tool that must not silently fail."""
+    # Exceptions will propagate and stop the agent
+    ...
+
+# Agent-level disable
+config = AgentConfig(graceful_tool_errors=False)
+agent = Agent("gpt-4o", config=config)
+```
+
+#### Manual Error Handling (Optional)
+
+You can still handle errors manually if you want custom error messages:
 
 ```python
 @agent.tool
@@ -223,11 +254,9 @@ def read_config(path: str) -> str:
         with open(path) as f:
             return f.read()
     except FileNotFoundError:
-        return f"Error: File '{path}' not found"
+        return f"Error: File '{path}' not found. Try listing the directory first."
     except PermissionError:
         return f"Error: Permission denied for '{path}'"
-    except Exception as e:
-        return f"Error reading file: {e}"
 ```
 
 ### Type Hints

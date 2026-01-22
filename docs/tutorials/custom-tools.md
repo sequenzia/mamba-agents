@@ -85,9 +85,9 @@ async def fetch_weather(city: str) -> str:
         return f"Weather in {city}: {data['temperature']}°C, {data['conditions']}"
 ```
 
-## Step 4: Tools with Error Handling
+## Step 4: Error Handling
 
-Always handle errors gracefully:
+By default, Mamba Agents automatically handles tool exceptions. When a tool raises an exception, it's converted to a `ModelRetry` that the LLM receives as an error message, allowing it to try a different approach.
 
 ```python
 @agent.tool
@@ -99,20 +99,46 @@ def read_json_file(filepath: str) -> str:
         filepath: Path to the JSON file
 
     Returns:
-        The parsed JSON content or an error message
+        The parsed JSON content
     """
+    import json
+
+    with open(filepath) as f:
+        return json.dumps(json.load(f), indent=2)
+    # FileNotFoundError, JSONDecodeError, etc. are handled automatically
+```
+
+If the LLM calls this with an invalid path, it receives the error message and can retry with a different path.
+
+### Custom Error Messages (Optional)
+
+For more helpful error messages, you can still catch exceptions manually:
+
+```python
+@agent.tool
+def read_json_file(filepath: str) -> str:
+    """Read and parse a JSON file."""
     import json
 
     try:
         with open(filepath) as f:
-            data = json.load(f)
-        return json.dumps(data, indent=2)
+            return json.dumps(json.load(f), indent=2)
     except FileNotFoundError:
-        return f"Error: File '{filepath}' not found"
+        return f"Error: File '{filepath}' not found. Try listing the directory first."
     except json.JSONDecodeError as e:
-        return f"Error: Invalid JSON - {e}"
-    except PermissionError:
-        return f"Error: Permission denied for '{filepath}'"
+        return f"Error: Invalid JSON at line {e.lineno} - {e.msg}"
+```
+
+### Critical Tools
+
+For tools where failures should stop execution immediately, disable graceful error handling:
+
+```python
+@agent.tool_plain(graceful_errors=False)
+def deploy_to_production(version: str) -> str:
+    """Deploy to production - failures must stop the workflow."""
+    # Exceptions will propagate and stop the agent
+    ...
 ```
 
 ## Step 5: Using tool_plain
@@ -310,9 +336,10 @@ def test_format_text():
 
 1. **Clear Docstrings** - The model reads them to understand tool usage
 2. **Type Hints** - Always include parameter and return types
-3. **Error Handling** - Return error messages, don't raise exceptions
+3. **Let Errors Propagate** - Graceful error handling catches exceptions automatically; only add manual handling for custom error messages
 4. **Validation** - Validate inputs before processing
 5. **Concise Returns** - Keep return values informative but not excessive
+6. **Critical Tools** - Use `graceful_errors=False` for tools that must fail loudly
 
 ## Next Steps
 
