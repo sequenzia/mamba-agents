@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-01-22
+
+### Added
+
+- Add Streamable HTTP transport support for MCP servers (auto-detected from URL when not ending in `/sse`)
+- Add connection testing methods to `MCPClientManager`: `test_connection()`, `test_all_connections()`, and sync variants
+- Add `get_server()` method to `MCPClientManager` for retrieving individual server instances
+- Add `MCPToolInfo` and `MCPConnectionResult` models for connection testing results
+- Add new MCP errors: `MCPConnectionError`, `MCPConnectionTimeoutError`, `MCPServerNotFoundError`
+
+### Fixed
+
+- Fix deprecated `get_event_loop().run_until_complete()` usage in MCP client (now uses `asyncio.run()`)
+
 ## [0.1.2] - 2026-01-22
 
 ### Added
@@ -57,7 +71,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sequenzia/mamba-agents/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sequenzia/mamba-agents/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/sequenzia/mamba-agents/releases/tag/v0.1.0
