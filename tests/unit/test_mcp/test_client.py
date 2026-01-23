@@ -631,7 +631,7 @@ class TestMCPConnectionTesting:
     @pytest.mark.asyncio
     async def test_all_connections_partial_failure(self) -> None:
         """Test concurrent connection testing with mixed results."""
-        from unittest.mock import AsyncMock, MagicMock, patch
+        from unittest.mock import MagicMock, patch
 
         configs = [
             MCPServerConfig(name="good-server", transport="stdio", command="good-cmd"),
