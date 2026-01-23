@@ -36,14 +36,14 @@ class MCPAuthConfig(BaseModel):
 class MCPServerConfig(BaseModel):
     """Configuration for an MCP server.
 
-    Supports both stdio (subprocess) and SSE (HTTP) transports.
+    Supports stdio (subprocess), SSE (HTTP), and Streamable HTTP transports.
 
     Attributes:
         name: Unique server name.
-        transport: Transport type (stdio or sse).
+        transport: Transport type (stdio, sse, or streamable_http).
         command: Command to run (stdio transport).
         args: Command arguments (stdio transport).
-        url: Server URL (SSE transport).
+        url: Server URL (SSE or Streamable HTTP transport).
         auth: Authentication configuration.
         tool_prefix: Prefix for tool names from this server.
         env_file: Path to .env file for environment variables.
@@ -53,7 +53,7 @@ class MCPServerConfig(BaseModel):
     """
 
     name: str = Field(description="Unique server name")
-    transport: Literal["stdio", "sse"] = Field(
+    transport: Literal["stdio", "sse", "streamable_http"] = Field(
         default="stdio",
         description="Transport type",
     )
