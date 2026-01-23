@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add `examples/` directory with runnable scripts demonstrating all major features
+- Add enhanced module docstrings with usage examples and cross-references
+
+### Changed
+
+- Update documentation with v0.1.3 MCP features (Streamable HTTP transport, connection testing)
+- Update README and MCP user guide with new transport types and connection testing API
+- Update `config.example.toml` with `[prompts]` section and Streamable HTTP MCP example
+
 ## [0.1.3] - 2026-01-22
 
 ### Added
