@@ -72,7 +72,7 @@ async def main():
 
     result = await workflow.run("Read the README.md file and summarize it briefly.")
 
-    print(f"\n--- Final Result ---")
+    print("\n--- Final Result ---")
     print(f"\n{result.output}")
 
 

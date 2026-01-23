@@ -16,7 +16,7 @@ import tempfile
 from pathlib import Path
 
 from mamba_agents import Agent
-from mamba_agents.prompts import PromptConfig, PromptManager, TemplateConfig
+from mamba_agents.prompts import PromptConfig, PromptManager
 
 
 def string_prompt_example():

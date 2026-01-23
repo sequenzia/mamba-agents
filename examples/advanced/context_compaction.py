@@ -50,7 +50,7 @@ def main():
 
     # Check context state
     state = agent.get_context_state()
-    print(f"\nContext state:")
+    print("\nContext state:")
     print(f"  Messages: {state.message_count}")
     print(f"  Tokens: {state.token_count}")
 

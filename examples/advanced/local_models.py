@@ -11,12 +11,7 @@ Prerequisites:
 - One of: Ollama, vLLM, or LM Studio running locally
 """
 
-from mamba_agents import Agent, AgentSettings
 from mamba_agents.backends import (
-    OpenAICompatibleBackend,
-    create_lmstudio_backend,
-    create_ollama_backend,
-    create_vllm_backend,
     get_profile,
 )
 
@@ -98,7 +93,7 @@ def model_profiles_example():
 
     # Get profile for a known model
     profile = get_profile("gpt-4o")
-    print(f"Profile for gpt-4o:")
+    print("Profile for gpt-4o:")
     print(f"  Context window: {profile.context_window}")
     print(f"  Supports tools: {profile.supports_tools}")
     print(f"  Provider: {profile.provider}")

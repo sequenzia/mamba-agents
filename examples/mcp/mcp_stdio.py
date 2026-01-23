@@ -48,7 +48,7 @@ def main():
     # Create agent with MCP toolsets
     # pydantic-ai handles server lifecycle automatically
     print("\nCreating agent with MCP toolsets...")
-    agent = Agent("gpt-4o-mini", toolsets=manager.as_toolsets())
+    _agent = Agent("gpt-4o-mini", toolsets=manager.as_toolsets())
 
     # Use the agent (uncomment to run)
     # result = agent.run_sync("List files in /tmp using the MCP filesystem tools")
