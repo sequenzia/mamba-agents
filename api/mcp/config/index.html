@@ -3943,7 +3943,7 @@
 
 
         <p>Configuration for an MCP server.</p>
-<p>Supports both stdio (subprocess) and SSE (HTTP) transports.</p>
+<p>Supports stdio (subprocess), SSE (HTTP), and Streamable HTTP transports.</p>
 
 
 <table>
@@ -3972,12 +3972,12 @@
             <td><code><span title="mamba_agents.mcp.config.MCPServerConfig.transport">transport</span></code></td>
             <td class="doc-attribute-details">
               <div class="doc-md-description">
-                <p>Transport type (stdio or sse).</p>
+                <p>Transport type (stdio, sse, or streamable_http).</p>
               </div>
               <p>
                   <span class="doc-attribute-annotation">
                     <b>TYPE:</b>
-                      <code><span title="typing.Literal">Literal</span>[&#39;stdio&#39;, &#39;sse&#39;]</code>
+                      <code><span title="typing.Literal">Literal</span>[&#39;stdio&#39;, &#39;sse&#39;, &#39;streamable_http&#39;]</code>
                   </span>
               </p>
             </td>
@@ -4014,7 +4014,7 @@
             <td><code><span title="mamba_agents.mcp.config.MCPServerConfig.url">url</span></code></td>
             <td class="doc-attribute-details">
               <div class="doc-md-description">
-                <p>Server URL (SSE transport).</p>
+                <p>Server URL (SSE or Streamable HTTP transport).</p>
               </div>
               <p>
                   <span class="doc-attribute-annotation">
