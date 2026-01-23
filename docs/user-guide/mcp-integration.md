@@ -7,10 +7,12 @@ Mamba Agents supports the Model Context Protocol (MCP) for connecting to externa
 MCP allows your agent to use tools provided by external servers:
 
 - **Stdio transport** - Run MCP servers as subprocesses
-- **SSE transport** - Connect to HTTP-based MCP servers
+- **SSE transport** - Connect to HTTP-based MCP servers (Server-Sent Events)
+- **Streamable HTTP transport** - Connect to modern HTTP-based MCP servers (v0.1.3+)
 - **Authentication** - API key support for secure servers
 - **Tool prefixing** - Avoid name conflicts between servers
 - **File-based config** - Load from `.mcp.json` files (Claude Desktop compatible)
+- **Connection testing** - Verify server connectivity before use (v0.1.3+)
 
 ## Quick Start
 
@@ -204,7 +206,7 @@ MCPServerConfig(
 
 ### SSE Transport
 
-Connect to HTTP-based servers:
+Connect to HTTP-based servers using Server-Sent Events:
 
 ```python
 MCPServerConfig(
@@ -212,6 +214,43 @@ MCPServerConfig(
     transport="sse",
     url="http://localhost:8080/sse",
 )
+```
+
+### Streamable HTTP Transport (v0.1.3+)
+
+Connect to modern HTTP-based MCP servers:
+
+```python
+MCPServerConfig(
+    name="api-server",
+    transport="streamable_http",
+    url="http://localhost:8080/mcp",
+    timeout=60,        # Connection timeout
+    read_timeout=300,  # Read timeout for long operations
+)
+```
+
+### Transport Auto-Detection
+
+When loading from `.mcp.json` files, transport is auto-detected from URLs:
+
+| URL Pattern | Detected Transport |
+|-------------|-------------------|
+| Ends with `/sse` | SSE |
+| Other URLs | Streamable HTTP |
+| Has `command` field | Stdio |
+
+```json
+{
+  "mcpServers": {
+    "sse-server": {
+      "url": "http://localhost:8080/sse"
+    },
+    "http-server": {
+      "url": "http://localhost:8080/mcp"
+    }
+  }
+}
 ```
 
 ## Authentication
@@ -247,6 +286,70 @@ MCPAuthConfig(
     key="${MY_API_KEY}",  # Expanded at runtime
 )
 ```
+
+## Connection Testing (v0.1.3+)
+
+Test MCP server connectivity before using them with agents.
+
+### Test Individual Server
+
+```python
+from mamba_agents.mcp import MCPClientManager
+
+manager = MCPClientManager(configs)
+
+# Async
+result = await manager.test_connection("filesystem")
+
+# Sync
+result = manager.test_connection_sync("filesystem")
+
+if result.success:
+    print(f"Connected to {result.server_name}")
+    print(f"Server running: {result.is_running}")
+    print(f"Tools available: {result.tool_count}")
+    for tool in result.tools:
+        print(f"  - {tool.name}: {tool.description}")
+else:
+    print(f"Connection failed: {result.error}")
+    print(f"Error type: {result.error_type}")
+```
+
+### Test All Servers
+
+```python
+# Async
+results = await manager.test_all_connections()
+
+# Sync
+results = manager.test_all_connections_sync()
+
+for name, result in results.items():
+    if result.success:
+        print(f"{name}: OK ({result.tool_count} tools)")
+    else:
+        print(f"{name}: FAILED - {result.error}")
+```
+
+### MCPConnectionResult
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `server_name` | str | Server that was tested |
+| `success` | bool | Whether connection succeeded |
+| `is_running` | bool | Whether server is running |
+| `tools` | list[MCPToolInfo] | Available tools |
+| `tool_count` | int | Number of tools |
+| `error` | str | Error message if failed |
+| `error_type` | str | Error class name |
+
+### MCPToolInfo
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | str | Tool name |
+| `description` | str | Tool description |
+| `input_schema` | dict | JSON schema for inputs |
 
 ## MCPClientManager
 
@@ -341,10 +444,7 @@ MCPServerConfig(
     transport="stdio",
     command="npx",
     args=["-y", "@modelcontextprotocol/server-github"],
-    auth=MCPAuthConfig(
-        type="api_key",
-        key_env="GITHUB_TOKEN",
-    ),
+    env_vars={"GITHUB_TOKEN": "${GITHUB_TOKEN}"},  # Pass token to subprocess
     tool_prefix="gh",
 )
 ```
@@ -357,10 +457,7 @@ MCPServerConfig(
     transport="stdio",
     command="npx",
     args=["-y", "@modelcontextprotocol/server-brave-search"],
-    auth=MCPAuthConfig(
-        type="api_key",
-        key_env="BRAVE_API_KEY",
-    ),
+    env_vars={"BRAVE_API_KEY": "${BRAVE_API_KEY}"},  # Pass API key to subprocess
     tool_prefix="search",
 )
 ```
@@ -372,12 +469,16 @@ MCPServerConfig(
 | Option | Type | Description |
 |--------|------|-------------|
 | `name` | str | Unique server identifier |
-| `transport` | str | `"stdio"` or `"sse"` |
+| `transport` | str | `"stdio"`, `"sse"`, or `"streamable_http"` |
 | `command` | str | Command to run (stdio only) |
 | `args` | list | Command arguments (stdio only) |
-| `url` | str | Server URL (SSE only) |
+| `url` | str | Server URL (SSE and Streamable HTTP) |
 | `auth` | MCPAuthConfig | Authentication config |
 | `tool_prefix` | str | Prefix for tool names |
+| `env_file` | str | Path to .env file for environment |
+| `env_vars` | dict | Environment variables for server |
+| `timeout` | float | Connection timeout in seconds (default: 30) |
+| `read_timeout` | float | Read timeout in seconds (default: 300) |
 
 ### MCPAuthConfig
 
@@ -441,6 +542,9 @@ except Exception as e:
 | `MCPFileNotFoundError` | `.mcp.json` file not found |
 | `MCPFileParseError` | Invalid JSON in config file |
 | `MCPServerValidationError` | Invalid server entry in config |
+| `MCPConnectionError` | Server connection failure (v0.1.3+) |
+| `MCPConnectionTimeoutError` | Connection timeout (v0.1.3+) |
+| `MCPServerNotFoundError` | Server not found in manager (v0.1.3+) |
 
 ## Best Practices
 

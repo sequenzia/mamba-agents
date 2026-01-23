@@ -45,10 +45,12 @@ target_tokens = 80000
 preserve_recent_turns = 10
 preserve_system_prompt = true
 
-[streaming]
-stream_model_responses = true
-stream_tool_results = true
-chunk_size = 1024
+[prompts]
+prompts_dir = "prompts"
+default_version = "v1"
+file_extension = ".jinja2"
+enable_caching = true
+strict_mode = false
 
 # MCP Server Configuration (optional)
 # [[mcp_servers]]
@@ -56,12 +58,25 @@ chunk_size = 1024
 # transport = "stdio"
 # command = "npx"
 # args = ["-y", "@modelcontextprotocol/server-filesystem", "/data"]
+# timeout = 30.0
+# read_timeout = 300.0
 
 # [[mcp_servers]]
-# name = "custom-api"
+# name = "sse-api"
 # transport = "sse"
-# url = "http://localhost:8080/mcp"
-# tool_prefix = "custom"
+# url = "http://localhost:8080/sse"
+# tool_prefix = "sse"
 # [mcp_servers.auth]
 # type = "api_key"
-# key_env = "MCP_CUSTOM_API_KEY"
+# key_env = "MCP_SSE_API_KEY"
+
+# [[mcp_servers]]
+# name = "http-api"
+# transport = "streamable_http"
+# url = "http://localhost:8080/mcp"
+# tool_prefix = "http"
+# timeout = 60.0
+# read_timeout = 300.0
+# [mcp_servers.auth]
+# type = "api_key"
+# key_env = "MCP_HTTP_API_KEY"

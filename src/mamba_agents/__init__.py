@@ -1,23 +1,35 @@
 """
 Mamba Agents - A simple, extensible AI Agent framework built on pydantic-ai.
 
-This framework provides:
-- Simple tool-calling agent loop
-- Built-in tools for filesystem, glob, grep, and bash operations
-- MCP server integration
-- Token management with tiktoken
-- Context window management with compaction strategies
-- Prompt template management with Jinja2
-- Comprehensive observability and error handling
+Quick Start:
+    >>> from mamba_agents import Agent
+    >>> agent = Agent("gpt-4o")
+    >>> result = agent.run_sync("What is 2 + 2?")
+    >>> print(result.output)
+    4
 
-Essential imports:
-    from mamba_agents import Agent, AgentConfig, AgentSettings
+With Settings:
+    >>> from mamba_agents import Agent, AgentSettings
+    >>> settings = AgentSettings()  # Loads from env, .env, config files
+    >>> agent = Agent("gpt-4o", settings=settings)
+    >>> result = agent.run_sync("Hello!")
 
-For submodule-specific imports (alternative to main exports):
-    from mamba_agents.tokens import TokenUsage, UsageRecord, CostBreakdown
-    from mamba_agents.prompts import PromptManager, PromptTemplate, PromptConfig, TemplateConfig
-    from mamba_agents.mcp import MCPClientManager, MCPServerConfig, MCPAuthConfig
-    from mamba_agents.workflows import Workflow, WorkflowConfig, WorkflowHooks, ...
+With Tools:
+    >>> from mamba_agents import Agent
+    >>> from mamba_agents.tools import read_file, run_bash
+    >>> agent = Agent("gpt-4o", tools=[read_file, run_bash])
+
+Key Features:
+    - Context tracking with auto-compaction (5 strategies)
+    - Token counting and cost estimation
+    - MCP server integration (stdio, SSE, Streamable HTTP)
+    - Jinja2 prompt templates with versioning
+    - ReAct workflow for multi-step reasoning
+    - Graceful tool error handling (v0.1.2+)
+
+See Also:
+    - examples/ directory for runnable scripts
+    - https://sequenzia.github.io/mamba-agents for documentation
 """
 
 # Core agent exports

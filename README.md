@@ -12,7 +12,7 @@ A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydant
 
 - **Simple Agent Loop** - Thin wrapper around pydantic-ai with tool-calling support
 - **Built-in Tools** - Filesystem, glob, grep, and bash operations with security controls
-- **MCP Integration** - Connect to Model Context Protocol servers (stdio and SSE transports)
+- **MCP Integration** - Connect to Model Context Protocol servers (stdio, SSE, and Streamable HTTP transports)
 - **Token Management** - Track usage with tiktoken, estimate costs
 - **Context Compaction** - 5 strategies to manage long conversations
 - **Prompt Management** - Jinja2-based templates with versioning and inheritance
@@ -46,7 +46,7 @@ A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydant
 External Integrations:
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  MCP Servers    │    │ Model Backends  │    │  Observability  │
-│ (stdio & SSE)   │    │ (Ollama, vLLM)  │    │ (OTEL, logging) │
+│(stdio/SSE/HTTP) │    │ (Ollama, vLLM)  │    │ (OTEL, logging) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
@@ -381,6 +381,51 @@ config = MCPServerConfig(
     timeout=60,        # Connection timeout (seconds)
     read_timeout=300,  # Read timeout for long operations
 )
+```
+
+### Streamable HTTP Transport (v0.1.3+)
+
+For modern MCP servers using the Streamable HTTP protocol:
+
+```python
+from mamba_agents.mcp import MCPServerConfig, MCPAuthConfig
+
+config = MCPServerConfig(
+    name="api-server",
+    transport="streamable_http",
+    url="https://api.example.com/mcp",
+    auth=MCPAuthConfig(key_env="MCP_API_KEY"),
+    timeout=60,
+    read_timeout=300,
+)
+```
+
+> **Note:** Transport is auto-detected from URL when loading `.mcp.json` files:
+> URLs ending in `/sse` use SSE transport; other URLs use Streamable HTTP.
+
+### Testing MCP Connections (v0.1.3+)
+
+Verify MCP server connectivity before running agents:
+
+```python
+from mamba_agents.mcp import MCPClientManager
+
+manager = MCPClientManager.from_mcp_json(".mcp.json")
+
+# Test a single server
+result = manager.test_connection_sync("filesystem")
+if result.success:
+    print(f"Connected! {result.tool_count} tools available")
+    for tool in result.tools:
+        print(f"  - {tool.name}: {tool.description}")
+else:
+    print(f"Failed: {result.error}")
+
+# Test all servers
+results = manager.test_all_connections_sync()
+for name, result in results.items():
+    status = "OK" if result.success else f"FAILED: {result.error}"
+    print(f"{name}: {status}")
 ```
 
 ## Context Management
