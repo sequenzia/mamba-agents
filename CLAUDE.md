@@ -152,6 +152,8 @@ from mamba_agents.mcp import (
     MCPClientManager, MCPServerConfig, MCPAuthConfig,
     load_mcp_json,  # Load from .mcp.json files
     MCPConfigError, MCPFileNotFoundError, MCPFileParseError, MCPServerValidationError,
+    MCPConnectionError, MCPConnectionTimeoutError, MCPServerNotFoundError,
+    MCPConnectionResult, MCPToolInfo,
 )
 
 # Model backends
@@ -278,7 +280,7 @@ def test_file_ops(tmp_sandbox: Path):
   - Agent accepts `toolsets` parameter for MCP servers: `Agent("gpt-4", toolsets=[...])`
   - Use `MCPClientManager.as_toolsets()` to create servers from config (recommended)
   - pydantic-ai handles MCP server lifecycle automatically (no manual connect/disconnect)
-  - Supports stdio (subprocess) and SSE (HTTP) transports
+  - Supports stdio (subprocess), SSE (HTTP), and Streamable HTTP transports
   - `MCPServerConfig` defines server: name, transport, command/url, auth, tool_prefix, env_file, env_vars, timeout, read_timeout
   - `MCPAuthConfig` handles API key auth via direct key or env var (`key_env` or `${VAR}` syntax)
   - `tool_prefix` avoids name conflicts when using multiple servers
@@ -290,8 +292,8 @@ def test_file_ops(tmp_sandbox: Path):
     - `load_mcp_json(path)` - load configs directly (returns `list[MCPServerConfig]`)
     - Supports standard fields: command, args, env, url
     - Extended fields: tool_prefix, env_file (mamba-agents additions)
-    - Transport auto-detected: url → SSE, command → stdio
-  - MCP errors: `MCPConfigError`, `MCPFileNotFoundError`, `MCPFileParseError`, `MCPServerValidationError`
+    - Transport auto-detected: URLs ending with /sse → SSE, other URLs → Streamable HTTP, command → stdio
+  - MCP errors: `MCPConfigError`, `MCPFileNotFoundError`, `MCPFileParseError`, `MCPServerValidationError`, `MCPConnectionError`, `MCPConnectionTimeoutError`, `MCPServerNotFoundError`
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
   - `Workflow` is an ABC - extend it to create custom patterns

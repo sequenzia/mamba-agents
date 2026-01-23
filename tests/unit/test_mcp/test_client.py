@@ -504,3 +504,168 @@ class TestMCPToolInfo:
         assert tool.name == "my-tool"
         assert tool.description == "A useful tool"
         assert tool.input_schema == schema
+
+
+class TestMCPConnectionTesting:
+    """Tests for connection testing methods."""
+
+    @pytest.mark.asyncio
+    async def test_connection_success(self) -> None:
+        """Test successful connection returns proper result."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        configs = [MCPServerConfig(name="test-server", transport="stdio", command="test-cmd")]
+        manager = MCPClientManager(configs)
+
+        # Mock tool info returned by list_tools
+        mock_tool = MagicMock()
+        mock_tool.name = "test_tool"
+        mock_tool.description = "A test tool"
+        mock_tool.input_schema = {"type": "object"}
+
+        # Create mock server
+        mock_server = AsyncMock()
+        mock_server.is_running = True
+        mock_server.list_tools = AsyncMock(return_value=[mock_tool])
+        mock_server.__aenter__ = AsyncMock(return_value=mock_server)
+        mock_server.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(manager, "_create_server", return_value=mock_server):
+            result = await manager.test_connection("test-server")
+
+        assert result.success is True
+        assert result.server_name == "test-server"
+        assert result.is_running is True
+        assert result.tool_count == 1
+        assert len(result.tools) == 1
+        assert result.tools[0].name == "test_tool"
+        assert result.error is None
+
+    @pytest.mark.asyncio
+    async def test_connection_server_not_found(self) -> None:
+        """Test connection to non-existent server returns error result."""
+        manager = MCPClientManager([])
+
+        result = await manager.test_connection("nonexistent")
+
+        assert result.success is False
+        assert result.server_name == "nonexistent"
+        assert result.error == "Server not found: nonexistent"
+        assert result.error_type == "MCPServerNotFoundError"
+
+    @pytest.mark.asyncio
+    async def test_connection_timeout(self) -> None:
+        """Test connection timeout returns error result."""
+        from unittest.mock import AsyncMock, patch
+
+        configs = [MCPServerConfig(name="slow-server", transport="stdio", command="slow-cmd")]
+        manager = MCPClientManager(configs)
+
+        # Create mock server that raises TimeoutError
+        mock_server = AsyncMock()
+        mock_server.__aenter__ = AsyncMock(side_effect=TimeoutError("Connection timed out"))
+        mock_server.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(manager, "_create_server", return_value=mock_server):
+            result = await manager.test_connection("slow-server")
+
+        assert result.success is False
+        assert result.server_name == "slow-server"
+        assert "timed out" in result.error
+        assert result.error_type == "MCPConnectionTimeoutError"
+
+    @pytest.mark.asyncio
+    async def test_connection_generic_error(self) -> None:
+        """Test generic connection error returns error result."""
+        from unittest.mock import AsyncMock, patch
+
+        configs = [MCPServerConfig(name="broken-server", transport="stdio", command="broken-cmd")]
+        manager = MCPClientManager(configs)
+
+        # Create mock server that raises a generic error
+        mock_server = AsyncMock()
+        mock_server.__aenter__ = AsyncMock(side_effect=ConnectionRefusedError("Connection refused"))
+        mock_server.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(manager, "_create_server", return_value=mock_server):
+            result = await manager.test_connection("broken-server")
+
+        assert result.success is False
+        assert result.server_name == "broken-server"
+        assert "Connection refused" in result.error
+        assert result.error_type == "ConnectionRefusedError"
+
+    @pytest.mark.asyncio
+    async def test_all_connections_success(self) -> None:
+        """Test concurrent connection testing with all success."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        configs = [
+            MCPServerConfig(name="server1", transport="stdio", command="cmd1"),
+            MCPServerConfig(name="server2", transport="stdio", command="cmd2"),
+        ]
+        manager = MCPClientManager(configs)
+
+        # Mock tool info
+        mock_tool = MagicMock()
+        mock_tool.name = "tool"
+        mock_tool.description = "desc"
+        mock_tool.input_schema = {}
+
+        # Create mock server
+        mock_server = AsyncMock()
+        mock_server.is_running = True
+        mock_server.list_tools = AsyncMock(return_value=[mock_tool])
+        mock_server.__aenter__ = AsyncMock(return_value=mock_server)
+        mock_server.__aexit__ = AsyncMock(return_value=None)
+
+        with patch.object(manager, "_create_server", return_value=mock_server):
+            results = await manager.test_all_connections()
+
+        assert len(results) == 2
+        assert "server1" in results
+        assert "server2" in results
+        assert results["server1"].success is True
+        assert results["server2"].success is True
+
+    @pytest.mark.asyncio
+    async def test_all_connections_partial_failure(self) -> None:
+        """Test concurrent connection testing with mixed results."""
+        from unittest.mock import AsyncMock, MagicMock, patch
+
+        configs = [
+            MCPServerConfig(name="good-server", transport="stdio", command="good-cmd"),
+            MCPServerConfig(name="bad-server", transport="stdio", command="bad-cmd"),
+        ]
+        manager = MCPClientManager(configs)
+
+        # Mock tool info for successful connection
+        mock_tool = MagicMock()
+        mock_tool.name = "tool"
+        mock_tool.description = "desc"
+        mock_tool.input_schema = {}
+
+        async def mock_test_connection(server_name: str) -> MCPConnectionResult:
+            if server_name == "good-server":
+                return MCPConnectionResult(
+                    server_name=server_name,
+                    success=True,
+                    is_running=True,
+                    tools=[MCPToolInfo(name="tool", description="desc")],
+                    tool_count=1,
+                )
+            else:
+                return MCPConnectionResult(
+                    server_name=server_name,
+                    success=False,
+                    error="Connection failed",
+                    error_type="ConnectionError",
+                )
+
+        with patch.object(manager, "test_connection", side_effect=mock_test_connection):
+            results = await manager.test_all_connections()
+
+        assert len(results) == 2
+        assert results["good-server"].success is True
+        assert results["bad-server"].success is False
+        assert results["bad-server"].error == "Connection failed"

@@ -12,7 +12,7 @@ from pydantic_ai.mcp import MCPServerSSE, MCPServerStdio, MCPServerStreamableHTT
 from mamba_agents.mcp.auth import build_auth_headers
 from mamba_agents.mcp.config import MCPServerConfig
 from mamba_agents.mcp.env import resolve_server_env
-from mamba_agents.mcp.errors import MCPConnectionTimeoutError, MCPServerNotFoundError
+from mamba_agents.mcp.errors import MCPServerNotFoundError
 from mamba_agents.mcp.loader import load_mcp_json
 
 if TYPE_CHECKING:
@@ -310,7 +310,12 @@ class MCPClientManager:
                     tool_count=len(tools),
                 )
         except TimeoutError as e:
-            raise MCPConnectionTimeoutError(f"Connection to {server_name} timed out: {e}") from e
+            return MCPConnectionResult(
+                server_name=server_name,
+                success=False,
+                error=f"Connection to {server_name} timed out: {e}",
+                error_type="MCPConnectionTimeoutError",
+            )
         except Exception as e:
             return MCPConnectionResult(
                 server_name=server_name,
@@ -364,7 +369,7 @@ class MCPClientManager:
             >>> result = manager.test_connection_sync("filesystem")
             >>> print(f"Success: {result.success}")
         """
-        return asyncio.get_event_loop().run_until_complete(self.test_connection(server_name))
+        return asyncio.run(self.test_connection(server_name))
 
     def test_all_connections_sync(self) -> dict[str, MCPConnectionResult]:
         """Synchronous wrapper for test_all_connections.
@@ -376,4 +381,4 @@ class MCPClientManager:
             >>> manager = MCPClientManager(configs)
             >>> results = manager.test_all_connections_sync()
         """
-        return asyncio.get_event_loop().run_until_complete(self.test_all_connections())
+        return asyncio.run(self.test_all_connections())
