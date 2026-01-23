@@ -39,9 +39,7 @@ def main():
         # Let the agent explore the directory
         print(f"Agent exploring: {tmpdir}\n")
 
-        result = agent.run_sync(
-            f"List all files in {tmpdir} and tell me what each file contains."
-        )
+        result = agent.run_sync(f"List all files in {tmpdir} and tell me what each file contains.")
         print(f"Agent response:\n{result.output}")
 
         # Check usage

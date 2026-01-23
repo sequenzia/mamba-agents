@@ -40,10 +40,13 @@ def standalone_manager_example():
 
     # Register templates programmatically
     manager.register("greeting", "Hello, {{ name }}! Welcome to {{ place }}.")
-    manager.register("code_review", """
+    manager.register(
+        "code_review",
+        """
 You are reviewing {{ language }} code.
 Focus on: {{ focus | default("readability and best practices") }}.
-""".strip())
+""".strip(),
+    )
 
     # Render templates
     greeting = manager.render("greeting", name="Alice", place="Python land")
@@ -116,11 +119,11 @@ def template_config_example():
     # agent = Agent("gpt-4o", system_prompt=config)
 
     print("Using TemplateConfig with Agent:")
-    print('  config = TemplateConfig(')
+    print("  config = TemplateConfig(")
     print('      name="system/assistant",')
     print('      version="v1",')
     print('      variables={"name": "CodeBot"}')
-    print('  )')
+    print("  )")
     print('  agent = Agent("gpt-4o", system_prompt=config)')
 
 
