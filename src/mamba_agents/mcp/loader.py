@@ -88,6 +88,31 @@ class MCPJsonFile(BaseModel):
     )
 
 
+def _detect_transport(entry: MCPJsonServerEntry) -> str:
+    """Detect transport type from server entry.
+
+    For URL-based transports:
+    - URLs ending with '/sse' (with or without trailing slash) -> SSE
+    - Other URLs -> Streamable HTTP
+
+    For command-based transports:
+    - -> stdio
+
+    Args:
+        entry: Parsed server entry.
+
+    Returns:
+        Transport type string: "stdio", "sse", or "streamable_http".
+    """
+    if entry.url:
+        # Check if URL ends with /sse (with or without trailing slash)
+        url_path = entry.url.rstrip("/")
+        if url_path.endswith("/sse"):
+            return "sse"
+        return "streamable_http"
+    return "stdio"
+
+
 def _entry_to_config(name: str, entry: MCPJsonServerEntry) -> MCPServerConfig:
     """Convert an MCPJsonServerEntry to MCPServerConfig.
 
@@ -98,8 +123,8 @@ def _entry_to_config(name: str, entry: MCPJsonServerEntry) -> MCPServerConfig:
     Returns:
         MCPServerConfig instance.
     """
-    # Auto-detect transport based on which field is present
-    transport = "sse" if entry.url else "stdio"
+    # Auto-detect transport based on URL pattern or command presence
+    transport = _detect_transport(entry)
 
     return MCPServerConfig(
         name=name,

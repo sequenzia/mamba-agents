@@ -17,3 +17,15 @@ class MCPFileParseError(MCPConfigError):
 
 class MCPServerValidationError(MCPConfigError):
     """Raised when a server configuration in .mcp.json is invalid."""
+
+
+class MCPConnectionError(Exception):
+    """Base exception for MCP connection errors."""
+
+
+class MCPConnectionTimeoutError(MCPConnectionError):
+    """Raised when connection to an MCP server times out."""
+
+
+class MCPServerNotFoundError(MCPConnectionError):
+    """Raised when a server name is not found in configurations."""

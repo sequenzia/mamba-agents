@@ -247,3 +247,122 @@ class TestLoadMcpJson:
         assert web_config.transport == "sse"
         assert web_config.url == "http://localhost:8080/sse"
         assert web_config.tool_prefix == "web"
+
+
+class TestTransportDetection:
+    """Tests for URL-based transport detection."""
+
+    def test_sse_url_detected(self, tmp_path: Path) -> None:
+        """Test that URLs ending with /sse are detected as SSE transport."""
+        mcp_json = {
+            "mcpServers": {
+                "sse-server": {"url": "http://localhost:8080/sse"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "sse"
+
+    def test_streamable_http_url_detected(self, tmp_path: Path) -> None:
+        """Test that URLs not ending with /sse are detected as Streamable HTTP."""
+        mcp_json = {
+            "mcpServers": {
+                "http-server": {"url": "http://localhost:8080/mcp"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "streamable_http"
+
+    def test_sse_url_with_trailing_slash(self, tmp_path: Path) -> None:
+        """Test that /sse/ (with trailing slash) is still detected as SSE."""
+        mcp_json = {
+            "mcpServers": {
+                "sse-server": {"url": "http://localhost:8080/sse/"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "sse"
+
+    def test_mixed_transports_detected(self, tmp_path: Path) -> None:
+        """Test detecting all three transport types in one file."""
+        mcp_json = {
+            "mcpServers": {
+                "stdio-server": {"command": "npx", "args": ["-y", "some-server"]},
+                "sse-server": {"url": "http://localhost:8080/sse"},
+                "http-server": {"url": "http://localhost:8080/mcp"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 3
+
+        # Find configs by name
+        stdio_config = next(c for c in configs if c.name == "stdio-server")
+        sse_config = next(c for c in configs if c.name == "sse-server")
+        http_config = next(c for c in configs if c.name == "http-server")
+
+        assert stdio_config.transport == "stdio"
+        assert sse_config.transport == "sse"
+        assert http_config.transport == "streamable_http"
+
+    def test_api_url_detected_as_streamable_http(self, tmp_path: Path) -> None:
+        """Test that /api URLs are detected as Streamable HTTP."""
+        mcp_json = {
+            "mcpServers": {
+                "api-server": {"url": "http://localhost:8080/api/v1/mcp"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "streamable_http"
+
+    def test_root_url_detected_as_streamable_http(self, tmp_path: Path) -> None:
+        """Test that root URLs are detected as Streamable HTTP."""
+        mcp_json = {
+            "mcpServers": {
+                "root-server": {"url": "http://localhost:8080"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "streamable_http"
+
+    def test_events_sse_path_detected_as_sse(self, tmp_path: Path) -> None:
+        """Test that /events/sse is detected as SSE."""
+        mcp_json = {
+            "mcpServers": {
+                "events-server": {"url": "http://localhost:8080/events/sse"},
+            }
+        }
+        config_file = tmp_path / ".mcp.json"
+        config_file.write_text(json.dumps(mcp_json))
+
+        configs = load_mcp_json(config_file)
+
+        assert len(configs) == 1
+        assert configs[0].transport == "sse"
