@@ -1,13 +1,14 @@
 {
+  "env": {
+    "CLAUDE_CODE_TASK_LIST_ID": "mamba-agents"
+  },
   "permissions": {
     "allow": [
       "mcp__plugin_github_github__list_pull_requests",
       "mcp__plugin_github_github__pull_request_read"
     ]
   },
-  "enabledMcpjsonServers": [
-    "context7"
-  ],
+  "enabledMcpjsonServers": ["context7"],
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true
   }
