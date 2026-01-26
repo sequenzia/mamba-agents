@@ -298,7 +298,7 @@ class MCPClientManager:
                     MCPToolInfo(
                         name=t.name,
                         description=t.description,
-                        input_schema=t.input_schema,
+                        input_schema=t.inputSchema,
                     )
                     for t in tools_raw
                 ]

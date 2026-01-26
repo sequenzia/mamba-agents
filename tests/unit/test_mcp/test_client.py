@@ -521,7 +521,7 @@ class TestMCPConnectionTesting:
         mock_tool = MagicMock()
         mock_tool.name = "test_tool"
         mock_tool.description = "A test tool"
-        mock_tool.input_schema = {"type": "object"}
+        mock_tool.inputSchema = {"type": "object"}
 
         # Create mock server
         mock_server = AsyncMock()
@@ -610,7 +610,7 @@ class TestMCPConnectionTesting:
         mock_tool = MagicMock()
         mock_tool.name = "tool"
         mock_tool.description = "desc"
-        mock_tool.input_schema = {}
+        mock_tool.inputSchema = {}
 
         # Create mock server
         mock_server = AsyncMock()
@@ -643,7 +643,7 @@ class TestMCPConnectionTesting:
         mock_tool = MagicMock()
         mock_tool.name = "tool"
         mock_tool.description = "desc"
-        mock_tool.input_schema = {}
+        mock_tool.inputSchema = {}
 
         async def mock_test_connection(server_name: str) -> MCPConnectionResult:
             if server_name == "good-server":
