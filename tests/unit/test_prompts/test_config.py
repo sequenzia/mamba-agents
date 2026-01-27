@@ -23,14 +23,15 @@ class TestPromptConfig:
         config = PromptConfig(
             prompts_dir=Path("/custom/prompts"),
             default_version="v2",
-            file_extension=".txt",
+            file_extensions=[".txt", ".custom"],
             enable_caching=False,
             strict_mode=True,
         )
 
         assert config.prompts_dir == Path("/custom/prompts")
         assert config.default_version == "v2"
-        assert config.file_extension == ".txt"
+        assert config.file_extensions == [".txt", ".custom"]
+        assert config.file_extension == ".txt"  # Property returns first
         assert config.enable_caching is False
         assert config.strict_mode is True
 

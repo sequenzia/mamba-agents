@@ -14,7 +14,7 @@ class PromptConfig(BaseModel):
     Attributes:
         prompts_dir: Directory containing prompt templates.
         default_version: Default version to use when not specified.
-        file_extension: File extension for prompt templates.
+        file_extensions: Supported file extensions for prompt templates.
         enable_caching: Whether to cache loaded templates.
         strict_mode: Whether to raise on missing template variables.
     """
@@ -27,9 +27,9 @@ class PromptConfig(BaseModel):
         default="v1",
         description="Default version to use when not specified",
     )
-    file_extension: str = Field(
-        default=".jinja2",
-        description="File extension for prompt templates",
+    file_extensions: list[str] = Field(
+        default=[".jinja2", ".md"],
+        description="Supported file extensions for prompt templates",
     )
     enable_caching: bool = Field(
         default=True,
@@ -39,6 +39,15 @@ class PromptConfig(BaseModel):
         default=False,
         description="Whether to raise on missing template variables",
     )
+
+    @property
+    def file_extension(self) -> str:
+        """Get the primary file extension (for backward compatibility).
+
+        Returns:
+            The first file extension in the list.
+        """
+        return self.file_extensions[0] if self.file_extensions else ".jinja2"
 
 
 class TemplateConfig(BaseModel):

@@ -3,7 +3,7 @@
 import pytest
 
 from mamba_agents.prompts.errors import TemplateRenderError
-from mamba_agents.prompts.template import PromptTemplate
+from mamba_agents.prompts.template import PromptTemplate, TemplateType
 
 
 class TestPromptTemplate:
@@ -179,3 +179,128 @@ class TestPromptTemplate:
 
         with pytest.raises(TemplateRenderError):
             template.render()  # Missing required variable
+
+
+class TestPromptTemplateMarkdown:
+    """Tests for PromptTemplate with markdown templates."""
+
+    def test_basic_markdown_render(self) -> None:
+        """Test basic markdown template rendering."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}!",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        result = template.render(name="World")
+        assert result == "Hello, World!"
+
+    def test_markdown_multiple_variables(self) -> None:
+        """Test markdown template with multiple variables."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="You are {name}, a {role}.",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        result = template.render(name="Claude", role="helpful assistant")
+        assert result == "You are Claude, a helpful assistant."
+
+    def test_markdown_with_defaults(self) -> None:
+        """Test markdown template with default variables."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}!",
+            template_type=TemplateType.MARKDOWN,
+            _default_variables={"name": "World"},
+        )
+
+        assert template.render() == "Hello, World!"
+        assert template.render(name="Override") == "Hello, Override!"
+
+    def test_markdown_get_variables(self) -> None:
+        """Test extracting variables from markdown template."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}! You are {role}.",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        variables = template.get_variables()
+        assert variables == {"name", "role"}
+
+    def test_markdown_with_variables_preserves_type(self) -> None:
+        """Test that with_variables preserves template type."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}! You are {role}.",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        partial = template.with_variables(name="Claude")
+        assert partial.template_type == TemplateType.MARKDOWN
+        assert partial.render(role="helpful") == "Hello, Claude! You are helpful."
+
+    def test_markdown_escaped_braces(self) -> None:
+        """Test that escaped braces render as single braces."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Use {{var}} for literal braces, {name}!",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        result = template.render(name="World")
+        assert result == "Use {var} for literal braces, World!"
+
+    def test_markdown_str_method(self) -> None:
+        """Test __str__ method for markdown template."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Static content",
+            template_type=TemplateType.MARKDOWN,
+        )
+
+        assert str(template) == "Static content"
+
+    def test_markdown_strict_mode(self) -> None:
+        """Test markdown template in strict mode."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}!",
+            template_type=TemplateType.MARKDOWN,
+            _strict=True,
+        )
+
+        with pytest.raises(TemplateRenderError):
+            template.render()  # Missing required variable
+
+    def test_markdown_non_strict_missing_variable(self) -> None:
+        """Test non-strict markdown leaves missing variables unchanged."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {name}!",
+            template_type=TemplateType.MARKDOWN,
+            _strict=False,
+        )
+
+        result = template.render()
+        assert result == "Hello, {name}!"
+
+    def test_template_type_defaults_to_jinja2(self) -> None:
+        """Test that template type defaults to JINJA2."""
+        template = PromptTemplate(
+            name="test",
+            version="v1",
+            source="Hello, {{ name }}!",
+        )
+
+        assert template.template_type == TemplateType.JINJA2

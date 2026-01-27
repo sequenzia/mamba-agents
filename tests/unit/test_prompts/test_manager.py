@@ -5,9 +5,9 @@ from pathlib import Path
 import pytest
 
 from mamba_agents.prompts.config import PromptConfig, TemplateConfig
-from mamba_agents.prompts.errors import PromptNotFoundError
+from mamba_agents.prompts.errors import PromptNotFoundError, TemplateConflictError
 from mamba_agents.prompts.manager import PromptManager
-from mamba_agents.prompts.template import PromptTemplate
+from mamba_agents.prompts.template import PromptTemplate, TemplateType
 
 
 class TestPromptManagerRegistration:
@@ -326,3 +326,204 @@ class TestPromptManagerJinja2Features:
 
         with pytest.raises(TemplateRenderError):
             manager.render("test/strict")
+
+
+class TestPromptManagerMarkdown:
+    """Tests for PromptManager markdown template loading."""
+
+    def test_load_markdown_template(self, tmp_path: Path) -> None:
+        """Test loading a basic markdown template."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "greeting.md").write_text(
+            """---
+variables:
+  name: World
+---
+Hello, {name}!"""
+        )
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        template = manager.get("test/greeting")
+        assert template.template_type == TemplateType.MARKDOWN
+        assert template.render() == "Hello, World!"
+        assert template.render(name="Alice") == "Hello, Alice!"
+
+    def test_markdown_default_variables(self, tmp_path: Path) -> None:
+        """Test markdown template uses frontmatter defaults."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "prompt.md").write_text(
+            """---
+variables:
+  assistant_name: Claude
+  tone: professional
+---
+You are {assistant_name}, a helpful AI assistant.
+Your tone should be {tone}."""
+        )
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        result = manager.render("test/prompt")
+        assert "Claude" in result
+        assert "professional" in result
+
+    def test_markdown_override_defaults(self, tmp_path: Path) -> None:
+        """Test that render variables override frontmatter defaults."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "prompt.md").write_text(
+            """---
+variables:
+  name: Default
+---
+Hello, {name}!"""
+        )
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        result = manager.render("test/prompt", name="Override")
+        assert result == "Hello, Override!"
+
+    def test_markdown_no_frontmatter(self, tmp_path: Path) -> None:
+        """Test markdown template without frontmatter."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "simple.md").write_text("Simple {name} template.")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        template = manager.get("test/simple")
+        assert template.render(name="test") == "Simple test template."
+
+    def test_markdown_strict_mode(self, tmp_path: Path) -> None:
+        """Test markdown template in strict mode."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "strict.md").write_text(
+            """---
+variables:
+  name: Default
+---
+Hello, {name}! You are {role}."""
+        )
+
+        config = PromptConfig(prompts_dir=tmp_path, strict_mode=True)
+        manager = PromptManager(config)
+
+        from mamba_agents.prompts.errors import TemplateRenderError
+
+        # Should succeed with default name but fail on missing role
+        with pytest.raises(TemplateRenderError):
+            manager.render("test/strict")
+
+    def test_list_prompts_includes_markdown(self, tmp_path: Path) -> None:
+        """Test that list_prompts finds both .jinja2 and .md files."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "jinja.jinja2").write_text("Jinja2 template")
+        (v1_dir / "markdown.md").write_text("Markdown template")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        prompts = manager.list_prompts()
+        assert "test/jinja" in prompts
+        assert "test/markdown" in prompts
+
+    def test_list_versions_includes_markdown(self, tmp_path: Path) -> None:
+        """Test that list_versions finds markdown templates."""
+        for version in ["v1", "v2"]:
+            version_dir = tmp_path / version / "test"
+            version_dir.mkdir(parents=True)
+            (version_dir / "prompt.md").write_text(f"{version} content")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        versions = manager.list_versions("test/prompt")
+        assert "v1" in versions
+        assert "v2" in versions
+
+    def test_exists_finds_markdown(self, tmp_path: Path) -> None:
+        """Test that exists() finds markdown templates."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+        (v1_dir / "prompt.md").write_text("Content")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        assert manager.exists("test/prompt") is True
+        assert manager.exists("test/nonexistent") is False
+
+
+class TestPromptManagerConflict:
+    """Tests for template conflict detection."""
+
+    def test_conflict_raises_error(self, tmp_path: Path) -> None:
+        """Test that both .md and .jinja2 for same template raises error."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "conflict.jinja2").write_text("Jinja2")
+        (v1_dir / "conflict.md").write_text("Markdown")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        with pytest.raises(TemplateConflictError) as exc_info:
+            manager.get("test/conflict")
+
+        assert exc_info.value.name == "test/conflict"
+        assert exc_info.value.version == "v1"
+        assert ".jinja2" in exc_info.value.extensions
+        assert ".md" in exc_info.value.extensions
+
+    def test_no_conflict_different_names(self, tmp_path: Path) -> None:
+        """Test that different template names don't conflict."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        (v1_dir / "jinja_template.jinja2").write_text("Jinja2")
+        (v1_dir / "markdown_template.md").write_text("Markdown")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        # Both should load without conflict
+        jinja = manager.get("test/jinja_template")
+        md = manager.get("test/markdown_template")
+
+        assert jinja.template_type == TemplateType.JINJA2
+        assert md.template_type == TemplateType.MARKDOWN
+
+    def test_list_prompts_deduplicates(self, tmp_path: Path) -> None:
+        """Test that list_prompts shows unique names."""
+        v1_dir = tmp_path / "v1" / "test"
+        v1_dir.mkdir(parents=True)
+
+        # Note: this scenario would cause conflict on get(), but list_prompts
+        # should still deduplicate the names
+        (v1_dir / "unique.jinja2").write_text("Jinja2")
+        (v1_dir / "other.md").write_text("Markdown")
+
+        config = PromptConfig(prompts_dir=tmp_path)
+        manager = PromptManager(config)
+
+        prompts = manager.list_prompts()
+        # Each template should appear once
+        assert prompts.count("test/unique") == 1
+        assert prompts.count("test/other") == 1

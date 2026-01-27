@@ -82,11 +82,11 @@ class VersionedFileLoader(BaseLoader):
             return []
 
         templates: list[str] = []
-        ext = self._config.file_extension
 
-        for path in self._base_dir.rglob(f"*{ext}"):
-            rel_path = path.relative_to(self._base_dir)
-            templates.append(str(rel_path))
+        for ext in self._config.file_extensions:
+            for path in self._base_dir.rglob(f"*{ext}"):
+                rel_path = path.relative_to(self._base_dir)
+                templates.append(str(rel_path))
 
         return sorted(templates)
 

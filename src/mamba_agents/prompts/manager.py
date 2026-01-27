@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from mamba_agents.prompts.config import PromptConfig, TemplateConfig
-from mamba_agents.prompts.errors import PromptNotFoundError
+from mamba_agents.prompts.errors import PromptNotFoundError, TemplateConflictError
 from mamba_agents.prompts.loader import create_environment
-from mamba_agents.prompts.template import PromptTemplate
+from mamba_agents.prompts.template import PromptTemplate, TemplateType
 
 if TYPE_CHECKING:
     from jinja2 import Environment
@@ -61,18 +61,50 @@ class PromptManager:
             self._env = create_environment(self._config)
         return self._env
 
-    def _get_template_path(self, name: str, version: str) -> str:
+    def _get_template_path(self, name: str, version: str, ext: str | None = None) -> str:
         """Build the full template path.
+
+        Args:
+            name: Template name (e.g., "system/assistant").
+            version: Template version (e.g., "v1").
+            ext: File extension. Uses primary extension if not specified.
+
+        Returns:
+            Full path relative to prompts directory.
+        """
+        if ext is None:
+            ext = self._config.file_extension
+        return f"{version}/{name}{ext}"
+
+    def _resolve_template_path(self, name: str, version: str) -> tuple[Path, str]:
+        """Resolve the template file path, checking all extensions.
 
         Args:
             name: Template name (e.g., "system/assistant").
             version: Template version (e.g., "v1").
 
         Returns:
-            Full path relative to prompts directory.
+            Tuple of (absolute path, file extension).
+
+        Raises:
+            PromptNotFoundError: If no template file exists.
+            TemplateConflictError: If multiple files exist for same template.
         """
-        ext = self._config.file_extension
-        return f"{version}/{name}{ext}"
+        base_dir = Path(self._config.prompts_dir).resolve()
+        found: list[tuple[Path, str]] = []
+
+        for ext in self._config.file_extensions:
+            path = base_dir / version / f"{name}{ext}"
+            if path.is_file():
+                found.append((path, ext))
+
+        if len(found) > 1:
+            raise TemplateConflictError(name, version, [ext for _, ext in found])
+
+        if not found:
+            raise PromptNotFoundError(name, version)
+
+        return found[0]
 
     def get(
         self,
@@ -123,16 +155,42 @@ class PromptManager:
 
         Raises:
             PromptNotFoundError: If template file doesn't exist.
+            TemplateConflictError: If multiple template files exist.
+        """
+        # Resolve the template path (handles conflict detection)
+        path, ext = self._resolve_template_path(name, version)
+
+        # Read the file content
+        source = path.read_text(encoding="utf-8")
+
+        # Handle markdown templates
+        if ext == ".md":
+            return self._load_markdown_template(name, version, source)
+
+        # Handle Jinja2 templates
+        return self._load_jinja2_template(name, version, source, ext)
+
+    def _load_jinja2_template(
+        self, name: str, version: str, source: str, ext: str
+    ) -> PromptTemplate:
+        """Load a Jinja2 template.
+
+        Args:
+            name: Template name.
+            version: Template version.
+            source: Template source content.
+            ext: File extension.
+
+        Returns:
+            PromptTemplate configured for Jinja2.
         """
         from jinja2 import TemplateNotFound
 
-        template_path = self._get_template_path(name, version)
+        template_path = self._get_template_path(name, version, ext)
 
         try:
             env = self._get_env()
             jinja_template = env.get_template(template_path)
-            # Get source from the loader
-            source, _, _ = env.loader.get_source(env, template_path)
         except TemplateNotFound as e:
             raise PromptNotFoundError(name, version) from e
 
@@ -140,7 +198,32 @@ class PromptManager:
             name=name,
             version=version,
             source=source,
+            template_type=TemplateType.JINJA2,
             _compiled=jinja_template,
+        )
+
+    def _load_markdown_template(self, name: str, version: str, source: str) -> PromptTemplate:
+        """Load a markdown template with YAML frontmatter.
+
+        Args:
+            name: Template name.
+            version: Template version.
+            source: Template source content.
+
+        Returns:
+            PromptTemplate configured for markdown.
+        """
+        from mamba_agents.prompts.markdown import parse_markdown_prompt
+
+        data = parse_markdown_prompt(source, name)
+
+        return PromptTemplate(
+            name=name,
+            version=version,
+            source=data.content,
+            template_type=TemplateType.MARKDOWN,
+            _default_variables=data.default_variables,
+            _strict=self._config.strict_mode,
         )
 
     def render(
@@ -226,7 +309,7 @@ class PromptManager:
             category: Optional category filter (e.g., "system", "workflow").
 
         Returns:
-            List of template names.
+            List of template names (deduplicated across extensions).
         """
         prompts: set[str] = set()
 
@@ -235,18 +318,18 @@ class PromptManager:
             if category is None or name.startswith(f"{category}/"):
                 prompts.add(name)
 
-        # Add file-based templates
+        # Add file-based templates (scan all extensions)
         base_dir = Path(self._config.prompts_dir)
         if base_dir.exists():
-            ext = self._config.file_extension
             for version_dir in base_dir.iterdir():
                 if not version_dir.is_dir():
                     continue
-                for path in version_dir.rglob(f"*{ext}"):
-                    rel_path = path.relative_to(version_dir)
-                    name = str(rel_path.with_suffix(""))
-                    if category is None or name.startswith(f"{category}/"):
-                        prompts.add(name)
+                for ext in self._config.file_extensions:
+                    for path in version_dir.rglob(f"*{ext}"):
+                        rel_path = path.relative_to(version_dir)
+                        name = str(rel_path.with_suffix(""))
+                        if category is None or name.startswith(f"{category}/"):
+                            prompts.add(name)
 
         return sorted(prompts)
 
@@ -265,16 +348,17 @@ class PromptManager:
         if name in self._registered:
             versions.update(self._registered[name].keys())
 
-        # Check file-based versions
+        # Check file-based versions (all extensions)
         base_dir = Path(self._config.prompts_dir)
         if base_dir.exists():
-            ext = self._config.file_extension
             for version_dir in base_dir.iterdir():
                 if not version_dir.is_dir():
                     continue
-                template_path = version_dir / f"{name}{ext}"
-                if template_path.is_file():
-                    versions.add(version_dir.name)
+                for ext in self._config.file_extensions:
+                    template_path = version_dir / f"{name}{ext}"
+                    if template_path.is_file():
+                        versions.add(version_dir.name)
+                        break  # Found in this version, no need to check other extensions
 
         return sorted(versions)
 
@@ -299,9 +383,11 @@ class PromptManager:
         if name in self._registered and version in self._registered[name]:
             return True
 
-        # Check file system
+        # Check file system (any extension)
         base_dir = Path(self._config.prompts_dir)
-        ext = self._config.file_extension
-        template_path = base_dir / version / f"{name}{ext}"
+        for ext in self._config.file_extensions:
+            template_path = base_dir / version / f"{name}{ext}"
+            if template_path.is_file():
+                return True
 
-        return template_path.is_file()
+        return False

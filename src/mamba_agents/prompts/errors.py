@@ -50,3 +50,43 @@ class TemplateValidationError(PromptError):
         """
         self.name = name
         super().__init__(f"Invalid template '{name}': {message}")
+
+
+class MarkdownParseError(PromptError):
+    """Raised when a markdown prompt fails to parse.
+
+    This typically occurs when the YAML frontmatter is malformed.
+    """
+
+    def __init__(self, name: str, message: str) -> None:
+        """Initialize the error.
+
+        Args:
+            name: Template name that failed to parse.
+            message: Description of the parse error.
+        """
+        self.name = name
+        super().__init__(f"Failed to parse markdown prompt '{name}': {message}")
+
+
+class TemplateConflictError(PromptError):
+    """Raised when multiple template files exist for the same name.
+
+    For example, both 'prompt.md' and 'prompt.jinja2' exist.
+    """
+
+    def __init__(self, name: str, version: str, extensions: list[str]) -> None:
+        """Initialize the error.
+
+        Args:
+            name: Template name with conflicting files.
+            version: Template version where conflict was found.
+            extensions: List of conflicting file extensions.
+        """
+        self.name = name
+        self.version = version
+        self.extensions = extensions
+        ext_list = ", ".join(extensions)
+        super().__init__(
+            f"Multiple template files found for '{name}' (version: {version}): {ext_list}"
+        )
