@@ -15,7 +15,7 @@ from mamba_agents.prompts import PromptConfig, PromptManager
 config = PromptConfig(
     prompts_dir=Path("./my_prompts"),
     default_version="v2",
-    file_extension=".j2",
+    file_extensions=[".jinja2", ".md"],  # Both formats supported
     enable_caching=True,
     strict_mode=False,
 )
@@ -29,9 +29,12 @@ manager = PromptManager(config=config)
 |--------|------|---------|-------------|
 | `prompts_dir` | Path | `"prompts"` | Directory containing templates |
 | `default_version` | str | `"v1"` | Default version when not specified |
-| `file_extension` | str | `".jinja2"` | Template file extension |
+| `file_extensions` | list[str] | `[".jinja2", ".md"]` | Supported template file extensions |
 | `enable_caching` | bool | `True` | Cache loaded templates |
 | `strict_mode` | bool | `False` | Raise on missing variables |
+
+!!! note "Backward Compatibility"
+    The `file_extension` property (singular) is still available for reading and returns the first extension in the list.
 
 ### API Reference
 

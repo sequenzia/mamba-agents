@@ -1,15 +1,16 @@
 # Prompt Management
 
-Mamba Agents provides a Jinja2-based prompt template system for creating reusable, versioned prompts.
+Mamba Agents provides a flexible prompt template system for creating reusable, versioned prompts. It supports both **Jinja2** templates (`.jinja2`) for complex logic and **Markdown** templates (`.md`) for simpler prompts with YAML frontmatter.
 
 ## Overview
 
 The prompt management system provides:
 
-1. **Jinja2 templating** - Variables, conditionals, loops, and inheritance
+1. **Dual format support** - Jinja2 for complex templates, Markdown for simple ones
 2. **Directory-based versioning** - Organize prompts by version (v1, v2, etc.)
 3. **Template caching** - Efficient loading with automatic caching
 4. **Agent integration** - Use templates directly with `system_prompt`
+5. **YAML frontmatter** - Default variables in Markdown templates
 
 ## Quick Start
 
@@ -56,22 +57,25 @@ Templates are organized by version and category:
 prompts/
 ├── v1/
 │   ├── system/
-│   │   ├── assistant.jinja2
-│   │   └── coder.jinja2
+│   │   ├── assistant.md        # Markdown template
+│   │   └── coder.jinja2        # Jinja2 template
 │   ├── workflow/
 │   │   └── react.jinja2
 │   └── base/
 │       └── base.jinja2
 └── v2/
     └── system/
-        └── assistant.jinja2
+        └── assistant.md
 ```
 
 ### Naming Conventions
 
 - **Directory**: `prompts/{version}/{category}/`
-- **File extension**: `.jinja2` (configurable)
+- **File extensions**: `.jinja2` or `.md` (both supported by default)
 - **Template name**: `{category}/{filename}` (e.g., `system/assistant`)
+
+!!! warning "Avoid Conflicts"
+    Do not create both `template.jinja2` and `template.md` for the same template name. This will raise a `TemplateConflictError`.
 
 ### Example Template
 
@@ -225,6 +229,129 @@ Focus on writing clean, efficient code.
 {% endblock %}
 ```
 
+## Markdown Templates
+
+For simpler prompts that don't need Jinja2's advanced features, you can use Markdown templates with YAML frontmatter.
+
+### Format
+
+Markdown templates use:
+
+- **YAML frontmatter** for metadata and default variables
+- **`{var}` syntax** for variable substitution (simpler than Jinja2's `{{ var }}`)
+
+### Example Markdown Template
+
+Create a file at `prompts/v1/system/assistant.md`:
+
+```markdown
+---
+description: System prompt for AI assistant
+variables:
+  assistant_name: Claude
+  tone: professional
+---
+
+You are {assistant_name}, a helpful AI assistant.
+
+Your tone should be {tone} and clear.
+
+Always be helpful and accurate.
+```
+
+### Using Markdown Templates
+
+```python
+from mamba_agents.prompts import PromptManager
+
+manager = PromptManager()
+
+# Load the template (automatically detects .md extension)
+template = manager.get("system/assistant")
+
+# Render with frontmatter defaults
+prompt = template.render()
+# "You are Claude, a helpful AI assistant..."
+
+# Override defaults
+prompt = template.render(assistant_name="Helper", tone="casual")
+# "You are Helper, a helpful AI assistant..."
+```
+
+### Default Variables
+
+Variables defined in the YAML frontmatter serve as defaults:
+
+```markdown
+---
+variables:
+  name: Default Name
+  role: assistant
+  language: English
+---
+
+You are {name}, a {role}. Respond in {language}.
+```
+
+```python
+# Uses all defaults
+template.render()
+# "You are Default Name, a assistant. Respond in English."
+
+# Override some variables
+template.render(name="Claude", language="Spanish")
+# "You are Claude, a assistant. Respond in Spanish."
+```
+
+### Escaping Braces
+
+To include literal braces in output, double them:
+
+```markdown
+---
+variables:
+  name: Claude
+---
+
+Hello, {name}!
+
+Use {{curly braces}} for JSON examples.
+```
+
+Renders to:
+
+```
+Hello, Claude!
+
+Use {curly braces} for JSON examples.
+```
+
+### Strict Mode
+
+In strict mode, missing variables raise an error:
+
+```python
+from mamba_agents.prompts import PromptConfig, PromptManager
+
+config = PromptConfig(strict_mode=True)
+manager = PromptManager(config)
+
+# This will raise TemplateRenderError if 'custom_var' is not in frontmatter
+template = manager.get("system/assistant")
+template.render()  # Error: missing 'custom_var' (if template uses {custom_var})
+```
+
+### When to Use Markdown vs Jinja2
+
+| Use Case | Recommended Format |
+|----------|-------------------|
+| Simple variable substitution | Markdown (`.md`) |
+| Default variable values | Markdown (`.md`) |
+| Conditionals (`{% if %}`) | Jinja2 (`.jinja2`) |
+| Loops (`{% for %}`) | Jinja2 (`.jinja2`) |
+| Template inheritance | Jinja2 (`.jinja2`) |
+| Filters and transformations | Jinja2 (`.jinja2`) |
+
 ## Agent Integration
 
 ### System Prompt
@@ -330,9 +457,12 @@ manager.register("test/greeting", "Hi {{ name }}!", version="v2")
 |--------|------|---------|-------------|
 | `prompts_dir` | Path | `"prompts"` | Directory containing templates |
 | `default_version` | str | `"v1"` | Default version when not specified |
-| `file_extension` | str | `".jinja2"` | Template file extension |
+| `file_extensions` | list[str] | `[".jinja2", ".md"]` | Supported template file extensions |
 | `enable_caching` | bool | `True` | Cache loaded templates |
 | `strict_mode` | bool | `False` | Raise on missing variables |
+
+!!! note "Backward Compatibility"
+    The `file_extension` property is still available for reading (returns the first extension in the list).
 
 ### Custom Configuration
 
@@ -343,7 +473,7 @@ from mamba_agents.prompts import PromptManager, PromptConfig
 config = PromptConfig(
     prompts_dir=Path("./my_prompts"),
     default_version="v2",
-    file_extension=".j2",
+    file_extensions=[".j2", ".md"],  # Custom extensions
     enable_caching=True,
     strict_mode=True,  # Raise errors for missing variables
 )
@@ -418,6 +548,8 @@ from mamba_agents.prompts import (
     PromptManager,
     PromptNotFoundError,
     TemplateRenderError,
+    TemplateConflictError,
+    MarkdownParseError,
 )
 
 manager = PromptManager()
@@ -432,6 +564,19 @@ try:
     prompt = manager.render("system/assistant")
 except TemplateRenderError as e:
     print(f"Render failed: {e}")
+
+try:
+    # Both assistant.md and assistant.jinja2 exist
+    prompt = manager.render("system/assistant")
+except TemplateConflictError as e:
+    print(f"Conflicting files for: {e.name}")
+    print(f"Extensions found: {e.extensions}")
+
+try:
+    # Invalid YAML in markdown frontmatter
+    prompt = manager.render("system/invalid")
+except MarkdownParseError as e:
+    print(f"Failed to parse markdown: {e.name}")
 ```
 
 ## Best Practices

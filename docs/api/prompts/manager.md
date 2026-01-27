@@ -1,6 +1,6 @@
 # PromptManager
 
-Manages prompt templates with loading, caching, and rendering.
+Manages prompt templates with loading, caching, and rendering. Supports both Jinja2 (`.jinja2`) and Markdown (`.md`) templates.
 
 ## Quick Example
 
@@ -9,14 +9,17 @@ from mamba_agents.prompts import PromptManager
 
 manager = PromptManager()
 
-# Load and render a template
+# Load and render a template (works with .jinja2 or .md)
 prompt = manager.render("system/assistant", name="Helper", tone="friendly")
 
 # Get template object
 template = manager.get("system/assistant")
 variables = template.get_variables()
 
-# Register runtime template
+# Check template type
+print(template.template_type)  # TemplateType.JINJA2 or TemplateType.MARKDOWN
+
+# Register runtime template (Jinja2 syntax)
 manager.register("test/greeting", "Hello, {{ name }}!")
 ```
 

@@ -8,7 +8,9 @@ Exceptions for prompt management operations.
 PromptError (base)
 ├── PromptNotFoundError
 ├── TemplateRenderError
-└── TemplateValidationError
+├── TemplateValidationError
+├── MarkdownParseError
+└── TemplateConflictError
 ```
 
 ## PromptError
@@ -98,6 +100,54 @@ except TemplateValidationError as e:
 | Attribute | Type | Description |
 |-----------|------|-------------|
 | `name` | str | Template name with invalid syntax |
+
+## MarkdownParseError
+
+Raised when a Markdown template's YAML frontmatter is malformed.
+
+```python
+from mamba_agents.prompts import PromptManager, MarkdownParseError
+
+manager = PromptManager()
+
+try:
+    # Template with invalid YAML frontmatter
+    prompt = manager.render("system/invalid_yaml")
+except MarkdownParseError as e:
+    print(f"Parse failed for: {e.name}")
+```
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `name` | str | Template name that failed to parse |
+
+## TemplateConflictError
+
+Raised when both `.jinja2` and `.md` files exist for the same template name.
+
+```python
+from mamba_agents.prompts import PromptManager, TemplateConflictError
+
+manager = PromptManager()
+
+try:
+    # Both assistant.jinja2 and assistant.md exist in prompts/v1/system/
+    prompt = manager.render("system/assistant")
+except TemplateConflictError as e:
+    print(f"Conflicting files for: {e.name}")
+    print(f"Version: {e.version}")
+    print(f"Extensions found: {e.extensions}")  # ['.jinja2', '.md']
+```
+
+### Attributes
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `name` | str | Template name with conflicting files |
+| `version` | str | Version where conflict was found |
+| `extensions` | list[str] | List of conflicting file extensions |
 
 ## API Reference
 
