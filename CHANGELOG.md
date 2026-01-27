@@ -7,10 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-01-26
+
 ### Added
 
+- Add markdown template support with YAML frontmatter as alternative to Jinja2 templates
+- Add `TemplateType` enum to distinguish between JINJA2 and MARKDOWN template types
+- Add `MarkdownParseError` for markdown template parsing failures
+- Add `TemplateConflictError` when both `.md` and `.jinja2` templates exist for same name
+- Add `file_extensions` config option (replaces `file_extension` with backward compatibility)
 - Add `examples/` directory with runnable scripts demonstrating all major features
 - Add enhanced module docstrings with usage examples and cross-references
+
+### Fixed
+
+- Fix MCP `test_connection` using incorrect snake_case attribute `input_schema` instead of camelCase `inputSchema`
 
 ### Changed
 
@@ -82,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sequenzia/mamba-agents/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/sequenzia/mamba-agents/compare/v0.1.0...v0.1.1
