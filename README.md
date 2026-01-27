@@ -8,6 +8,16 @@
 
 A simple, extensible AI Agent framework built on [pydantic-ai](https://ai.pydantic.dev/).
 
+Mamba Agents provides a thin wrapper around pydantic-ai that adds production-ready infrastructure for building AI agents. It handles the operational complexity—context window management, token tracking, cost estimation, and observability—so you can focus on your agent's logic.
+
+**Why Mamba Agents?**
+- **Context that scales** - Automatic compaction keeps conversations within token limits using 5 different strategies
+- **Cost visibility** - Track token usage and estimate costs across all your agent interactions
+- **Tool ecosystem** - Built-in filesystem, bash, glob, and grep tools with security sandboxing
+- **MCP ready** - Connect to Model Context Protocol servers for extended capabilities
+- **Flexible prompts** - Jinja2 templates with versioning and inheritance
+- **Local model support** - Works with Ollama, vLLM, and LM Studio out of the box
+
 ## Features
 
 - **Simple Agent Loop** - Thin wrapper around pydantic-ai with tool-calling support
