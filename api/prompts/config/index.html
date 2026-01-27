@@ -2469,6 +2469,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label=" PromptConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mamba_agents.prompts.config.PromptConfig.file_extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;file_extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3803,6 +3820,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label=" PromptConfig">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mamba_agents.prompts.config.PromptConfig.file_extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-attribute"></code>&nbsp;file_extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -3897,7 +3931,7 @@
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">PromptConfig</span><span class="p">(</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    <span class="n">prompts_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;./my_prompts&quot;</span><span class="p">),</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">default_version</span><span class="o">=</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">file_extension</span><span class="o">=</span><span class="s2">&quot;.j2&quot;</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">file_extensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;.jinja2&quot;</span><span class="p">,</span> <span class="s2">&quot;.md&quot;</span><span class="p">],</span>  <span class="c1"># Both formats supported</span>
 </span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>    <span class="n">enable_caching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 </span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>    <span class="n">strict_mode</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 </span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="p">)</span>
@@ -3928,10 +3962,10 @@
 <td>Default version when not specified</td>
 </tr>
 <tr>
-<td><code>file_extension</code></td>
-<td>str</td>
-<td><code>".jinja2"</code></td>
-<td>Template file extension</td>
+<td><code>file_extensions</code></td>
+<td>list[str]</td>
+<td><code>[".jinja2", ".md"]</code></td>
+<td>Supported template file extensions</td>
 </tr>
 <tr>
 <td><code>enable_caching</code></td>
@@ -3947,6 +3981,10 @@
 </tr>
 </tbody>
 </table>
+<div class="admonition note">
+<p class="admonition-title">Backward Compatibility</p>
+<p>The <code>file_extension</code> property (singular) is still available for reading and returns the first extension in the list.</p>
+</div>
 <h3 id="api-reference">API Reference<a class="headerlink" href="#api-reference" title="Permanent link">&para;</a></h3>
 
 
@@ -4007,15 +4045,15 @@
             </td>
           </tr>
           <tr class="doc-section-item">
-            <td><code><span title="mamba_agents.prompts.config.PromptConfig.file_extension">file_extension</span></code></td>
+            <td><code><span title="mamba_agents.prompts.config.PromptConfig.file_extensions">file_extensions</span></code></td>
             <td class="doc-attribute-details">
               <div class="doc-md-description">
-                <p>File extension for prompt templates.</p>
+                <p>Supported file extensions for prompt templates.</p>
               </div>
               <p>
                   <span class="doc-attribute-annotation">
                     <b>TYPE:</b>
-                      <code><span title="str">str</span></code>
+                      <code><span title="list">list</span>[<span title="str">str</span>]</code>
                   </span>
               </p>
             </td>
@@ -4068,6 +4106,54 @@
 
 
 
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h3 id="mamba_agents.prompts.config.PromptConfig.file_extension" class="doc doc-heading">
+<code class="doc-symbol doc-symbol-heading doc-symbol-attribute"></code>            <span class="doc doc-object-name doc-attribute-name">file_extension</span>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#mamba_agents.prompts.config.PromptConfig.file_extension" class="headerlink" title="Permanent link">&para;</a></h3>
+<div class="language-python doc-signature highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">file_extension</span><span class="p">:</span> <span class="n"><span title="str">str</span></span>
+</span></code></pre></div>
+
+    <div class="doc doc-contents ">
+
+        <p>Get the primary file extension (for backward compatibility).</p>
+
+
+<table>
+      <thead>
+        <tr>
+          <th><span class="doc-section-title">RETURNS</span></th>
+          <th><span>DESCRIPTION</span></th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <span class="doc-returns-annotation">
+                    <code><span title="str">str</span></code>
+                </span>
+            </td>
+            <td class="doc-returns-details">
+              <div class="doc-md-description">
+                <p>The first file extension in the list.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+    </div>
+
+</div>
 
 
 
