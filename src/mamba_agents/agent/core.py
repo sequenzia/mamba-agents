@@ -26,6 +26,18 @@ from mamba_agents.tokens.tracker import TokenUsage, UsageRecord
 
 logger = logging.getLogger(__name__)
 
+from pydantic_ai import (
+    AgentRunResultEvent,
+    AgentStreamEvent,
+    FinalResultEvent,
+    FunctionToolCallEvent,
+    FunctionToolResultEvent,
+    PartDeltaEvent,
+    PartStartEvent,
+    TextPartDelta,
+    ToolCallPartDelta,
+)
+
 if TYPE_CHECKING:
     from pydantic_ai.messages import ModelMessage
     from pydantic_ai.result import StreamedRunResult
@@ -492,6 +504,74 @@ class Agent[DepsT, OutputT]:
                 self._context_manager.add_messages(new_messages)
                 if self._config.auto_compact and self._context_manager.should_compact():
                     await self._context_manager.compact()
+
+    async def run_stream_events(
+        self,
+        prompt: str,
+        *,
+        deps: DepsT | None = None,
+        message_history: list[ModelMessage] | None = None,
+        usage_limits: UsageLimits | None = None,
+    ) -> AsyncIterator[AgentStreamEvent | AgentRunResultEvent]:
+        """Run the agent and stream all events including tool calls.
+
+        This method provides fine-grained control over the agent's execution,
+        yielding events in real-time as they occur:
+
+        - PartStartEvent: Start of a text or tool call part
+        - PartDeltaEvent: Incremental text or tool argument deltas
+        - FunctionToolCallEvent: When a tool is about to be called
+        - FunctionToolResultEvent: When a tool returns its result
+        - FinalResultEvent: When the model starts producing final output
+        - AgentRunResultEvent: Final result with complete output
+
+        Args:
+            prompt: User prompt to process.
+            deps: Optional dependencies for tool calls.
+            message_history: Optional message history for context.
+                If None and context tracking is enabled, uses internal context.
+            usage_limits: Optional usage limits.
+
+        Yields:
+            AgentStreamEvent or AgentRunResultEvent objects.
+
+        Example:
+            async for event in agent.run_stream_events("What's the weather?"):
+                if isinstance(event, FunctionToolCallEvent):
+                    print(f"Calling tool: {event.part.tool_name}")
+                elif isinstance(event, FunctionToolResultEvent):
+                    print(f"Tool result: {event.result.content}")
+                elif isinstance(event, AgentRunResultEvent):
+                    print(f"Final: {event.result.output}")
+        """
+        kwargs = self._build_kwargs(
+            deps=deps,
+            usage_limits=usage_limits,
+            message_history=self._resolve_message_history(message_history),
+        )
+
+        final_result: AgentRunResultEvent | None = None
+        async for event in self._agent.run_stream_events(prompt, **kwargs):
+            yield event
+            # Capture final result for post-processing
+            if isinstance(event, AgentRunResultEvent):
+                final_result = event
+
+        # After stream completes, track usage and messages
+        if final_result is not None:
+            self._usage_tracker.record_usage(
+                final_result.result.usage(), model=self._model_name
+            )
+            if self._context_manager is not None:
+                new_messages = model_messages_to_dicts(final_result.result.all_messages())
+                self._context_manager.add_messages(new_messages)
+                if self._config.auto_compact and self._context_manager.should_compact():
+                    await self._context_manager.compact()
+        else:
+            logger.warning(
+                "run_stream_events completed without AgentRunResultEvent, "
+                "usage tracking skipped"
+            )
 
     def _register_tool(
         self,

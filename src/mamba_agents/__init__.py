@@ -38,6 +38,19 @@ from mamba_agents.agent.core import Agent
 from mamba_agents.agent.result import AgentResult
 from mamba_agents.config.settings import AgentSettings
 
+# Streaming event types (re-exported from pydantic-ai)
+from pydantic_ai import (
+    AgentRunResultEvent,
+    AgentStreamEvent,
+    FinalResultEvent,
+    FunctionToolCallEvent,
+    FunctionToolResultEvent,
+    PartDeltaEvent,
+    PartStartEvent,
+    TextPartDelta,
+    ToolCallPartDelta,
+)
+
 # Context management
 from mamba_agents.context import ContextState
 from mamba_agents.context.compaction import CompactionResult
@@ -64,29 +77,46 @@ from mamba_agents.workflows import (
 )
 
 __all__ = [
+    # Core
     "Agent",
     "AgentConfig",
     "AgentResult",
     "AgentSettings",
+    # Streaming events
+    "AgentRunResultEvent",
+    "AgentStreamEvent",
+    "FinalResultEvent",
+    "FunctionToolCallEvent",
+    "FunctionToolResultEvent",
+    "PartDeltaEvent",
+    "PartStartEvent",
+    "TextPartDelta",
+    "ToolCallPartDelta",
+    # Context
     "CompactionConfig",
     "CompactionResult",
     "ContextState",
     "CostBreakdown",
+    # MCP
     "MCPAuthConfig",
     "MCPClientManager",
     "MCPServerConfig",
+    # Prompts
     "PromptConfig",
     "PromptManager",
     "PromptTemplate",
     "TemplateConfig",
+    # Tokens
     "TokenUsage",
     "UsageRecord",
+    # Workflows
     "Workflow",
     "WorkflowConfig",
     "WorkflowHooks",
     "WorkflowResult",
     "WorkflowState",
     "WorkflowStep",
+    # Version
     "__version__",
 ]
 
