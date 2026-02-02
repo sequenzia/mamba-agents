@@ -144,7 +144,10 @@ class Agent[DepsT, OutputT]:
         }
 
         if tools:
-            agent_kwargs["tools"] = list(tools)
+            if self._config.graceful_tool_errors:
+                agent_kwargs["tools"] = [self._wrap_tool_with_graceful_errors(t) for t in tools]
+            else:
+                agent_kwargs["tools"] = list(tools)
 
         if toolsets:
             agent_kwargs["toolsets"] = list(toolsets)

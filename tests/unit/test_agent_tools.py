@@ -236,6 +236,103 @@ class TestToolDecorator:
             strict_context_tool(None, "test")
 
 
+class TestConstructorToolsGracefulErrors:
+    """Tests for graceful error wrapping of constructor-provided tools."""
+
+    def test_constructor_tools_wrapped_by_default(self) -> None:
+        """Test that constructor tools get graceful error wrapping by default."""
+
+        def failing_tool(path: str) -> str:
+            """A tool that raises an error."""
+            raise FileNotFoundError(f"File not found: {path}")
+
+        # Wrap the tool the same way the constructor does
+        agent = Agent[None, str](TestModel())
+        wrapped = agent._wrap_tool_with_graceful_errors(failing_tool)
+
+        with pytest.raises(ModelRetry) as exc_info:
+            wrapped(path="/nonexistent")
+
+        assert "FileNotFoundError: File not found: /nonexistent" in str(exc_info.value)
+        assert isinstance(exc_info.value.__cause__, FileNotFoundError)
+
+    def test_constructor_tools_applied_when_enabled(self) -> None:
+        """Test that constructor creates agent with wrapped tools by default."""
+        from pydantic_ai.exceptions import UnexpectedModelBehavior
+
+        def failing_tool(path: str) -> str:
+            """A tool that raises an error."""
+            raise FileNotFoundError(f"File not found: {path}")
+
+        # Agent with default config (graceful_tool_errors=True)
+        # should wrap tools before passing to pydantic-ai
+        agent = Agent[None, str](TestModel(), tools=[failing_tool])
+
+        # When wrapped, the FileNotFoundError becomes ModelRetry,
+        # which pydantic-ai catches and retries until max retries exceeded.
+        # This proves the wrapping happened — without it, FileNotFoundError
+        # would propagate directly.
+        with pytest.raises(UnexpectedModelBehavior, match="exceeded max retries"):
+            agent.run_sync("call failing_tool")
+
+    def test_constructor_tools_not_wrapped_when_disabled(self) -> None:
+        """Test that constructor tools are NOT wrapped when graceful errors disabled."""
+
+        def failing_tool(path: str) -> str:
+            """A tool that raises an error."""
+            raise FileNotFoundError(f"File not found: {path}")
+
+        config = AgentConfig(graceful_tool_errors=False)
+        agent = Agent[None, str](TestModel(), tools=[failing_tool], config=config)
+
+        # The raw exception should propagate through pydantic-ai
+        with pytest.raises(FileNotFoundError):
+            agent.run_sync("call failing_tool")
+
+    def test_constructor_tools_succeed_normally(self) -> None:
+        """Test that constructor tools return values normally when no error."""
+
+        def greeting_tool(name: str) -> str:
+            """A tool that greets."""
+            return f"Hello, {name}!"
+
+        agent = Agent[None, str](TestModel(), tools=[greeting_tool])
+
+        # Wrapped tools should still return values normally
+        wrapped = agent._wrap_tool_with_graceful_errors(greeting_tool)
+        result = wrapped(name="World")
+        assert result == "Hello, World!"
+
+    @pytest.mark.asyncio
+    async def test_constructor_async_tools_wrapped(self) -> None:
+        """Test that async constructor tools get graceful error wrapping."""
+
+        async def async_failing_tool(url: str) -> str:
+            """An async tool that raises an error."""
+            raise ConnectionError(f"Cannot connect to {url}")
+
+        agent = Agent[None, str](TestModel())
+        wrapped = agent._wrap_tool_with_graceful_errors(async_failing_tool)
+
+        with pytest.raises(ModelRetry) as exc_info:
+            await wrapped(url="http://bad-host")
+
+        assert "ConnectionError: Cannot connect to http://bad-host" in str(exc_info.value)
+        assert isinstance(exc_info.value.__cause__, ConnectionError)
+
+    def test_constructor_tools_preserve_metadata(self) -> None:
+        """Test that wrapped constructor tools preserve function metadata."""
+
+        def documented_tool(x: int) -> int:
+            """Doubles the input value."""
+            return x * 2
+
+        agent = Agent[None, str](TestModel())
+        wrapped = agent._wrap_tool_with_graceful_errors(documented_tool)
+        assert wrapped.__name__ == "documented_tool"
+        assert wrapped.__doc__ == "Doubles the input value."
+
+
 class TestExceptionChain:
     """Tests for exception chain preservation."""
 
