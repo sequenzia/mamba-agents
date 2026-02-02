@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-02-02
+
+### Fixed
+
+- Fix graceful error handling not being applied to tools passed directly to `Agent(..., tools=[...])`; constructor tools are now wrapped with error handler when `graceful_tool_errors` is enabled (default behavior)
+
 ## [0.1.4] - 2026-01-26
 
 ### Added
@@ -93,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/sequenzia/mamba-agents/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/sequenzia/mamba-agents/compare/v0.1.1...v0.1.2
