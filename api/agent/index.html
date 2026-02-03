@@ -669,6 +669,8 @@
       
         
       
+        
+      
     
     
     
@@ -740,6 +742,34 @@
     
   
     Agent Basics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/message-analytics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Analytics
   
 
     
@@ -1519,6 +1549,8 @@
       
         
       
+        
+      
     
     
     
@@ -1591,6 +1623,34 @@
     
   
     Agent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="messages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Messages
   
 
     
@@ -3651,6 +3711,22 @@
 <td><a href="result/">AgentResult</a></td>
 <td>Result from agent execution</td>
 </tr>
+<tr>
+<td><a href="messages/">MessageQuery</a></td>
+<td>Filtering, analytics, and export for message histories</td>
+</tr>
+<tr>
+<td><a href="messages/#messagestats">MessageStats</a></td>
+<td>Token and message count statistics</td>
+</tr>
+<tr>
+<td><a href="messages/#toolcallinfo">ToolCallInfo</a></td>
+<td>Tool usage summary across a conversation</td>
+</tr>
+<tr>
+<td><a href="messages/#turn">Turn</a></td>
+<td>Logical conversation turn grouping related messages</td>
+</tr>
 </tbody>
 </table>
 <h2 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h2>
@@ -3673,7 +3749,9 @@
 </span></code></pre></div>
 <h2 id="imports">Imports<a class="headerlink" href="#imports" title="Permanent link">&para;</a></h2>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">AgentConfig</span><span class="p">,</span> <span class="n">AgentResult</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">AgentConfig</span><span class="p">,</span> <span class="n">AgentResult</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQuery</span><span class="p">,</span> <span class="n">MessageStats</span><span class="p">,</span> <span class="n">ToolCallInfo</span><span class="p">,</span> <span class="n">Turn</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">AgentConfig</span><span class="p">,</span> <span class="n">AgentResult</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQuery</span><span class="p">,</span> <span class="n">MessageStats</span><span class="p">,</span> <span class="n">ToolCallInfo</span><span class="p">,</span> <span class="n">Turn</span>
 </span></code></pre></div>
 
 
