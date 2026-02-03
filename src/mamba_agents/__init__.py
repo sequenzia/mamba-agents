@@ -35,6 +35,7 @@ See Also:
 # Core agent exports
 from mamba_agents.agent.config import AgentConfig
 from mamba_agents.agent.core import Agent
+from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
 from mamba_agents.agent.result import AgentResult
 from mamba_agents.config.settings import AgentSettings
 
@@ -75,11 +76,15 @@ __all__ = [
     "MCPAuthConfig",
     "MCPClientManager",
     "MCPServerConfig",
+    "MessageQuery",
+    "MessageStats",
     "PromptConfig",
     "PromptManager",
     "PromptTemplate",
     "TemplateConfig",
     "TokenUsage",
+    "ToolCallInfo",
+    "Turn",
     "UsageRecord",
     "Workflow",
     "WorkflowConfig",

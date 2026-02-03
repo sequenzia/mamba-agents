@@ -83,6 +83,8 @@ print(__version__)  # e.g., "0.1.0" or "0.1.0.dev12"
 
 ## Architecture
 
+**Philosophy**: Hub-and-spoke design. The `Agent` class is the central hub composing five subsystems (`ContextManager`, `UsageTracker`, `TokenCounter`, `CostEstimator`, `PromptManager`) behind a facade API. Dependencies flow strictly downward — no circular dependencies between modules. Design is "batteries included but optional": context tracking and auto-compaction default to enabled, but every feature can be disabled.
+
 ```
 src/mamba_agents/
 ├── agent/           # Core agent (wraps pydantic-ai)
@@ -111,10 +113,14 @@ from mamba_agents import (
     MCPClientManager, MCPServerConfig, MCPAuthConfig,
     Workflow, WorkflowConfig, WorkflowHooks,
     WorkflowResult, WorkflowState, WorkflowStep,
+    MessageQuery, MessageStats, ToolCallInfo, Turn,
 )
 
 # Agent message utilities (for serializing/deserializing pydantic-ai messages)
 from mamba_agents.agent import dicts_to_model_messages, model_messages_to_dicts
+
+# Message querying and analytics
+from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
 
 # Tools
 from mamba_agents.tools import (
@@ -194,7 +200,7 @@ Configuration sources (priority order):
 - **Pydantic models** for all configuration
 - **SecretStr** for sensitive data (API keys never logged)
 - **ruff** for linting/formatting (line-length 100)
-- **90% test coverage** target enforced
+- **50% test coverage** target enforced (configured in `pyproject.toml` `fail_under`)
 
 ## Testing Patterns
 
@@ -222,6 +228,7 @@ def test_file_ops(tmp_sandbox: Path):
 | Agent implementation | `src/mamba_agents/agent/core.py` |
 | Agent config | `src/mamba_agents/agent/config.py` |
 | Message conversion utils | `src/mamba_agents/agent/message_utils.py` |
+| Message querying & analytics | `src/mamba_agents/agent/messages.py` |
 | Built-in tools | `src/mamba_agents/tools/` |
 | Context compaction | `src/mamba_agents/context/compaction/` |
 | Prompt management | `src/mamba_agents/prompts/` |
@@ -237,6 +244,24 @@ def test_file_ops(tmp_sandbox: Path):
 | MCP errors | `src/mamba_agents/mcp/errors.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
+
+## Design Patterns
+
+| Pattern | Location | Purpose |
+|---------|----------|---------|
+| **Facade** | `agent/core.py` (`Agent`) | Simplifies 5+ subsystems behind unified API |
+| **Template Method** | `context/compaction/base.py`, `workflows/base.py` | Invariant skeleton with abstract `_do_compact()` / `_execute()` hooks |
+| **Strategy** | `context/compaction/` (5 strategies) | Pluggable compaction algorithms selected by config string |
+| **Factory** | `errors/retry.py`, `mcp/client.py` | `create_retry_decorator()`, `MCPClientManager._create_server()` |
+| **Circuit Breaker** | `errors/circuit_breaker.py` | CLOSED/OPEN/HALF_OPEN resilience with sliding window |
+| **ABC** | `backends/base.py`, `context/compaction/base.py`, `workflows/base.py` | Extension point contracts for backends, strategies, workflows |
+
+## Known Fragility Points
+
+- **`agent/message_utils.py`**: Uses type-name string matching (`msg_type == "ModelRequest"`) to convert pydantic-ai `ModelMessage` objects to dicts. Upstream message type renames could produce silently incorrect results. When modifying, add defensive checks.
+- **ReActWorkflow mutates injected Agent**: `ReActWorkflow.__init__()` permanently registers a `final_answer` tool on the agent. Reusing the same Agent instance elsewhere will retain this tool. No cleanup mechanism exists.
+- **Duplicate TokenCounter in CompactionStrategy**: `CompactionStrategy._count_tokens()` creates a fresh `TokenCounter()` with defaults, potentially inconsistent with the Agent's configured counter.
+- **pydantic-ai version sensitivity**: The `>=0.0.49` pin targets a pre-1.0 library. `tracker.py` already handles an `input_tokens`/`request_tokens` API migration. Watch for breaking changes in message types, Model API, and toolset interfaces.
 
 ## Implementation Notes
 
@@ -264,6 +289,7 @@ def test_file_ops(tmp_sandbox: Path):
   - Usage: `get_usage()`, `get_usage_history()`
   - Cost: `get_cost()`, `get_cost_breakdown()`
   - Context: `get_messages()`, `should_compact()`, `compact()`, `get_context_state()`
+  - Messages: `messages` property returns `MessageQuery` for filtering, analytics, and export
   - Reset: `clear_context()`, `reset_tracking()`, `reset_all()`
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - **Prompt Management** provides Jinja2-based template system:
@@ -294,6 +320,14 @@ def test_file_ops(tmp_sandbox: Path):
     - Extended fields: tool_prefix, env_file (mamba-agents additions)
     - Transport auto-detected: URLs ending with /sse → SSE, other URLs → Streamable HTTP, command → stdio
   - MCP errors: `MCPConfigError`, `MCPFileNotFoundError`, `MCPFileParseError`, `MCPServerValidationError`, `MCPConnectionError`, `MCPConnectionTimeoutError`, `MCPServerNotFoundError`
+- **Message Querying & Analytics** provides filtering, analytics, and export for conversation history:
+  - `agent.messages` returns a `MessageQuery` instance (new instance each access, stateless)
+  - `MessageQuery` is constructed with `messages: list[dict]` and optional `TokenCounter`
+  - **Filtering**: `filter(role=, tool_name=, content=, regex=)` with AND logic, `slice()`, `first()`, `last()`, `all()`
+  - **Analytics**: `stats()` returns `MessageStats`, `tool_summary()` returns `list[ToolCallInfo]`, `timeline()` returns `list[Turn]`
+  - **Export**: `export(format=)` supports "json", "markdown", "csv", "dict" formats
+  - Data models (`MessageStats`, `ToolCallInfo`, `Turn`) use `@dataclass` (project convention for output types)
+  - Works when `track_context=False` (returns empty results) and when `TokenCounter` is None (token counts are 0)
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
   - `Workflow` is an ABC - extend it to create custom patterns

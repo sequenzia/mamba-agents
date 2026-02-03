@@ -15,6 +15,7 @@ from pydantic_ai.toolsets import AbstractToolset
 
 from mamba_agents.agent.config import AgentConfig
 from mamba_agents.agent.message_utils import dicts_to_model_messages, model_messages_to_dicts
+from mamba_agents.agent.messages import MessageQuery
 from mamba_agents.agent.result import AgentResult
 from mamba_agents.config.settings import AgentSettings
 from mamba_agents.context import ContextManager, ContextState
@@ -652,6 +653,26 @@ class Agent[DepsT, OutputT]:
         Returns None if track_context is disabled.
         """
         return self._context_manager
+
+    @property
+    def messages(self) -> MessageQuery:
+        """Get a MessageQuery interface for the current message history.
+
+        Returns a new ``MessageQuery`` instance on each access, reflecting
+        the current state of the conversation. The query uses the Agent's
+        configured ``TokenCounter`` for token-aware analytics.
+
+        When context tracking is disabled (``track_context=False``), returns
+        a ``MessageQuery`` with an empty message list.
+
+        Returns:
+            A ``MessageQuery`` instance over the current messages.
+        """
+        if self._context_manager is not None:
+            current_messages = self._context_manager.get_messages()
+        else:
+            current_messages = []
+        return MessageQuery(current_messages, token_counter=self._token_counter)
 
     @property
     def model_name(self) -> str | None:
