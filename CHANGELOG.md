@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-02-02
+
+### Added
+
+- Add `MessageQuery` class for comprehensive message filtering, analytics, and export:
+  - Filter messages by role, tool_name, content (with regex support), and slice operations
+  - Analytics methods: `stats()` (message counts and token statistics), `tool_summary()` (tool call analytics), `timeline()` (conversation turns)
+  - Multi-format export: JSON, Markdown, CSV, and dict formats
+  - `Agent.messages` property returns `MessageQuery` for stateless, on-demand access to conversation history
+  - Works with or without context tracking and token counting
+- Add `MessageStats`, `ToolCallInfo`, and `Turn` data models for message analytics
+
 ## [0.1.5] - 2026-02-02
 
 ### Fixed
@@ -99,7 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/sequenzia/mamba-agents/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/sequenzia/mamba-agents/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/sequenzia/mamba-agents/compare/v0.1.2...v0.1.3
