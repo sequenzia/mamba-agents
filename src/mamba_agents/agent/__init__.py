@@ -47,12 +47,17 @@ See Also:
 from mamba_agents.agent.config import AgentConfig
 from mamba_agents.agent.core import Agent
 from mamba_agents.agent.message_utils import dicts_to_model_messages, model_messages_to_dicts
+from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
 from mamba_agents.agent.result import AgentResult
 
 __all__ = [
     "Agent",
     "AgentConfig",
     "AgentResult",
+    "MessageQuery",
+    "MessageStats",
+    "ToolCallInfo",
+    "Turn",
     "dicts_to_model_messages",
     "model_messages_to_dicts",
 ]
