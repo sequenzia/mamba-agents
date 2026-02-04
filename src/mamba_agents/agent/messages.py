@@ -24,6 +24,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from rich.console import Console, ConsoleOptions, RenderResult
+
     from mamba_agents.tokens.counter import TokenCounter
 
 logger = logging.getLogger(__name__)
@@ -78,6 +80,25 @@ class MessageStats:
                 lines.append(f"    {role}: {tokens}")
         return "\n".join(lines)
 
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        """Render as a Rich table when passed to ``rich.print()`` or ``Console.print()``.
+
+        Delegates to ``RichRenderer.render_stats()`` with the ``detailed`` preset,
+        yielding the same Rich objects so formatting is preserved.
+
+        Args:
+            console: The Rich Console performing the rendering.
+            options: Console options controlling width and other settings.
+
+        Yields:
+            Rich renderable objects (Table, Text) for console display.
+        """
+        from mamba_agents.agent.display.presets import DETAILED
+        from mamba_agents.agent.display.rich_renderer import RichRenderer
+
+        renderer = RichRenderer()
+        yield from renderer.render_stats_renderables(self, DETAILED)
+
 
 @dataclass
 class ToolCallInfo:
@@ -113,6 +134,25 @@ class ToolCallInfo:
             if i < len(self.results):
                 lines.append(f"    result: {self.results[i]}")
         return "\n".join(lines)
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        """Render as a Rich table when passed to ``rich.print()`` or ``Console.print()``.
+
+        Delegates to ``RichRenderer.render_tools_renderables()`` with the ``detailed``
+        preset, yielding a compact tool summary table.
+
+        Args:
+            console: The Rich Console performing the rendering.
+            options: Console options controlling width and other settings.
+
+        Yields:
+            Rich renderable objects (Table) for console display.
+        """
+        from mamba_agents.agent.display.presets import DETAILED
+        from mamba_agents.agent.display.rich_renderer import RichRenderer
+
+        renderer = RichRenderer()
+        yield from renderer.render_tools_renderables([self], DETAILED)
 
 
 @dataclass
@@ -160,6 +200,25 @@ class Turn:
                 lines.append(f"      args: {args}")
                 lines.append(f"      result: {result}")
         return "\n".join(lines)
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        """Render as a Rich panel when passed to ``rich.print()`` or ``Console.print()``.
+
+        Delegates to ``RichRenderer.render_turn_renderable()`` with the ``detailed``
+        preset, yielding a formatted turn display panel.
+
+        Args:
+            console: The Rich Console performing the rendering.
+            options: Console options controlling width and other settings.
+
+        Yields:
+            Rich renderable objects (Panel) for console display.
+        """
+        from mamba_agents.agent.display.presets import DETAILED
+        from mamba_agents.agent.display.rich_renderer import RichRenderer
+
+        renderer = RichRenderer()
+        yield renderer.render_turn_renderable(self, DETAILED)
 
 
 class MessageQuery:
@@ -1036,6 +1095,136 @@ class MessageQuery:
             result.append(entry)
 
         return result
+
+    # ------------------------------------------------------------------
+    # Display
+    # ------------------------------------------------------------------
+
+    def print_stats(
+        self,
+        *,
+        preset: str = "detailed",
+        format: str = "rich",
+        console: Console | None = None,
+        **options: Any,
+    ) -> str:
+        """Render message statistics as a formatted table.
+
+        Computes statistics via :meth:`stats` and delegates to the
+        standalone :func:`~mamba_agents.agent.display.print_stats` function
+        for rendering. All parameters are forwarded directly.
+
+        Args:
+            preset: Named preset (``"compact"``, ``"detailed"``, or
+                ``"verbose"``).
+            format: Output format (``"rich"``, ``"plain"``, or ``"html"``).
+            console: Optional Rich ``Console`` instance. Only used when
+                *format* is ``"rich"``.
+            **options: Keyword overrides applied to the resolved preset
+                (e.g., ``show_tokens=False``).
+
+        Returns:
+            The rendered string.
+
+        Raises:
+            ValueError: If *preset* or *format* is not recognised.
+
+        Example::
+
+            agent.messages.print_stats()  # Rich table to terminal
+            agent.messages.print_stats(format="plain")  # ASCII table
+            agent.messages.print_stats(preset="compact", show_tokens=True)
+        """
+        from mamba_agents.agent.display.functions import (
+            print_stats as _print_stats,
+        )
+
+        stats = self.stats()
+        return _print_stats(stats, preset=preset, format=format, console=console, **options)
+
+    def print_timeline(
+        self,
+        *,
+        preset: str = "detailed",
+        format: str = "rich",
+        console: Console | None = None,
+        **options: Any,
+    ) -> str:
+        """Render the conversation timeline as a formatted display.
+
+        Parses messages into turns via :meth:`timeline` and delegates to the
+        standalone :func:`~mamba_agents.agent.display.print_timeline` function
+        for rendering. All parameters are forwarded directly.
+
+        Args:
+            preset: Named preset (``"compact"``, ``"detailed"``, or
+                ``"verbose"``).
+            format: Output format (``"rich"``, ``"plain"``, or ``"html"``).
+            console: Optional Rich ``Console`` instance. Only used when
+                *format* is ``"rich"``.
+            **options: Keyword overrides applied to the resolved preset
+                (e.g., ``limit=10``).
+
+        Returns:
+            The rendered string.
+
+        Raises:
+            ValueError: If *preset* or *format* is not recognised.
+
+        Example::
+
+            agent.messages.print_timeline()  # Rich panels to terminal
+            agent.messages.print_timeline(format="plain")  # ASCII timeline
+            agent.messages.print_timeline(preset="compact", limit=5)
+        """
+        from mamba_agents.agent.display.functions import (
+            print_timeline as _print_timeline,
+        )
+
+        turns = self.timeline()
+        return _print_timeline(turns, preset=preset, format=format, console=console, **options)
+
+    def print_tools(
+        self,
+        *,
+        preset: str = "detailed",
+        format: str = "rich",
+        console: Console | None = None,
+        **options: Any,
+    ) -> str:
+        """Render a tool usage summary as a formatted table.
+
+        Computes tool call summaries via :meth:`tool_summary` and delegates to
+        the standalone :func:`~mamba_agents.agent.display.print_tools` function
+        for rendering. All parameters are forwarded directly.
+
+        Args:
+            preset: Named preset (``"compact"``, ``"detailed"``, or
+                ``"verbose"``).
+            format: Output format (``"rich"``, ``"plain"``, or ``"html"``).
+            console: Optional Rich ``Console`` instance. Only used when
+                *format* is ``"rich"``.
+            **options: Keyword overrides applied to the resolved preset
+                (e.g., ``show_tool_details=True``).
+
+        Returns:
+            The rendered string.
+
+        Raises:
+            ValueError: If *preset* or *format* is not recognised.
+
+        Example::
+
+            agent.messages.print_tools()  # Rich table to terminal
+            agent.messages.print_tools(format="plain")  # ASCII table
+            agent.messages.print_tools(preset="verbose", show_tool_details=True)
+        """
+        from mamba_agents.agent.display.functions import (
+            print_tools as _print_tools,
+        )
+
+        tools = self.tool_summary()
+        return _print_tools(tools, preset=preset, format=format, console=console, **options)
 
     # ------------------------------------------------------------------
     # Internal helpers

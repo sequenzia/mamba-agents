@@ -1,0 +1,12 @@
+Message Statistics
+
+  Role       Messages  Tokens
+  ---------  --------  ------
+  assistant         4   1,500
+  system            1     200
+  tool              2     800
+  user              3   1,000
+  ---------  --------  ------
+  Total            10   3,500
+
+Average tokens/message: 350.0
