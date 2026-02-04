@@ -241,8 +241,7 @@ def _assert_snapshot(
         return
 
     assert path.exists(), (
-        f"Snapshot file not found: {path}\n"
-        f"Run with UPDATE_SNAPSHOTS=1 to generate golden files."
+        f"Snapshot file not found: {path}\nRun with UPDATE_SNAPSHOTS=1 to generate golden files."
     )
     expected = path.read_text(encoding="utf-8")
     assert actual == expected, (
@@ -342,6 +341,5 @@ class TestDeterministicOutput:
         first = _render(renderer_name, data_type, preset, data)
         second = _render(renderer_name, data_type, preset, data)
         assert first == second, (
-            f"Non-deterministic output from {renderer_name} renderer "
-            f"for {data_type} data."
+            f"Non-deterministic output from {renderer_name} renderer for {data_type} data."
         )

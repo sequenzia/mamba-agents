@@ -156,9 +156,7 @@ class TestRenderStats:
         output = renderer.render_stats(stats, DETAILED, file=io.StringIO())
         assert "12,345" in output
 
-    def test_averages_shown(
-        self, renderer: PlainTextRenderer, sample_stats: MessageStats
-    ) -> None:
+    def test_averages_shown(self, renderer: PlainTextRenderer, sample_stats: MessageStats) -> None:
         """Test that average tokens per message is shown."""
         output = renderer.render_stats(sample_stats, DETAILED, file=io.StringIO())
         assert "Average tokens/message" in output
@@ -218,9 +216,7 @@ class TestRenderStats:
         output = renderer.render_stats(stats, DETAILED, file=io.StringIO())
         assert "1,234,567,890" in output
 
-    def test_returns_string(
-        self, renderer: PlainTextRenderer, sample_stats: MessageStats
-    ) -> None:
+    def test_returns_string(self, renderer: PlainTextRenderer, sample_stats: MessageStats) -> None:
         """Test that render_stats returns a string."""
         result = renderer.render_stats(sample_stats, DETAILED, file=io.StringIO())
         assert isinstance(result, str)
@@ -236,9 +232,7 @@ class TestRenderStats:
         # Should not contain Rich markup escape sequences.
         assert "\x1b[" not in output
 
-    def test_columns_aligned(
-        self, renderer: PlainTextRenderer, sample_stats: MessageStats
-    ) -> None:
+    def test_columns_aligned(self, renderer: PlainTextRenderer, sample_stats: MessageStats) -> None:
         """Test that columns are visually aligned."""
         output = renderer.render_stats(sample_stats, DETAILED, file=io.StringIO())
         lines = output.split("\n")
@@ -340,9 +334,7 @@ class TestRenderTimeline:
         output = renderer.render_timeline([], DETAILED, file=io.StringIO())
         assert "No conversation turns found" in output
 
-    def test_limit_parameter(
-        self, renderer: PlainTextRenderer, sample_turns: list[Turn]
-    ) -> None:
+    def test_limit_parameter(self, renderer: PlainTextRenderer, sample_turns: list[Turn]) -> None:
         """Test that limit parameter restricts the number of turns shown."""
         preset = get_preset("detailed", limit=1)
         output = renderer.render_timeline(sample_turns, preset, file=io.StringIO())

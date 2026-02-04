@@ -131,27 +131,19 @@ class PlainTextRenderer(MessageRenderer):
         for role, msg_count, token_count in rows:
             if preset.show_tokens:
                 lines.append(
-                    f"  {role:<{role_width}}"
-                    f"  {msg_count:>{msg_width}}"
-                    f"  {token_count:>{tok_width}}"
+                    f"  {role:<{role_width}}  {msg_count:>{msg_width}}  {token_count:>{tok_width}}"
                 )
             else:
-                lines.append(
-                    f"  {role:<{role_width}}  {msg_count:>{msg_width}}"
-                )
+                lines.append(f"  {role:<{role_width}}  {msg_count:>{msg_width}}")
 
         # Totals separator and row.
         lines.append(separator)
         if preset.show_tokens:
             lines.append(
-                f"  {'Total':<{role_width}}"
-                f"  {total_msg:>{msg_width}}"
-                f"  {total_tok:>{tok_width}}"
+                f"  {'Total':<{role_width}}  {total_msg:>{msg_width}}  {total_tok:>{tok_width}}"
             )
         else:
-            lines.append(
-                f"  {'Total':<{role_width}}  {total_msg:>{msg_width}}"
-            )
+            lines.append(f"  {'Total':<{role_width}}  {total_msg:>{msg_width}}")
 
         # Average tokens/message summary.
         if preset.show_tokens:
@@ -273,10 +265,7 @@ class PlainTextRenderer(MessageRenderer):
         lines.append(separator)
 
         for tool in tools:
-            lines.append(
-                f"  {tool.tool_name:<{name_width}}"
-                f"  {tool.call_count!s:>{calls_width}}"
-            )
+            lines.append(f"  {tool.tool_name:<{name_width}}  {tool.call_count!s:>{calls_width}}")
 
             if preset.show_tool_details:
                 detail_lines = self._format_tool_details(tool, preset)
