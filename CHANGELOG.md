@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-02-03
+
+### Added
+
+- Add comprehensive display rendering system for agent messages:
+  - `MessageRenderer` ABC with `RichRenderer`, `PlainTextRenderer`, and `HtmlRenderer` implementations
+  - `DisplayPreset` system with `COMPACT`, `DETAILED`, and `VERBOSE` presets (accessible via `get_preset()`)
+  - Standalone `print_stats()`, `print_timeline()`, `print_tools()` functions for standalone message visualization
+  - `MessageQuery.print_stats()`, `print_timeline()`, `print_tools()` convenience methods
+  - Rich `__rich_console__` protocol support for direct Rich console rendering of message analytics
+
+### Fixed
+
+- Fix ruff formatting issues and remove unused GitHub Actions workflows
+
 ## [0.1.6] - 2026-02-02
 
 ### Added
@@ -111,7 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error handling with retry logic and circuit breaker pattern
 - Observability with logging and optional OpenTelemetry tracing
 
-[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/sequenzia/mamba-agents/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/sequenzia/mamba-agents/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/sequenzia/mamba-agents/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/sequenzia/mamba-agents/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/sequenzia/mamba-agents/compare/v0.1.3...v0.1.4
