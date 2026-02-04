@@ -1,0 +1,32 @@
+Tool Summary
+
+  Tool Name   Calls
+  ----------  -----
+  read_file       3
+    [call_001]
+      args: {
+  "path": "config.yaml"
+}
+      result: database:
+  host: localhost
+  port: 5432
+    [call_002]
+      args: {
+  "path": "config.yaml"
+}
+      result: database:
+  host: localhost
+  port: 5432
+    [call_004]
+      args: {
+  "path": "README.md"
+}
+      result: # Project README
+Welcome to the project.
+  write_file      1
+    [call_003]
+      args: {
+  "path": "output.txt",
+  "content": "Summary of config."
+}
+      result: OK

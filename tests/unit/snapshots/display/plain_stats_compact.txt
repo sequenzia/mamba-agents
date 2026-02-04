@@ -1,0 +1,10 @@
+Message Statistics
+
+  Role       Messages
+  ---------  --------
+  assistant         4
+  system            1
+  tool              2
+  user              3
+  ---------  --------
+  Total            10

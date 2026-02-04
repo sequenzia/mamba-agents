@@ -35,6 +35,16 @@ See Also:
 # Core agent exports
 from mamba_agents.agent.config import AgentConfig
 from mamba_agents.agent.core import Agent
+from mamba_agents.agent.display import (
+    DisplayPreset,
+    HtmlRenderer,
+    MessageRenderer,
+    PlainTextRenderer,
+    RichRenderer,
+    print_stats,
+    print_timeline,
+    print_tools,
+)
 from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
 from mamba_agents.agent.result import AgentResult
 from mamba_agents.config.settings import AgentSettings
@@ -73,14 +83,19 @@ __all__ = [
     "CompactionResult",
     "ContextState",
     "CostBreakdown",
+    "DisplayPreset",
+    "HtmlRenderer",
     "MCPAuthConfig",
     "MCPClientManager",
     "MCPServerConfig",
     "MessageQuery",
+    "MessageRenderer",
     "MessageStats",
+    "PlainTextRenderer",
     "PromptConfig",
     "PromptManager",
     "PromptTemplate",
+    "RichRenderer",
     "TemplateConfig",
     "TokenUsage",
     "ToolCallInfo",
@@ -93,6 +108,9 @@ __all__ = [
     "WorkflowState",
     "WorkflowStep",
     "__version__",
+    "print_stats",
+    "print_timeline",
+    "print_tools",
 ]
 
 # Version is dynamically set by hatch-vcs during build

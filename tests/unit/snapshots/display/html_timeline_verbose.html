@@ -1,0 +1,43 @@
+<section>
+<h3>Turn 0</h3>
+<p><strong>[System]</strong> You are a helpful coding assistant.</p>
+<p><strong>[User]</strong> Please read the config file.</p>
+<p><strong>[Assistant]</strong> I will read the config file for you.</p>
+</section>
+<section>
+<h3>Turn 1</h3>
+<p><strong>[User]</strong> What does it contain?</p>
+<p><strong>[Assistant]</strong> The config file contains database settings.</p>
+<ul>
+<li><strong>read_file</strong>
+<br>args: <code>{
+  &quot;path&quot;: &quot;config.yaml&quot;
+}</code>
+<br>result: <code>database:
+  host: localhost
+  port: 5432</code>
+</li>
+</ul>
+</section>
+<section>
+<h3>Turn 2</h3>
+<p><strong>[User]</strong> Now write a summary to output.txt.</p>
+<p><strong>[Assistant]</strong> Done! I wrote the summary.</p>
+<ul>
+<li><strong>read_file</strong>
+<br>args: <code>{
+  &quot;path&quot;: &quot;config.yaml&quot;
+}</code>
+<br>result: <code>database:
+  host: localhost
+  port: 5432</code>
+</li>
+<li><strong>write_file</strong>
+<br>args: <code>{
+  &quot;path&quot;: &quot;output.txt&quot;,
+  &quot;content&quot;: &quot;Summary of config.&quot;
+}</code>
+<br>result: <code>OK</code>
+</li>
+</ul>
+</section>

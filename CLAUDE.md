@@ -22,6 +22,7 @@ Key libraries to query:
 - `httpx` - HTTP client
 - `tenacity` - Retry logic
 - `tiktoken` - Token counting
+- `rich` - Terminal formatting (display renderers)
 
 ## Build & Development Commands
 
@@ -88,6 +89,7 @@ print(__version__)  # e.g., "0.1.0" or "0.1.0.dev12"
 ```
 src/mamba_agents/
 ├── agent/           # Core agent (wraps pydantic-ai)
+│   └── display/     # Message display & rendering (Rich, Plain, HTML)
 ├── config/          # Configuration system (pydantic-settings)
 ├── tools/           # Built-in tools (filesystem, bash, glob, grep)
 ├── context/         # Context window management & compaction
@@ -114,6 +116,8 @@ from mamba_agents import (
     Workflow, WorkflowConfig, WorkflowHooks,
     WorkflowResult, WorkflowState, WorkflowStep,
     MessageQuery, MessageStats, ToolCallInfo, Turn,
+    DisplayPreset, MessageRenderer, RichRenderer, PlainTextRenderer, HtmlRenderer,
+    print_stats, print_timeline, print_tools,
 )
 
 # Agent message utilities (for serializing/deserializing pydantic-ai messages)
@@ -121,6 +125,12 @@ from mamba_agents.agent import dicts_to_model_messages, model_messages_to_dicts
 
 # Message querying and analytics
 from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
+
+# Display rendering (for standalone use)
+from mamba_agents.agent.display import (
+    DisplayPreset, MessageRenderer, RichRenderer, PlainTextRenderer, HtmlRenderer,
+    print_stats, print_timeline, print_tools,
+)
 
 # Tools
 from mamba_agents.tools import (
@@ -229,6 +239,10 @@ def test_file_ops(tmp_sandbox: Path):
 | Agent config | `src/mamba_agents/agent/config.py` |
 | Message conversion utils | `src/mamba_agents/agent/message_utils.py` |
 | Message querying & analytics | `src/mamba_agents/agent/messages.py` |
+| Display renderers | `src/mamba_agents/agent/display/` |
+| Display presets | `src/mamba_agents/agent/display/presets.py` |
+| Display functions | `src/mamba_agents/agent/display/functions.py` |
+| Snapshot golden files | `tests/unit/snapshots/display/` |
 | Built-in tools | `src/mamba_agents/tools/` |
 | Context compaction | `src/mamba_agents/context/compaction/` |
 | Prompt management | `src/mamba_agents/prompts/` |
@@ -254,7 +268,8 @@ def test_file_ops(tmp_sandbox: Path):
 | **Strategy** | `context/compaction/` (5 strategies) | Pluggable compaction algorithms selected by config string |
 | **Factory** | `errors/retry.py`, `mcp/client.py` | `create_retry_decorator()`, `MCPClientManager._create_server()` |
 | **Circuit Breaker** | `errors/circuit_breaker.py` | CLOSED/OPEN/HALF_OPEN resilience with sliding window |
-| **ABC** | `backends/base.py`, `context/compaction/base.py`, `workflows/base.py` | Extension point contracts for backends, strategies, workflows |
+| **ABC** | `backends/base.py`, `context/compaction/base.py`, `workflows/base.py`, `agent/display/renderer.py` | Extension point contracts for backends, strategies, workflows, renderers |
+| **Strategy** | `agent/display/` (3 renderers) | Pluggable Rich/Plain/HTML rendering selected by format string |
 
 ## Known Fragility Points
 
@@ -328,6 +343,16 @@ def test_file_ops(tmp_sandbox: Path):
   - **Export**: `export(format=)` supports "json", "markdown", "csv", "dict" formats
   - Data models (`MessageStats`, `ToolCallInfo`, `Turn`) use `@dataclass` (project convention for output types)
   - Works when `track_context=False` (returns empty results) and when `TokenCounter` is None (token counts are 0)
+  - **Display**: `print_stats()`, `print_timeline()`, `print_tools()` convenience methods delegate to standalone functions via lazy import
+- **Display Rendering** provides Rich/Plain/HTML output for message analytics:
+  - `MessageRenderer` is an ABC with `render_stats()`, `render_timeline()`, `render_tools()` methods
+  - Three renderers: `RichRenderer` (Rich Console), `PlainTextRenderer` (ASCII), `HtmlRenderer` (semantic HTML)
+  - Three presets: `COMPACT`, `DETAILED`, `VERBOSE` — access via `get_preset("name", **overrides)`
+  - `DisplayPreset` is `@dataclass(frozen=True)` with fields: show_role_breakdown, show_token_info, show_tool_args, show_tool_results, max_content_length
+  - Standalone functions: `print_stats(data, preset, format, **options)`, `print_timeline(...)`, `print_tools(...)`
+  - `MessageQuery` delegates to standalone functions: `query.print_stats()`, `query.print_timeline()`, `query.print_tools()`
+  - Rich `__rich_console__` protocol on `MessageStats`, `ToolCallInfo`, `Turn` for `console.print(stats)` usage
+  - Snapshot tests in `tests/unit/test_display_snapshots.py` with golden files in `tests/unit/snapshots/display/`; regenerate with `UPDATE_SNAPSHOTS=1`
 - Error recovery has 3 levels: conservative (1), balanced (2), aggressive (3)
 - **Workflows** provide orchestration patterns for multi-step agent execution:
   - `Workflow` is an ABC - extend it to create custom patterns

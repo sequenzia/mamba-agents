@@ -1,0 +1,18 @@
+╭───────────────────── Turn 0 ─────────────────────╮
+│ [System] You are a helpful coding assistant.     │
+│ [User] Please read the config file.              │
+│ [Assistant] I will read the config file for you. │
+│                                                  │
+╰──────────────────────────────────────────────────╯
+╭──────────────────────── Turn 1 ─────────────────────────╮
+│ [User] What does it contain?                            │
+│ [Assistant] The config file contains database settings. │
+│ [Tools] read_file x1                                    │
+│                                                         │
+╰─────────────────────────────────────────────────────────╯
+╭───────────────── Turn 2 ──────────────────╮
+│ [User] Now write a summary to output.txt. │
+│ [Assistant] Done! I wrote the summary.    │
+│ [Tools] read_file x1, write_file x1       │
+│                                           │
+╰───────────────────────────────────────────╯

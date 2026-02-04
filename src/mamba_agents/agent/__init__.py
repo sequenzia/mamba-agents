@@ -39,6 +39,16 @@ Utilities:
     dicts_to_model_messages: Convert dicts to pydantic-ai messages
     model_messages_to_dicts: Convert pydantic-ai messages to dicts
 
+Display:
+    DisplayPreset: Dataclass controlling display detail level.
+    MessageRenderer: ABC for format-specific renderers.
+    RichRenderer: Rich Console renderer.
+    PlainTextRenderer: ASCII text renderer.
+    HtmlRenderer: HTML string renderer.
+    print_stats: Render message statistics.
+    print_timeline: Render conversation timeline.
+    print_tools: Render tool usage summary.
+
 See Also:
     - examples/basic/ for runnable examples
     - docs/user-guide/agent-basics.md for detailed guide
@@ -46,6 +56,16 @@ See Also:
 
 from mamba_agents.agent.config import AgentConfig
 from mamba_agents.agent.core import Agent
+from mamba_agents.agent.display import (
+    DisplayPreset,
+    HtmlRenderer,
+    MessageRenderer,
+    PlainTextRenderer,
+    RichRenderer,
+    print_stats,
+    print_timeline,
+    print_tools,
+)
 from mamba_agents.agent.message_utils import dicts_to_model_messages, model_messages_to_dicts
 from mamba_agents.agent.messages import MessageQuery, MessageStats, ToolCallInfo, Turn
 from mamba_agents.agent.result import AgentResult
@@ -54,10 +74,18 @@ __all__ = [
     "Agent",
     "AgentConfig",
     "AgentResult",
+    "DisplayPreset",
+    "HtmlRenderer",
     "MessageQuery",
+    "MessageRenderer",
     "MessageStats",
+    "PlainTextRenderer",
+    "RichRenderer",
     "ToolCallInfo",
     "Turn",
     "dicts_to_model_messages",
     "model_messages_to_dicts",
+    "print_stats",
+    "print_timeline",
+    "print_tools",
 ]
