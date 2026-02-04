@@ -72,6 +72,14 @@ print(agent.get_cost())   # Cost in USD
 
     [:octicons-arrow-right-24: Track usage](user-guide/token-tracking.md)
 
+-   :material-magnify: **Message Analytics**
+
+    ---
+
+    Query, filter, export, and visualize conversation history with rich formatting.
+
+    [:octicons-arrow-right-24: Message analytics](user-guide/message-querying.md)
+
 -   :material-chat-processing: **Context Compaction**
 
     ---
@@ -153,6 +161,7 @@ print(agent.get_cost())   # Cost in USD
 | Built-in tools | `from mamba_agents.tools import read_file, run_bash, glob_search` |
 | ReAct workflow | `from mamba_agents.workflows import ReActWorkflow, ReActConfig` |
 | Token tracking | `from mamba_agents.tokens import TokenCounter, CostEstimator` |
+| Message analytics | `from mamba_agents import MessageQuery, print_stats` |
 | MCP servers | `from mamba_agents.mcp import MCPClientManager, MCPServerConfig` |
 
 ## Explore the Docs

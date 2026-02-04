@@ -52,6 +52,8 @@ nav:
       - Working with Tools: user-guide/tools.md
       - Context Management: user-guide/context-management.md
       - Token Tracking: user-guide/token-tracking.md
+      - Message Querying: user-guide/message-querying.md
+      - Display Rendering: user-guide/display-rendering.md
       - Prompt Management: user-guide/prompt-management.md
       - Workflows: user-guide/workflows.md
       - MCP Integration: user-guide/mcp-integration.md
@@ -77,6 +79,11 @@ nav:
           - Agent: api/agent/agent.md
           - AgentConfig: api/agent/config.md
           - AgentResult: api/agent/result.md
+          - Messages: api/agent/messages.md
+          - Display:
+              - api/agent/display.md
+              - Presets & Functions: api/agent/display-presets.md
+              - Renderers: api/agent/display-renderers.md
       - Workflows:
           - api/workflows/index.md
           - Workflow Base: api/workflows/base.md

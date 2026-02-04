@@ -38,6 +38,22 @@ This guide covers all the features of Mamba Agents in detail.
 
     [:octicons-arrow-right-24: Token Tracking](token-tracking.md)
 
+-   :material-magnify: **Message Querying**
+
+    ---
+
+    Filter, analyze, and export conversation histories with rich analytics.
+
+    [:octicons-arrow-right-24: Message Querying](message-querying.md)
+
+-   :material-monitor: **Display Rendering**
+
+    ---
+
+    Render analytics as Rich tables, plain text, or HTML for Jupyter.
+
+    [:octicons-arrow-right-24: Display Rendering](display-rendering.md)
+
 -   :material-text-box-edit: **Prompt Management**
 
     ---
@@ -102,6 +118,8 @@ This guide covers all the features of Mamba Agents in detail.
 | Tools | `mamba_agents.tools` | `read_file`, `run_bash`, `glob_search` |
 | Context | `mamba_agents.context` | `ContextManager`, `CompactionConfig` |
 | Tokens | `mamba_agents.tokens` | `TokenCounter`, `UsageTracker`, `CostEstimator` |
+| Messages | `mamba_agents` | `MessageQuery`, `MessageStats`, `Turn` |
+| Display | `mamba_agents.agent.display` | `DisplayPreset`, `print_stats`, `RichRenderer` |
 | Prompts | `mamba_agents.prompts` | `PromptManager`, `PromptTemplate`, `TemplateConfig` |
 | Workflows | `mamba_agents.workflows` | `Workflow`, `ReActWorkflow` |
 | MCP | `mamba_agents.mcp` | `MCPClientManager`, `MCPServerConfig` |

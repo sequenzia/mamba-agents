@@ -32,6 +32,7 @@ print(agent.get_cost())
         - run_stream
         - tool
         - tool_plain
+        - messages
         - get_token_count
         - get_usage
         - get_usage_history
@@ -44,3 +45,5 @@ print(agent.get_cost())
         - clear_context
         - reset_tracking
         - reset_all
+        - get_system_prompt
+        - set_system_prompt

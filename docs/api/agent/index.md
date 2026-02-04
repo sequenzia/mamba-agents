@@ -9,6 +9,8 @@ The core agent module provides the main `Agent` class and related configuration.
 | [Agent](agent.md) | Main agent class wrapping pydantic-ai |
 | [AgentConfig](config.md) | Configuration for agent behavior |
 | [AgentResult](result.md) | Result from agent execution |
+| [Messages](messages.md) | Message querying and analytics |
+| [Display](display.md) | Display rendering for analytics |
 
 ## Quick Example
 
@@ -35,5 +37,10 @@ agent = Agent(settings=settings)
 
 ```python
 from mamba_agents import Agent, AgentConfig, AgentResult
-from mamba_agents.agent import Agent, AgentConfig, AgentResult
+from mamba_agents import MessageQuery, MessageStats, ToolCallInfo, Turn
+from mamba_agents.agent.display import (
+    DisplayPreset, MessageRenderer,
+    RichRenderer, PlainTextRenderer, HtmlRenderer,
+    get_preset, print_stats, print_timeline, print_tools,
+)
 ```

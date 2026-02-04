@@ -35,6 +35,14 @@ from mamba_agents import (
     PromptManager,
     PromptTemplate,
     TemplateConfig,
+
+    # Messages
+    MessageQuery, MessageStats, ToolCallInfo, Turn,
+
+    # Display
+    DisplayPreset, MessageRenderer,
+    RichRenderer, PlainTextRenderer, HtmlRenderer,
+    print_stats, print_timeline, print_tools,
 )
 ```
 
@@ -90,6 +98,13 @@ from mamba_agents.context import ContextManager, CompactionConfig
 
 # Prompts
 from mamba_agents.prompts import PromptManager, TemplateConfig
+
+# Messages
+from mamba_agents import MessageQuery, MessageStats
+
+# Display
+from mamba_agents import print_stats, print_timeline, print_tools
+from mamba_agents.agent.display import get_preset, COMPACT, DETAILED, VERBOSE
 
 # MCP
 from mamba_agents.mcp import MCPClientManager, MCPServerConfig

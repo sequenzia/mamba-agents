@@ -201,6 +201,33 @@ if agent.should_compact():
 agent.clear_context()
 ```
 
+## Message Querying
+
+Access conversation analytics through the `messages` property:
+
+```python
+# Access the query interface
+query = agent.messages
+
+# Filter messages
+user_msgs = query.filter(role="user")
+tool_msgs = query.filter(tool_name="read_file")
+
+# Get statistics
+stats = query.stats()
+print(f"{stats.total_messages} messages, {stats.total_tokens} tokens")
+
+# View conversation timeline
+for turn in query.timeline():
+    print(f"Turn {turn.index}: {turn.user_content}")
+
+# Export as JSON
+json_str = query.export(format="json")
+
+# Display formatted analytics
+query.print_stats()
+```
+
 ## Token and Cost Tracking
 
 Track usage across requests:
@@ -261,6 +288,9 @@ context_mgr = agent.context_manager
 usage_tracker = agent.usage_tracker
 cost_estimator = agent.cost_estimator
 token_counter = agent.token_counter
+
+# Access message query interface
+query = agent.messages
 ```
 
 ## Configuration Options
@@ -275,9 +305,12 @@ token_counter = agent.token_counter
 | `auto_compact` | bool | True | Auto-compact when threshold reached |
 | `context` | CompactionConfig | None | Custom compaction settings |
 | `tokenizer` | TokenizerConfig | None | Custom tokenizer settings |
+| `graceful_tool_errors` | bool | False | Return error messages to model instead of raising |
 
 ## Next Steps
 
 - [Working with Tools](tools.md) - Built-in tools and custom tool creation
 - [Context Management](context-management.md) - Deep dive into context compaction
+- [Message Querying](message-querying.md) - Filter, analyze, and export conversations
+- [Display Rendering](display-rendering.md) - Rich, plain text, and HTML output
 - [Workflows](workflows.md) - Multi-step orchestration
