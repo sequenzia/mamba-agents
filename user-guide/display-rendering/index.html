@@ -10,13 +10,13 @@
       
       
       
-        <link rel="canonical" href="https://sequenzia.github.io/mamba-agents/user-guide/message-analytics/">
+        <link rel="canonical" href="https://sequenzia.github.io/mamba-agents/user-guide/display-rendering/">
       
       
-        <link rel="prev" href="../agent-basics/">
+        <link rel="prev" href="../message-querying/">
       
       
-        <link rel="next" href="../tools/">
+        <link rel="next" href="../prompt-management/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Message Analytics - Mamba Agents</title>
+        <title>Display Rendering - Mamba Agents</title>
       
     
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#message-analytics" class="md-skip">
+        <a href="#display-rendering" class="md-skip">
           Skip to content
         </a>
       
@@ -122,7 +122,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Message Analytics
+              Display Rendering
             
           </span>
         </div>
@@ -673,6 +673,8 @@
       
         
       
+        
+      
     
     
     
@@ -762,319 +764,6 @@
                 
   
   
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Message Analytics
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Message Analytics
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#accessing-messages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Accessing Messages
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#filtering-messages" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Filtering Messages
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Filtering Messages">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#by-role" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        By Role
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#by-tool-name" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        By Tool Name
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#by-content" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        By Content
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#combined-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combined Filters
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#slicing-and-selecting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Slicing and Selecting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conversation-analytics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conversation Analytics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Conversation Analytics">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#message-statistics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Message Statistics
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#tool-call-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Tool Call Summary
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#conversation-timeline" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conversation Timeline
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#exporting-conversations" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exporting Conversations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exporting Conversations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#markdown" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Markdown
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#csv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CSV
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dict
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exporting-a-subset" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exporting a Subset
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#working-without-token-counting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Working Without Token Counting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#standalone-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Standalone Usage
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Next Steps
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
   
   
     <li class="md-nav__item">
@@ -1150,6 +839,308 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../message-querying/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Message Querying
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Rendering
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Rendering
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Formats">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rich-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rich (Terminal)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#plain-text-ascii" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plain Text (ASCII)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#html" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTML
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Presets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Presets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using Presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#customizing-presets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Customizing Presets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#using-get_preset-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using get_preset() Directly
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendering-stats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering Stats
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendering-timeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendering-tool-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering Tool Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rich-console-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rich Console Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-renderers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Renderers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1834,6 +1825,8 @@
       
         
       
+        
+      
     
     
     
@@ -1925,34 +1918,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/agent/messages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Messages
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../api/agent/config/" class="md-nav__link">
         
   
@@ -1997,6 +1962,188 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/messages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Messages
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6_2_6" id="__nav_6_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_6_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Display
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/display/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Display Module
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/display-presets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Presets & Functions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/agent/display-renderers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Renderers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
     </li>
   
 
@@ -3888,10 +4035,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#accessing-messages" class="md-nav__link">
+  <a href="#overview" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Accessing Messages
+        Overview
       
     </span>
   </a>
@@ -3899,22 +4046,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#filtering-messages" class="md-nav__link">
+  <a href="#quick-start" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Filtering Messages
+        Quick Start
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Filtering Messages">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Formats
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Output Formats">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#by-role" class="md-nav__link">
+  <a href="#rich-terminal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        By Role
+        Rich (Terminal)
       
     </span>
   </a>
@@ -3922,10 +4080,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#by-tool-name" class="md-nav__link">
+  <a href="#plain-text-ascii" class="md-nav__link">
     <span class="md-ellipsis">
       
-        By Tool Name
+        Plain Text (ASCII)
       
     </span>
   </a>
@@ -3933,21 +4091,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#by-content" class="md-nav__link">
+  <a href="#html" class="md-nav__link">
     <span class="md-ellipsis">
       
-        By Content
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#combined-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Combined Filters
+        HTML
       
     </span>
   </a>
@@ -3960,33 +4107,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#slicing-and-selecting" class="md-nav__link">
+  <a href="#presets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Slicing and Selecting
+        Presets
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conversation-analytics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conversation Analytics
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Conversation Analytics">
+    <nav class="md-nav" aria-label="Presets">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#message-statistics" class="md-nav__link">
+  <a href="#using-presets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Message Statistics
+        Using Presets
       
     </span>
   </a>
@@ -3994,10 +4130,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#tool-call-summary" class="md-nav__link">
+  <a href="#customizing-presets" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Tool Call Summary
+        Customizing Presets
       
     </span>
   </a>
@@ -4005,10 +4141,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#conversation-timeline" class="md-nav__link">
+  <a href="#using-get_preset-directly" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conversation Timeline
+        Using get_preset() Directly
       
     </span>
   </a>
@@ -4021,82 +4157,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#exporting-conversations" class="md-nav__link">
+  <a href="#rendering-stats" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Exporting Conversations
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Exporting Conversations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        JSON
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#markdown" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Markdown
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#csv" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        CSV
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dict" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Dict
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#exporting-a-subset" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Exporting a Subset
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#working-without-token-counting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Working Without Token Counting
+        Rendering Stats
       
     </span>
   </a>
@@ -4104,10 +4168,54 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#standalone-usage" class="md-nav__link">
+  <a href="#rendering-timeline" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Standalone Usage
+        Rendering Timeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rendering-tool-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rendering Tool Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rich-console-protocol" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rich Console Protocol
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-renderers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Custom Renderers
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Best Practices
       
     </span>
   </a>
@@ -4145,252 +4253,224 @@
   
 
 
-<h1 id="message-analytics">Message Analytics<a class="headerlink" href="#message-analytics" title="Permanent link">&para;</a></h1>
-<p>The <code>MessageQuery</code> system provides filtering, analytics, and export capabilities for conversation histories. It gives you structured access to the messages exchanged between users, assistants, and tools during agent execution.</p>
-<h2 id="accessing-messages">Accessing Messages<a class="headerlink" href="#accessing-messages" title="Permanent link">&para;</a></h2>
-<p>Every <code>Agent</code> exposes a <code>messages</code> property that returns a fresh <code>MessageQuery</code> instance:</p>
+<h1 id="display-rendering">Display Rendering<a class="headerlink" href="#display-rendering" title="Permanent link">&para;</a></h1>
+<p>Mamba Agents provides formatted rendering for message analytics data with three output formats: Rich (terminal), Plain Text (ASCII), and HTML (Jupyter notebooks).</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The display system renders three types of analytics data:</p>
+<ul>
+<li><strong>Stats</strong> — Message and token count tables</li>
+<li><strong>Timeline</strong> — Turn-by-turn conversation view</li>
+<li><strong>Tools</strong> — Tool usage summary tables</li>
+</ul>
+<p>Each can be rendered in three formats with three detail levels (presets).</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<p>The easiest way to display analytics is through the <code>MessageQuery</code> methods:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">)</span>
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">agent</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="s2">&quot;Hello!&quot;</span><span class="p">)</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">agent</span><span class="o">.</span><span class="n">run_sync</span><span class="p">(</span><span class="s2">&quot;What tools do you have?&quot;</span><span class="p">)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># Access the query interface</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">query</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Display via agent.messages</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>      <span class="c1"># Rich table to terminal</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_timeline</span><span class="p">()</span>   <span class="c1"># Rich panels to terminal</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_tools</span><span class="p">()</span>      <span class="c1"># Rich table to terminal</span>
 </span></code></pre></div>
-<p>The <code>messages</code> property is <strong>stateless</strong> — each access creates a new <code>MessageQuery</code> over the current message history. This means you always see the latest state without stale references.</p>
-<h2 id="filtering-messages">Filtering Messages<a class="headerlink" href="#filtering-messages" title="Permanent link">&para;</a></h2>
-<p>Use <code>filter()</code> to search messages by role, tool name, or content. Multiple arguments combine with AND logic.</p>
-<h3 id="by-role">By Role<a class="headerlink" href="#by-role" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Get all user messages</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">user_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Get all assistant messages</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">assistant_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;assistant&quot;</span><span class="p">)</span>
+<p>Or use standalone functions directly:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_stats</span><span class="p">,</span> <span class="n">print_timeline</span><span class="p">,</span> <span class="n">print_tools</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">turns</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">timeline</span><span class="p">()</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">tools</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">tool_summary</span><span class="p">()</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># Get all tool result messages</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">tool_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;tool&quot;</span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">print_stats</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">print_timeline</span><span class="p">(</span><span class="n">turns</span><span class="p">)</span>
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="n">print_tools</span><span class="p">(</span><span class="n">tools</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="by-tool-name">By Tool Name<a class="headerlink" href="#by-tool-name" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Find messages related to a specific tool</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">read_file_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;read_file&quot;</span><span class="p">)</span>
+<h2 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h2>
+<h3 id="rich-terminal">Rich (Terminal)<a class="headerlink" href="#rich-terminal" title="Permanent link">&para;</a></h3>
+<p>The default format. Uses Rich tables, panels, and styled text with color and formatting.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;rich&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<p>This checks both assistant messages with <code>tool_calls</code> and tool result messages.</p>
-<h3 id="by-content">By Content<a class="headerlink" href="#by-content" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Case-insensitive text search</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">error_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;error&quot;</span><span class="p">)</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Regex search</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">import_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;import\s+\w+&quot;</span><span class="p">,</span> <span class="n">regex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<h3 id="plain-text-ascii">Plain Text (ASCII)<a class="headerlink" href="#plain-text-ascii" title="Permanent link">&para;</a></h3>
+<p>Clean ASCII output with aligned columns. No Rich dependency in the output — suitable for log files and CI.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;plain&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="combined-filters">Combined Filters<a class="headerlink" href="#combined-filters" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Assistant messages mentioning &quot;python&quot;</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">python_assistant</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;python&quot;</span><span class="p">)</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Tool results from a specific tool containing &quot;success&quot;</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">success_results</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="n">role</span><span class="o">=</span><span class="s2">&quot;tool&quot;</span><span class="p">,</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="n">tool_name</span><span class="o">=</span><span class="s2">&quot;run_bash&quot;</span><span class="p">,</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">content</span><span class="o">=</span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="p">)</span>
+<h3 id="html">HTML<a class="headerlink" href="#html" title="Permanent link">&para;</a></h3>
+<p>Semantic HTML tables and sections. Designed for Jupyter notebooks via <code>IPython.display.HTML</code>.</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">html_str</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># In Jupyter</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">IPython.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTML</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">HTML</span><span class="p">(</span><span class="n">html_str</span><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="slicing-and-selecting">Slicing and Selecting<a class="headerlink" href="#slicing-and-selecting" title="Permanent link">&para;</a></h2>
-<p>Retrieve specific subsets of messages by position:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># First message</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">first</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Last 5 messages</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">recent</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">last</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Messages 2 through 5 (0-indexed, exclusive end)</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">middle</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="c1"># All messages (equivalent to agent.get_messages())</span>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="n">all_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+<h2 id="presets">Presets<a class="headerlink" href="#presets" title="Permanent link">&para;</a></h2>
+<p>Presets control how much detail renderers include. Three named presets are available:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Compact</th>
+<th>Detailed</th>
+<th>Verbose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>show_tokens</code></td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>max_content_length</code></td>
+<td>100 chars</td>
+<td>300 chars</td>
+<td>Unlimited</td>
+</tr>
+<tr>
+<td><code>expand</code></td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>show_tool_details</code></td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><code>max_tool_arg_length</code></td>
+<td>50 chars</td>
+<td>200 chars</td>
+<td>500 chars</td>
+</tr>
+<tr>
+<td><code>limit</code></td>
+<td>None</td>
+<td>None</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h3 id="using-presets">Using Presets<a class="headerlink" href="#using-presets" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Use a named preset</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;compact&quot;</span><span class="p">)</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;detailed&quot;</span><span class="p">)</span>  <span class="c1"># default</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h2 id="conversation-analytics">Conversation Analytics<a class="headerlink" href="#conversation-analytics" title="Permanent link">&para;</a></h2>
-<h3 id="message-statistics">Message Statistics<a class="headerlink" href="#message-statistics" title="Permanent link">&para;</a></h3>
-<p>The <code>stats()</code> method computes token and message count statistics:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total messages: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">total_messages</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total tokens: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">total_tokens</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Avg tokens/message: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">avg_tokens_per_message</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<h3 id="customizing-presets">Customizing Presets<a class="headerlink" href="#customizing-presets" title="Permanent link">&para;</a></h3>
+<p>Override individual fields on any preset:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Compact but with token counts</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;compact&quot;</span><span class="p">,</span> <span class="n">show_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Detailed with limited turns</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_timeline</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;detailed&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 </span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Breakdown by role</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">messages_by_role</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">count</span><span class="si">}</span><span class="s2"> messages&quot;</span><span class="p">)</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="k">for</span> <span class="n">role</span><span class="p">,</span> <span class="n">tokens</span> <span class="ow">in</span> <span class="n">stats</span><span class="o">.</span><span class="n">tokens_by_role</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  </span><span class="si">{</span><span class="n">role</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">tokens</span><span class="si">}</span><span class="s2"> tokens&quot;</span><span class="p">)</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Verbose with shorter tool args</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_tools</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">,</span> <span class="n">max_tool_arg_length</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </span></code></pre></div>
-<p>You can also print the stats directly for a formatted summary:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">print</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="c1"># Message Statistics</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1">#   Total messages: 12</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="c1">#   Total tokens:   1543</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1">#   Avg tokens/msg: 128.6</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1">#   Messages by role:</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1">#     assistant: 4</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="c1">#     tool: 3</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="c1">#     user: 5</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1">#   Tokens by role:</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1">#     assistant: 890</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="c1">#     tool: 203</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="c1">#     user: 450</span>
+<h3 id="using-get_preset-directly">Using <code>get_preset()</code> Directly<a class="headerlink" href="#using-get_preset-directly" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_preset</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Get the default preset</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">preset</span> <span class="o">=</span> <span class="n">get_preset</span><span class="p">()</span>  <span class="c1"># returns &quot;detailed&quot;</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># Get with overrides</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">preset</span> <span class="o">=</span> <span class="n">get_preset</span><span class="p">(</span><span class="s2">&quot;compact&quot;</span><span class="p">,</span> <span class="n">show_tokens</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nb">print</span><span class="p">(</span><span class="n">preset</span><span class="o">.</span><span class="n">show_tokens</span><span class="p">)</span>  <span class="c1"># True</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">print</span><span class="p">(</span><span class="n">preset</span><span class="o">.</span><span class="n">max_content_length</span><span class="p">)</span>  <span class="c1"># 100 (from compact)</span>
 </span></code></pre></div>
-<h3 id="tool-call-summary">Tool Call Summary<a class="headerlink" href="#tool-call-summary" title="Permanent link">&para;</a></h3>
-<p>The <code>tool_summary()</code> method provides analytics on tool usage across the conversation:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">summaries</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">tool_summary</span><span class="p">()</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tool: </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">tool_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Called </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">call_count</span><span class="si">}</span><span class="s2"> time(s)&quot;</span><span class="p">)</span>
+<h2 id="rendering-stats">Rendering Stats<a class="headerlink" href="#rendering-stats" title="Permanent link">&para;</a></h2>
+<p>Displays a table of message counts and token usage by role:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Via query interface</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_stats</span><span class="p">()</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Standalone</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">print_stats</span>
 </span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">call_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">tool_call_ids</span><span class="p">):</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  [</span><span class="si">{</span><span class="n">call_id</span><span class="si">}</span><span class="s2">]&quot;</span><span class="p">)</span>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">arguments</span><span class="p">):</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    args: </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="o">.</span><span class="n">results</span><span class="p">):</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    result: </span><span class="si">{</span><span class="n">info</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">i</span><span class="p">][:</span><span class="mi">100</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="n">print_stats</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span> <span class="n">preset</span><span class="o">=</span><span class="s2">&quot;detailed&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;rich&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="conversation-timeline">Conversation Timeline<a class="headerlink" href="#conversation-timeline" title="Permanent link">&para;</a></h3>
-<p>The <code>timeline()</code> method parses messages into logical conversation turns:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">turns</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">timeline</span><span class="p">()</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="n">turns</span><span class="p">:</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Turn </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">index</span><span class="si">}</span><span class="s2">:&quot;</span><span class="p">)</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="k">if</span> <span class="n">turn</span><span class="o">.</span><span class="n">system_context</span><span class="p">:</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  System: </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">system_context</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="k">if</span> <span class="n">turn</span><span class="o">.</span><span class="n">user_content</span><span class="p">:</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  User: </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">user_content</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>    <span class="k">if</span> <span class="n">turn</span><span class="o">.</span><span class="n">assistant_content</span><span class="p">:</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Assistant: </span><span class="si">{</span><span class="n">turn</span><span class="o">.</span><span class="n">assistant_content</span><span class="p">[:</span><span class="mi">80</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>    <span class="k">for</span> <span class="n">interaction</span> <span class="ow">in</span> <span class="n">turn</span><span class="o">.</span><span class="n">tool_interactions</span><span class="p">:</span>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Tool: </span><span class="si">{</span><span class="n">interaction</span><span class="p">[</span><span class="s1">&#39;tool_name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    args: </span><span class="si">{</span><span class="n">interaction</span><span class="p">[</span><span class="s1">&#39;arguments&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    result: </span><span class="si">{</span><span class="n">interaction</span><span class="p">[</span><span class="s1">&#39;result&#39;</span><span class="p">][:</span><span class="mi">80</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<h2 id="rendering-timeline">Rendering Timeline<a class="headerlink" href="#rendering-timeline" title="Permanent link">&para;</a></h2>
+<p>Displays each conversation turn with role-labelled content:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Via query interface</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_timeline</span><span class="p">()</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Limit to first N turns</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_timeline</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;detailed&quot;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Show full tool details</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_timeline</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<p>Each <code>Turn</code> groups related messages:</p>
-<ul>
-<li>User prompt that initiated the turn</li>
-<li>Assistant response</li>
-<li>Tool call/result pairs from tool use within the turn</li>
-<li>System context (attached to the first turn)</li>
-</ul>
-<h2 id="exporting-conversations">Exporting Conversations<a class="headerlink" href="#exporting-conversations" title="Permanent link">&para;</a></h2>
-<p>Export messages in multiple formats using <code>export()</code>:</p>
-<h3 id="json">JSON<a class="headerlink" href="#json" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">json_str</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># With metadata (index and token counts)</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="n">json_with_meta</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="n">include_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<h2 id="rendering-tool-summary">Rendering Tool Summary<a class="headerlink" href="#rendering-tool-summary" title="Permanent link">&para;</a></h2>
+<p>Displays a table of tool names and call counts:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Via query interface</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_tools</span><span class="p">()</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Show arguments and results</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">print_tools</span><span class="p">(</span><span class="n">preset</span><span class="o">=</span><span class="s2">&quot;verbose&quot;</span><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="markdown">Markdown<a class="headerlink" href="#markdown" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">markdown</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">print</span><span class="p">(</span><span class="n">markdown</span><span class="p">)</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="c1"># ### User</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1">#</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Hello, what tools do you have?</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="c1">#</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="c1"># ---</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1">#</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="c1"># ### Assistant</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1">#</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># I have several tools available...</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1">#</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="c1"># **Tool Call: list_tools**</span>
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="c1">#</span>
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="c1"># ```json</span>
-</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="c1"># {}</span>
-</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="c1"># ```</span>
-</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="c1">#</span>
-</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="c1"># **Result:**</span>
-</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="c1">#</span>
-</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="c1"># ```</span>
-</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a><span class="c1"># read_file, write_file, run_bash</span>
-</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a><span class="c1"># ```</span>
+<h2 id="rich-console-protocol">Rich Console Protocol<a class="headerlink" href="#rich-console-protocol" title="Permanent link">&para;</a></h2>
+<p>The data models (<code>MessageStats</code>, <code>ToolCallInfo</code>, <code>Turn</code>) implement Rich's <code>__rich_console__</code> protocol. You can pass them directly to <code>rich.print()</code> or <code>Console.print()</code>:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rich</span><span class="w"> </span><span class="kn">import</span> <span class="nb">print</span> <span class="k">as</span> <span class="n">rprint</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="n">rprint</span><span class="p">(</span><span class="n">stats</span><span class="p">)</span>  <span class="c1"># Renders as a Rich table</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">tools</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">tool_summary</span><span class="p">()</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">for</span> <span class="n">tool</span> <span class="ow">in</span> <span class="n">tools</span><span class="p">:</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>    <span class="n">rprint</span><span class="p">(</span><span class="n">tool</span><span class="p">)</span>  <span class="c1"># Each renders as a Rich table</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="n">turns</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">timeline</span><span class="p">()</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="k">for</span> <span class="n">turn</span> <span class="ow">in</span> <span class="n">turns</span><span class="p">:</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>    <span class="n">rprint</span><span class="p">(</span><span class="n">turn</span><span class="p">)</span>  <span class="c1"># Each renders as a Rich panel</span>
 </span></code></pre></div>
-<h3 id="csv">CSV<a class="headerlink" href="#csv" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">csv_str</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">)</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="c1"># With custom content truncation</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="n">csv_str</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csv&quot;</span><span class="p">,</span> <span class="n">max_content_length</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<h2 id="custom-renderers">Custom Renderers<a class="headerlink" href="#custom-renderers" title="Permanent link">&para;</a></h2>
+<p>Create custom renderers by extending the <code>MessageRenderer</code> ABC:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.display</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageRenderer</span><span class="p">,</span> <span class="n">DisplayPreset</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageStats</span><span class="p">,</span> <span class="n">ToolCallInfo</span><span class="p">,</span> <span class="n">Turn</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">JsonRenderer</span><span class="p">(</span><span class="n">MessageRenderer</span><span class="p">):</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Renders analytics as JSON strings.&quot;&quot;&quot;</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stats</span><span class="p">:</span> <span class="n">MessageStats</span><span class="p">,</span> <span class="n">preset</span><span class="p">:</span> <span class="n">DisplayPreset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>            <span class="s2">&quot;total_messages&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_messages</span><span class="p">,</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>            <span class="s2">&quot;total_tokens&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">total_tokens</span><span class="p">,</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>            <span class="s2">&quot;messages_by_role&quot;</span><span class="p">:</span> <span class="n">stats</span><span class="o">.</span><span class="n">messages_by_role</span><span class="p">,</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>        <span class="p">},</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render_timeline</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">turns</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Turn</span><span class="p">],</span> <span class="n">preset</span><span class="p">:</span> <span class="n">DisplayPreset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>            <span class="p">{</span><span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="s2">&quot;user&quot;</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">user_content</span><span class="p">,</span> <span class="s2">&quot;assistant&quot;</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">assistant_content</span><span class="p">}</span>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">turns</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>        <span class="p">],</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">render_tools</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tools</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ToolCallInfo</span><span class="p">],</span> <span class="n">preset</span><span class="p">:</span> <span class="n">DisplayPreset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a>        <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">([</span>
+</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a>            <span class="p">{</span><span class="s2">&quot;tool&quot;</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">tool_name</span><span class="p">,</span> <span class="s2">&quot;calls&quot;</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">call_count</span><span class="p">}</span>
+</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a>            <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tools</span>
+</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a>        <span class="p">],</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 </span></code></pre></div>
-<p>The CSV format includes columns: <code>index</code>, <code>role</code>, <code>content</code>, <code>tool_name</code>, <code>tool_call_id</code>, <code>token_count</code>.</p>
-<h3 id="dict">Dict<a class="headerlink" href="#dict" title="Permanent link">&para;</a></h3>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">enriched</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">)</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">for</span> <span class="n">msg</span> <span class="ow">in</span> <span class="n">enriched</span><span class="p">:</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="n">meta</span> <span class="o">=</span> <span class="n">msg</span><span class="p">[</span><span class="s2">&quot;_metadata&quot;</span><span class="p">]</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[</span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">] </span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;role&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;token_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> tokens&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-<h3 id="exporting-a-subset">Exporting a Subset<a class="headerlink" href="#exporting-a-subset" title="Permanent link">&para;</a></h3>
-<p>Pass a filtered list to export only specific messages:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Export only tool-related messages as markdown</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">tool_msgs</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;tool&quot;</span><span class="p">)</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">tool_export</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">,</span> <span class="n">messages</span><span class="o">=</span><span class="n">tool_msgs</span><span class="p">)</span>
-</span></code></pre></div>
-<h2 id="working-without-token-counting">Working Without Token Counting<a class="headerlink" href="#working-without-token-counting" title="Permanent link">&para;</a></h2>
-<p><code>MessageQuery</code> works gracefully when no <code>TokenCounter</code> is available. All analytics methods return valid results — token counts default to zero:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents</span><span class="w"> </span><span class="kn">import</span> <span class="n">Agent</span><span class="p">,</span> <span class="n">AgentConfig</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="c1"># Context tracking disabled</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="n">agent</span> <span class="o">=</span> <span class="n">Agent</span><span class="p">(</span><span class="s2">&quot;gpt-4o&quot;</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">AgentConfig</span><span class="p">(</span><span class="n">track_context</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="c1"># messages property returns empty MessageQuery</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="n">query</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">messages</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>  <span class="c1"># Returns empty MessageStats</span>
-</span></code></pre></div>
-<h2 id="standalone-usage">Standalone Usage<a class="headerlink" href="#standalone-usage" title="Permanent link">&para;</a></h2>
-<p>You can use <code>MessageQuery</code> independently of the <code>Agent</code> facade:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQuery</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># Work with raw message dicts</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">messages</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Hello&quot;</span><span class="p">},</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Hi there!&quot;</span><span class="p">},</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a>    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;Run a command&quot;</span><span class="p">},</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>    <span class="p">{</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a>        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a>        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>        <span class="s2">&quot;tool_calls&quot;</span><span class="p">:</span> <span class="p">[{</span>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a>            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;call_1&quot;</span><span class="p">,</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a>            <span class="s2">&quot;function&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;run_bash&quot;</span><span class="p">,</span> <span class="s2">&quot;arguments&quot;</span><span class="p">:</span> <span class="s1">&#39;{&quot;command&quot;: &quot;ls&quot;}&#39;</span><span class="p">},</span>
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>        <span class="p">}],</span>
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a>    <span class="p">},</span>
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a>    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;tool&quot;</span><span class="p">,</span> <span class="s2">&quot;tool_call_id&quot;</span><span class="p">:</span> <span class="s2">&quot;call_1&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;run_bash&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;file1.py</span><span class="se">\n</span><span class="s2">file2.py&quot;</span><span class="p">},</span>
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a>    <span class="p">{</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;I found two files.&quot;</span><span class="p">},</span>
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="p">]</span>
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a>
-</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="n">query</span> <span class="o">=</span> <span class="n">MessageQuery</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
-</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a>
-</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="c1"># All filtering, analytics, and export methods are available</span>
-</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="n">user_msgs</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">&quot;user&quot;</span><span class="p">)</span>
-</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
-</span><span id="__span-16-25"><a id="__codelineno-16-25" name="__codelineno-16-25" href="#__codelineno-16-25"></a><span class="n">timeline</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">timeline</span><span class="p">()</span>
-</span><span id="__span-16-26"><a id="__codelineno-16-26" name="__codelineno-16-26" href="#__codelineno-16-26"></a><span class="n">export</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">export</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-<p>To enable token counting in standalone mode, pass a <code>TokenCounter</code>:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.agent.messages</span><span class="w"> </span><span class="kn">import</span> <span class="n">MessageQuery</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">mamba_agents.tokens</span><span class="w"> </span><span class="kn">import</span> <span class="n">TokenCounter</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="n">counter</span> <span class="o">=</span> <span class="n">TokenCounter</span><span class="p">()</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="n">query</span> <span class="o">=</span> <span class="n">MessageQuery</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">token_counter</span><span class="o">=</span><span class="n">counter</span><span class="p">)</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="n">stats</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">stats</span><span class="p">()</span>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total tokens: </span><span class="si">{</span><span class="n">stats</span><span class="o">.</span><span class="n">total_tokens</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># Actual token counts</span>
-</span></code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Start with <code>agent.messages.print_stats()</code></strong> — the simplest way to see conversation analytics</li>
+<li><strong>Use <code>"compact"</code> for quick checks</strong>, <code>"detailed"</code> for debugging, <code>"verbose"</code> for full inspection</li>
+<li><strong>Use <code>format="plain"</code> for logging</strong> — no ANSI escape codes, clean for file output</li>
+<li><strong>Use <code>format="html"</code> in Jupyter</strong> — renders natively with <code>IPython.display.HTML</code></li>
+<li><strong>Override individual preset fields</strong> rather than creating <code>DisplayPreset</code> instances from scratch</li>
+</ol>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../agent-basics/">Agent Basics</a> — Core agent usage</li>
-<li><a href="../context-management/">Context Management</a> — Managing conversation context and compaction</li>
+<li><a href="../message-querying/">Message Querying</a> — Filtering, analytics, and export</li>
 <li><a href="../token-tracking/">Token Tracking</a> — Token counting and cost estimation</li>
-<li><a href="../../api/agent/messages/">API Reference</a> — Full MessageQuery API reference</li>
+<li><a href="../../api/agent/display-presets/">API Reference: Presets &amp; Functions</a> — Full API details</li>
+<li><a href="../../api/agent/display-renderers/">API Reference: Renderers</a> — Renderer class details</li>
 </ul>
 
 
