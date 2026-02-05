@@ -2,23 +2,27 @@
 
 **Analysis Context**: General codebase understanding
 **Codebase Path**: `/Users/sequenzia/dev/repos/mamba-agents`
-**Date**: 2026-02-02
+**Date**: 2026-02-05
 
 ---
 
 ## Executive Summary
 
-Mamba Agents is a well-architected facade layer over pydantic-ai that adds enterprise infrastructure — configuration management, context window tracking with auto-compaction, token/cost tracking, prompt templates, MCP integration, and workflow orchestration. The most significant architectural insight is the hub-and-spoke design where `Agent` composes five independent subsystems behind a simplified API. The primary risk is tight coupling to pydantic-ai's pre-1.0 internal message format via a string-matching bridge in `message_utils.py`, which could break silently on upstream changes.
+Mamba Agents is a well-architected "batteries included but optional" wrapper around pydantic-ai that follows a strict hub-and-spoke facade pattern — the `Agent` class composes five subsystems (ContextManager, UsageTracker, TokenCounter, CostEstimator, PromptManager) behind a unified 30+ method API with no circular dependencies. The framework is in active early development (v0.1.7, 8 releases in ~2 weeks) with strong test coverage (68%, 1429 tests) and mature design patterns, but its **highest-priority risk is the fragile string-based type matching in `message_utils.py`** that couples it to pydantic-ai's pre-1.0 internal class names without defensive checks.
 
 ---
 
 ## Architecture Overview
 
-The project follows a **hub-and-spoke** design. The `Agent` class acts as the central hub, internally composing `ContextManager`, `UsageTracker`, `TokenCounter`, `CostEstimator`, and `PromptManager` while exposing a simplified facade API. Each subsystem is independently usable but wired together automatically through the Agent constructor.
+The codebase layers into three tiers:
 
-The dependency graph flows strictly downward: `Agent` depends on `config`, `context`, `tokens`, and `prompts`; `Workflow` depends on `Agent`; `MCP` is injected laterally via the `toolsets` parameter. No circular dependencies exist between modules. The design philosophy is "batteries included but optional" — context tracking and auto-compaction default to enabled, but every feature can be disabled or overridden.
+**Core Tier** — `agent`, `config`, `tokens`, `context`, `prompts` — provides the foundational agent execution loop with context tracking, token counting, cost estimation, and prompt templating baked in by default. The `Agent` class (862 lines) serves as the central hub, composing five subsystems and exposing facade methods that delegate to each.
 
-The codebase is organized into **14 top-level modules** across **81 Python source files** and **32 test files**. Core technologies: Python 3.12+, pydantic-ai, pydantic/pydantic-settings, tiktoken, Jinja2, tenacity, httpx. Build system uses hatchling with hatch-vcs for git-tag-based versioning.
+**Extension Tier** — `tools`, `workflows`, `mcp`, `errors` — adds pluggable capabilities: built-in filesystem/shell tools with optional sandboxing, ReAct workflow orchestration, MCP server integration (stdio/SSE/streamable HTTP), and resilience patterns (tenacity retry, circuit breaker).
+
+**Infrastructure Tier** — `observability`, `backends`, `_internal` — provides logging with sensitive data redaction, OpenAI-compatible model backend abstractions, and internal utilities. This tier is the least integrated — observability has zero test coverage and the circuit breaker is not wired into any execution path.
+
+**Key technologies**: Python 3.12+, pydantic-ai (>=0.0.49), pydantic-settings, httpx, tiktoken, tenacity, Jinja2, Rich. Build tooling: uv, hatch-vcs, ruff, pytest.
 
 ---
 
@@ -26,33 +30,39 @@ The codebase is organized into **14 top-level modules** across **81 Python sourc
 
 | File | Purpose | Relevance |
 |------|---------|-----------|
-| `src/mamba_agents/agent/core.py` | Central Agent facade (841 lines) | High |
+| `src/mamba_agents/agent/core.py` | Central Agent facade (862 lines) | High |
+| `src/mamba_agents/agent/message_utils.py` | pydantic-ai ModelMessage <-> dict conversion | High |
+| `src/mamba_agents/agent/messages.py` | MessageQuery: filtering, analytics, export (1278 lines) | High |
 | `src/mamba_agents/agent/config.py` | AgentConfig execution settings | High |
-| `src/mamba_agents/agent/message_utils.py` | ModelMessage <-> dict conversion bridge | High |
-| `src/mamba_agents/config/settings.py` | Root AgentSettings (pydantic-settings) | High |
-| `src/mamba_agents/context/manager.py` | ContextManager for message tracking | High |
-| `src/mamba_agents/context/compaction/base.py` | CompactionStrategy ABC + Template Method | High |
-| `src/mamba_agents/tokens/counter.py` | TokenCounter (tiktoken wrapper) | High |
-| `src/mamba_agents/tokens/tracker.py` | UsageTracker for session aggregation | High |
-| `src/mamba_agents/workflows/base.py` | Workflow ABC, WorkflowState, WorkflowResult | High |
-| `src/mamba_agents/workflows/react/workflow.py` | ReActWorkflow implementation (448 lines) | High |
+| `src/mamba_agents/config/settings.py` | Root AgentSettings with 6-level config hierarchy | High |
+| `src/mamba_agents/context/manager.py` | ContextManager: history + compaction orchestration | High |
+| `src/mamba_agents/context/compaction/base.py` | CompactionStrategy ABC (Template Method) | High |
+| `src/mamba_agents/tokens/counter.py` | tiktoken wrapper with LRU caching | High |
+| `src/mamba_agents/tokens/tracker.py` | Per-request and aggregate usage tracking | High |
+| `src/mamba_agents/workflows/react/workflow.py` | ReAct (Thought->Action->Observation) implementation | High |
+| `src/mamba_agents/mcp/client.py` | MCPClientManager: MCP toolset factory | High |
 
 ### File Details
 
 #### `src/mamba_agents/agent/core.py`
-- **Key exports**: `Agent[DepsT, OutputT]`
-- **Core logic**: Composes 5 internal subsystems in constructor. Provides `run()`, `run_sync()`, `run_stream()` that delegate to pydantic-ai then perform post-run tracking (context + usage). Graceful error wrapping converts tool exceptions to `ModelRetry`.
-- **Connections**: Imports from `config`, `context`, `tokens`, `prompts`. Consumed by `workflows`.
+- **Key exports**: `Agent[DepsT, OutputT]` class
+- **Core logic**: `__init__()` resolves model and initializes 5 subsystems. `run()`/`run_sync()`/`run_stream()` delegate to pydantic-ai then call `_do_post_run_tracking()`. `_wrap_tool_with_graceful_errors()` converts tool exceptions to `ModelRetry`.
+- **Connections**: Depends on all 5 subsystems, AgentConfig, AgentResult, message_utils. Everything else depends on Agent.
 
 #### `src/mamba_agents/agent/message_utils.py`
 - **Key exports**: `model_messages_to_dicts()`, `dicts_to_model_messages()`
-- **Core logic**: Bridges pydantic-ai's typed `ModelMessage` objects and dict-based format used by `ContextManager`. Uses type-name string matching rather than isinstance checks.
-- **Connections**: Critical bridge between Agent and ContextManager. Fragile dependency on pydantic-ai internals.
+- **Core logic**: Bridges pydantic-ai's typed messages and dict-based format using `type(msg).__name__` string matching — the most fragile coupling in the codebase.
+- **Connections**: Called by Agent core during every run cycle. ContextManager consumes the dict output.
 
-#### `src/mamba_agents/config/settings.py`
-- **Key exports**: `AgentSettings`
-- **Core logic**: Root configuration aggregating `ModelBackendSettings`, `LoggingConfig`, `ErrorRecoveryConfig`, `CompactionConfig`, `TokenizerConfig`, `PromptConfig`. Multi-source loading with `MAMBA_` prefix.
-- **Connections**: Used by Agent constructor; nested configs flow to all subsystems.
+#### `src/mamba_agents/agent/messages.py`
+- **Key exports**: `MessageQuery`, `MessageStats`, `ToolCallInfo`, `Turn`
+- **Core logic**: `filter()` with AND-logic, `stats()` computes analytics, `timeline()` (530 lines) groups messages into turns with tool loop tracking, `export()` to 4 formats.
+- **Connections**: Created by `Agent.messages` property. Delegates to display module for printing.
+
+#### `src/mamba_agents/context/compaction/base.py`
+- **Key exports**: `CompactionStrategy` ABC, `CompactionResult`
+- **Core logic**: Template Method — `compact()` handles invariant skeleton, delegates to abstract `_do_compact()`. 5 concrete strategies.
+- **Connections**: Created by ContextManager via string-to-class factory map.
 
 #### `src/mamba_agents/workflows/react/workflow.py`
 - **Key exports**: `ReActWorkflow`, `ReActConfig`, `ReActState`, `ReActHooks`
@@ -63,77 +73,88 @@ The codebase is organized into **14 top-level modules** across **81 Python sourc
 
 ## Patterns & Conventions
 
-### Code Patterns
+### Design Patterns
 
 | Pattern | Where Used | Purpose |
 |---------|-----------|---------|
 | **Facade** | `Agent` class | Simplifies 5+ subsystems behind unified API |
 | **Template Method** | `CompactionStrategy.compact()`, `Workflow.run()` | Invariant skeleton with abstract hooks |
-| **Strategy** | 5 compaction strategies | Pluggable algorithms selected by config |
-| **Factory** | `create_retry_decorator()`, `MCPClientManager._create_server()` | Runtime object creation |
-| **Circuit Breaker** | `errors/circuit_breaker.py` | CLOSED/OPEN/HALF_OPEN resilience |
-| **ABC** | `ModelBackend`, `CompactionStrategy`, `Workflow` | Extension point contracts |
+| **Strategy** | 5 compaction strategies, 3 display renderers | Pluggable algorithms selected by config string |
+| **Factory** | `create_retry_decorator()`, `MCPClientManager._create_server()` | Runtime object creation from config |
+| **Circuit Breaker** | `errors/circuit_breaker.py` | CLOSED/OPEN/HALF_OPEN resilience (standalone, not yet integrated) |
+| **ABC** | `ModelBackend`, `CompactionStrategy`, `Workflow`, `MessageRenderer` | Extension point contracts |
+
+### Code Conventions
+
+- **Pydantic BaseModel** for all configuration; **@dataclass** for all output/state types
+- **Async-first** with `run_sync()` wrappers using `asyncio.run()`
+- **SecretStr** for API keys — never logged, must call `.get_secret_value()`
+- **Google-style docstrings** with Args/Returns/Raises on all public APIs
+- **Type annotations** on all public APIs; `TYPE_CHECKING` to avoid circular imports
+- **ruff** formatting at 100-char line length
+- **Lazy initialization** for PromptManager and Jinja2 Environment
+- Python 3.12 generics: `Agent[DepsT, OutputT]`, `Workflow[DepsT, OutputT, StateT]`
 
 ### Naming Conventions
 
 - **Functions/Methods**: `snake_case`
-- **Classes**: `PascalCase` with suffixes: `*Config`, `*Settings`, `*Result`, `*Error`
+- **Classes**: `PascalCase` with suffixes: `*Config`, `*Settings`, `*Result`, `*Error`, `*Strategy`
 - **Private members**: `_leading_underscore`
 - **Internal modules**: `_internal/`
 - **Constants**: `UPPER_SNAKE_CASE`
+- **Test classes**: `Test{FeatureName}` prefix
+- **Test functions**: `test_{action}_{scenario}` pattern
 
 ### Project Structure
 
 - **Source**: `src/mamba_agents/` with one directory per subsystem (14 modules)
 - **Tests**: `tests/unit/` mirroring source structure, `tests/integration/` for end-to-end
 - **Prompts**: `prompts/{version}/{category}/{name}.jinja2`
-- **Config cascade**: constructor -> env vars -> `.env` -> `config.toml` -> defaults
-
-### Code Style
-
-- Async-first with `run_sync()` wrappers throughout
-- Google-style docstrings on all public APIs
-- Python 3.12 generics (`Agent[DepsT, OutputT]`)
-- Full type annotations; `TYPE_CHECKING` to avoid circular imports
-- `SecretStr` for all sensitive data; never logged
+- **Config cascade**: constructor -> env vars -> `.env` -> `~/mamba.env` -> `config.toml` -> defaults
 
 ---
 
 ## Relationship Map
 
 ```
-User Code
-    |
-    v
-Agent (core.py) ------> pydantic-ai Agent (delegated execution)
-    |                         |
-    |-- AgentSettings         |-- runs LLM calls
-    |     |-- ModelBackendSettings --> OpenAIProvider
-    |     |-- CompactionConfig ------> ContextManager
-    |     |-- TokenizerConfig -------> TokenCounter
-    |     |-- PromptConfig ----------> PromptManager
-    |     |-- ErrorRecoveryConfig ---> retry decorators
-    |
-    |-- TokenCounter (tiktoken) <---- also used by CompactionStrategy
-    |-- UsageTracker <-- records Usage after each run()
-    |-- CostEstimator <-- reads from UsageTracker
-    |-- ContextManager
-    |     |-- MessageHistory (storage)
-    |     |-- CompactionStrategy (5 interchangeable)
-    |     |-- message_utils.py (dict <-> ModelMessage bridge)
-    |
-    |-- PromptManager (lazy-loaded)
-          |-- PromptTemplate (Jinja2 wrapper)
-          |-- TemplateConfig (name/version/variables)
+Agent (core.py)
+  |
+  |--[composes]--> ContextManager --> CompactionStrategy (5 variants)
+  |                      |----------> TokenCounter
+  |                      └----------> MessageHistory (internal storage)
+  |
+  |--[composes]--> UsageTracker
+  |--[composes]--> CostEstimator
+  |--[composes]--> TokenCounter
+  |--[lazy init]--> PromptManager --> Jinja2 Templates
+  |
+  |--[delegates to]--> PydanticAgent (pydantic-ai)
+  |--[converts via]--> message_utils.py (ModelMessage <-> dict)
+  |--[configured by]--> AgentConfig --> AgentSettings
+  |                                       |-- ModelBackendSettings --> OpenAIProvider
+  |                                       |-- CompactionConfig
+  |                                       |-- TokenizerConfig
+  |                                       |-- PromptConfig
+  |                                       |-- ErrorRecoveryConfig --> retry decorators
+  |
+  |--[exposes]--> MessageQuery --> Display Renderers (Rich/Plain/HTML)
+  |--[wrapped by]--> AgentResult (wraps pydantic-ai RunResult)
 
 ReActWorkflow
-    |-- Agent (injected, modified with final_answer tool)
-    |-- calls Agent.run() in Thought->Action->Observation loop
+  |--[takes + MUTATES]--> Agent (registers final_answer tool)
+  |--[extends]--> Workflow ABC (workflows/base.py)
 
 MCPClientManager
-    |-- MCPServerConfig[] -> creates MCPServer* instances
-    |-- output passed to Agent(toolsets=...)
+  |--[creates]--> pydantic-ai MCP servers
+  |--[passed to]--> Agent (via toolsets parameter)
+
+Tools --> Agent (via tools parameter) --> FilesystemSecurity (optional)
 ```
+
+**Data flow for `agent.run()`:**
+1. Resolve message history (dicts -> ModelMessage via `dicts_to_model_messages`)
+2. Delegate to `PydanticAgent.run()`
+3. Post-run: record usage -> convert new messages to dicts -> store in ContextManager -> check compaction
 
 ---
 
@@ -141,33 +162,56 @@ MCPClientManager
 
 | Challenge | Severity | Impact |
 |-----------|----------|--------|
-| Message format bridge fragility | Medium | `message_utils.py` uses string-matching on pydantic-ai type names. Upstream message type changes could produce silently incorrect dict conversions rather than failing loudly. |
-| ReActWorkflow mutates injected Agent | Medium | `__init__()` permanently registers `final_answer` tool on the agent. Reusing the agent elsewhere retains this tool unexpectedly. No cleanup mechanism exists. |
-| pydantic-ai version coupling | Medium | `>=0.0.49` pins to a pre-1.0 library actively changing its API. `tracker.py` already handles an `input_tokens`/`request_tokens` migration. |
-| Sync wrappers use `asyncio.run()` | Medium | `run_sync()` fails inside existing event loops (Jupyter, async web frameworks). |
-| LLM-dependent compaction strategies | Medium | `summarize_older` and `importance_scoring` need LLM calls but are instantiated without a model reference. May be incomplete. |
-| Test coverage target is 50% | Medium | Low for infrastructure code. Error handling, backends, and several compaction strategies appear to lack dedicated tests. |
-| Cost estimation uses uniform token rate | Low | Same rate applied to prompt and completion tokens; most providers charge 3-5x more for output tokens. |
-| Duplicate TokenCounter instantiation | Low | `CompactionStrategy._count_tokens()` creates a fresh counter with defaults, potentially inconsistent with Agent's configured counter. |
+| **Message format fragility** (`message_utils.py`) | High | Uses `type(msg).__name__` string matching instead of `isinstance`. Any pydantic-ai class rename silently produces empty results rather than raising errors. |
+| **Duplicate TokenCounter in CompactionStrategy** | Medium | `_count_tokens()` creates fresh `TokenCounter()` with defaults, potentially using different encoding than Agent's configured counter. Compaction decisions may be inconsistent. |
+| **ReActWorkflow mutates injected Agent** | Medium | Permanently registers `final_answer` tool with no cleanup mechanism. Reusing the Agent or creating multiple workflows accumulates tools. |
+| **pydantic-ai pre-1.0 version sensitivity** | Medium | `>=0.0.49` pin with no ceiling. Already handled one API migration (`input_tokens` vs `request_tokens`). More breaking changes likely before 1.0. |
+| **Sync wrappers vs. event loops** | Medium | `run_sync()` uses `asyncio.run()`, which fails inside existing async contexts (Jupyter, async web frameworks). |
+| **Observability module untested** | Low | 274 lines with zero coverage. `SensitiveDataFilter` regex-based redaction is security-relevant but unverified. |
+| **Tools have low test coverage** | Low | glob (17%), grep (20%), bash (32%) — security-relevant tools with potential edge cases untested. |
+| **Cost rates stale/simplified** | Low | Single rate per model (no input/output split). Missing GPT-4o, Claude 3.5 Sonnet, and other current models. |
+| **Circuit breaker not integrated** | Low | Fully implemented but not wired into Agent or any execution path. Standalone utility only. |
 
 ---
 
 ## Recommendations
 
-1. **Add integration tests for message round-tripping**: Create tests that convert pydantic-ai `ModelMessage` objects to dicts and back, asserting structural fidelity. This catches pydantic-ai format changes early and hardens the most fragile bridge in the codebase.
+1. **Harden message_utils.py**: Replace `type(msg).__name__` string matching with `isinstance` checks against imported pydantic-ai classes. Add a `TypeError` fallback for unrecognized message types. Highest-priority defensive change.
 
-2. **Differentiate input/output token rates in CostEstimator**: Change `CostBreakdown` to use separate prompt and completion rates. Most providers charge significantly different rates, making current estimates inaccurate for cloud models.
+2. **Inject TokenCounter into CompactionStrategy**: Pass the Agent's configured counter through `ContextManager._create_strategy()` to eliminate the duplicate counter inconsistency.
 
-3. **Make ReActWorkflow's tool registration reversible**: Either document the permanent agent mutation clearly, create an internal copy of the agent, or provide a cleanup/unregister mechanism to avoid surprising side effects.
+3. **Add ReActWorkflow cleanup**: Implement `close()`/`cleanup()` that removes the `final_answer` tool from the Agent, or create a defensive copy of the Agent's tool list to avoid mutation.
 
-4. **Inject TokenCounter into CompactionStrategy**: Pass the same `TokenCounter` instance that `ContextManager` uses to ensure consistent token counting across the compaction pipeline.
+4. **Test the observability module**: The `SensitiveDataFilter` redaction is security-relevant. Add tests for redaction patterns, log formatting, and `setup_logging()` configuration.
 
-5. **Add a pydantic-ai compatibility test matrix**: Given tight coupling to a pre-1.0 dependency, testing against multiple pydantic-ai versions in CI would prevent surprise breakages during upstream evolution.
+5. **Increase tool test coverage**: Especially `run_bash` (32%) which executes arbitrary shell commands. Test timeout behavior, error handling, and edge cases.
+
+6. **Update cost rate tables**: Add current models (GPT-4o, Claude 3.5 Sonnet, etc.) and consider splitting into input/output token rates to match actual provider pricing.
+
+7. **Document event loop limitation**: Clearly document that `run_sync()` cannot be called from within an existing async event loop, or investigate alternative sync mechanisms.
+
+---
+
+## Test Health
+
+| Metric | Value |
+|--------|-------|
+| Total test files | 38 |
+| Total test cases | 1429 |
+| Execution time | 2.31s |
+| Coverage | 68.01% (target: 50%) |
+| Python versions tested | 3.12, 3.13 |
+
+### Coverage Highlights
+
+**Well Tested (>90%)**: Agent core, display renderers, MCP integration, prompt management, workflows base, context management
+
+**Coverage Gaps**: observability/ (0%), tools/glob.py (17%), tools/grep.py (20%), tools/bash.py (32%), tools/registry.py (43%)
 
 ---
 
 ## Analysis Methodology
 
-- **Exploration agents**: 2 agents — (1) Application structure, entry points, core logic; (2) Configuration, infrastructure, testing
-- **Synthesis**: Findings merged via opus-level synthesizer with deep file reads on critical components
-- **Scope**: Full source tree analyzed. Excludes runtime behavior analysis and performance profiling.
+- **Exploration agents**: 3 agents — (1) Core agent, entry points, user-facing API; (2) Configuration, infrastructure, shared utilities; (3) Built-in tools, testing, CI/CD
+- **Synthesis**: Findings merged via opus-class synthesizer with critical files read in depth
+- **Scope**: Full `src/mamba_agents/` source tree, `tests/`, CI/CD workflows, and project configuration

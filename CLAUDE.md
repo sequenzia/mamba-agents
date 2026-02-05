@@ -86,6 +86,11 @@ print(__version__)  # e.g., "0.1.0" or "0.1.0.dev12"
 
 **Philosophy**: Hub-and-spoke design. The `Agent` class is the central hub composing five subsystems (`ContextManager`, `UsageTracker`, `TokenCounter`, `CostEstimator`, `PromptManager`) behind a facade API. Dependencies flow strictly downward — no circular dependencies between modules. Design is "batteries included but optional": context tracking and auto-compaction default to enabled, but every feature can be disabled.
 
+**Three-tier breakdown**:
+- **Core Tier** (`agent`, `config`, `tokens`, `context`, `prompts`) — foundational agent execution with context tracking, token counting, cost estimation, and prompt templating
+- **Extension Tier** (`tools`, `workflows`, `mcp`, `errors`) — pluggable capabilities: filesystem/shell tools, ReAct workflow, MCP integration, retry/circuit breaker
+- **Infrastructure Tier** (`observability`, `backends`, `_internal`) — logging with redaction, model backend abstractions, internal utilities. Least integrated tier (observability has zero test coverage, circuit breaker not wired into Agent)
+
 ```
 src/mamba_agents/
 ├── agent/           # Core agent (wraps pydantic-ai)
@@ -210,7 +215,19 @@ Configuration sources (priority order):
 - **Pydantic models** for all configuration
 - **SecretStr** for sensitive data (API keys never logged)
 - **ruff** for linting/formatting (line-length 100)
-- **50% test coverage** target enforced (configured in `pyproject.toml` `fail_under`)
+- **50% test coverage** target enforced (configured in `pyproject.toml` `fail_under`); actual coverage is ~68%
+
+## Test Coverage Gaps
+
+Well tested (>90%): agent core, display renderers, MCP integration, prompt management, workflows base, context management.
+
+Low coverage modules that need attention:
+- `observability/` — 0% (274 lines, includes security-relevant `SensitiveDataFilter`)
+- `tools/glob.py` — 17%
+- `tools/grep.py` — 20%
+- `tools/bash.py` — 32%
+- `tools/registry.py` — 43%
+- `tools/base.py` — 0% (20 lines)
 
 ## Testing Patterns
 
@@ -280,6 +297,13 @@ def test_file_ops(tmp_sandbox: Path):
 
 ## Implementation Notes
 
+- **Data flow for `agent.run()`**:
+  1. Resolve message history from ContextManager (dicts -> ModelMessage via `dicts_to_model_messages`)
+  2. Delegate to `PydanticAgent.run()` with resolved history
+  3. Wrap result in `AgentResult`
+  4. Post-run: record usage via `UsageTracker.record_usage()`
+  5. Post-run: convert new messages via `model_messages_to_dicts()` and store in ContextManager
+  6. Post-run: check `should_compact()` and auto-compact if threshold reached
 - The `Agent` class is a wrapper around `pydantic_ai.Agent` - delegate to it for core functionality
 - Agent constructor behavior:
   - `Agent(settings=s)` - uses `settings.model_backend` for model, api_key, base_url
