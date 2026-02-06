@@ -84,11 +84,11 @@ print(__version__)  # e.g., "0.1.0" or "0.1.0.dev12"
 
 ## Architecture
 
-**Philosophy**: Hub-and-spoke design. The `Agent` class is the central hub composing five subsystems (`ContextManager`, `UsageTracker`, `TokenCounter`, `CostEstimator`, `PromptManager`) behind a facade API. Dependencies flow strictly downward — no circular dependencies between modules. Design is "batteries included but optional": context tracking and auto-compaction default to enabled, but every feature can be disabled.
+**Philosophy**: Hub-and-spoke design. The `Agent` class is the central hub composing seven subsystems (`ContextManager`, `UsageTracker`, `TokenCounter`, `CostEstimator`, `PromptManager`, `SkillManager`, `SubagentManager`) behind a facade API. Dependencies flow strictly downward — no circular dependencies between modules. Design is "batteries included but optional": context tracking and auto-compaction default to enabled, but every feature can be disabled.
 
 **Three-tier breakdown**:
 - **Core Tier** (`agent`, `config`, `tokens`, `context`, `prompts`) — foundational agent execution with context tracking, token counting, cost estimation, and prompt templating
-- **Extension Tier** (`tools`, `workflows`, `mcp`, `errors`) — pluggable capabilities: filesystem/shell tools, ReAct workflow, MCP integration, retry/circuit breaker
+- **Extension Tier** (`tools`, `workflows`, `mcp`, `skills`, `subagents`, `errors`) — pluggable capabilities: filesystem/shell tools, ReAct workflow, MCP integration, skill management, subagent delegation, retry/circuit breaker
 - **Infrastructure Tier** (`observability`, `backends`, `_internal`) — logging with redaction, model backend abstractions, internal utilities. Least integrated tier (observability has zero test coverage, circuit breaker not wired into Agent)
 
 ```
@@ -100,6 +100,8 @@ src/mamba_agents/
 ├── context/         # Context window management & compaction
 ├── tokens/          # Token counting & cost estimation
 ├── prompts/         # Prompt template management (Jinja2)
+├── skills/          # Skill discovery, loading, validation & invocation
+├── subagents/       # Subagent spawning, delegation & lifecycle
 ├── workflows/       # Agentic workflow orchestration (ReAct implemented)
 ├── mcp/             # Model Context Protocol integration
 ├── backends/        # OpenAI-compatible model backends
@@ -123,6 +125,14 @@ from mamba_agents import (
     MessageQuery, MessageStats, ToolCallInfo, Turn,
     DisplayPreset, MessageRenderer, RichRenderer, PlainTextRenderer, HtmlRenderer,
     print_stats, print_timeline, print_tools,
+    # Skills
+    SkillManager, Skill, SkillInfo, SkillConfig, SkillScope, TrustLevel,
+    ValidationResult, SkillError, SkillNotFoundError, SkillParseError,
+    SkillValidationError, SkillLoadError, SkillConflictError,
+    # Subagents
+    SubagentManager, SubagentConfig, SubagentResult, DelegationHandle,
+    SubagentError, SubagentConfigError, SubagentNotFoundError,
+    SubagentNestingError, SubagentDelegationError, SubagentTimeoutError,
 )
 
 # Agent message utilities (for serializing/deserializing pydantic-ai messages)
@@ -177,6 +187,24 @@ from mamba_agents.mcp import (
     MCPConnectionResult, MCPToolInfo,
 )
 
+# Skills subsystem
+from mamba_agents.skills import (
+    SkillManager, Skill, SkillInfo, SkillConfig, SkillScope, TrustLevel,
+    ValidationResult,
+    SkillError, SkillNotFoundError, SkillParseError,
+    SkillValidationError, SkillLoadError, SkillConflictError,
+)
+
+# Skills testing utilities
+from mamba_agents.skills.testing import SkillTestHarness, skill_harness
+
+# Subagents subsystem
+from mamba_agents.subagents import (
+    SubagentManager, SubagentConfig, SubagentResult, DelegationHandle,
+    SubagentError, SubagentConfigError, SubagentNotFoundError,
+    SubagentNestingError, SubagentDelegationError, SubagentTimeoutError,
+)
+
 # Model backends
 from mamba_agents.backends import (
     create_ollama_backend, create_vllm_backend, create_lmstudio_backend,
@@ -216,6 +244,7 @@ Configuration sources (priority order):
 - **SecretStr** for sensitive data (API keys never logged)
 - **ruff** for linting/formatting (line-length 100)
 - **50% test coverage** target enforced (configured in `pyproject.toml` `fail_under`); actual coverage is ~68%
+- **Experimental APIs**: Skills and subagents subsystems are experimental. Public API may change in minor versions
 
 ## Test Coverage Gaps
 
@@ -273,6 +302,22 @@ def test_file_ops(tmp_sandbox: Path):
 | MCP env resolution | `src/mamba_agents/mcp/env.py` |
 | MCP file loader | `src/mamba_agents/mcp/loader.py` |
 | MCP errors | `src/mamba_agents/mcp/errors.py` |
+| Skill manager facade | `src/mamba_agents/skills/manager.py` |
+| Skill data models & enums | `src/mamba_agents/skills/config.py` |
+| Skill errors | `src/mamba_agents/skills/errors.py` |
+| Skill SKILL.md loader | `src/mamba_agents/skills/loader.py` |
+| Skill registry | `src/mamba_agents/skills/registry.py` |
+| Skill validator | `src/mamba_agents/skills/validator.py` |
+| Skill discovery | `src/mamba_agents/skills/discovery.py` |
+| Skill invocation | `src/mamba_agents/skills/invocation.py` |
+| Skill-subagent integration | `src/mamba_agents/skills/integration.py` |
+| Skill testing harness | `src/mamba_agents/skills/testing.py` |
+| Subagent manager facade | `src/mamba_agents/subagents/manager.py` |
+| Subagent data models | `src/mamba_agents/subagents/config.py` |
+| Subagent errors | `src/mamba_agents/subagents/errors.py` |
+| Subagent spawner | `src/mamba_agents/subagents/spawner.py` |
+| Subagent delegation | `src/mamba_agents/subagents/delegation.py` |
+| Subagent config loader | `src/mamba_agents/subagents/loader.py` |
 | Test fixtures | `tests/conftest.py` |
 | Example config | `config.example.toml` |
 
@@ -280,13 +325,19 @@ def test_file_ops(tmp_sandbox: Path):
 
 | Pattern | Location | Purpose |
 |---------|----------|---------|
-| **Facade** | `agent/core.py` (`Agent`) | Simplifies 5+ subsystems behind unified API |
+| **Facade** | `agent/core.py` (`Agent`) | Simplifies 7 subsystems behind unified API |
 | **Template Method** | `context/compaction/base.py`, `workflows/base.py` | Invariant skeleton with abstract `_do_compact()` / `_execute()` hooks |
 | **Strategy** | `context/compaction/` (5 strategies) | Pluggable compaction algorithms selected by config string |
 | **Factory** | `errors/retry.py`, `mcp/client.py` | `create_retry_decorator()`, `MCPClientManager._create_server()` |
 | **Circuit Breaker** | `errors/circuit_breaker.py` | CLOSED/OPEN/HALF_OPEN resilience with sliding window |
 | **ABC** | `backends/base.py`, `context/compaction/base.py`, `workflows/base.py`, `agent/display/renderer.py` | Extension point contracts for backends, strategies, workflows, renderers |
 | **Strategy** | `agent/display/` (3 renderers) | Pluggable Rich/Plain/HTML rendering selected by format string |
+| **Facade** | `skills/manager.py` (`SkillManager`) | Composes loader, registry, validator, discovery, invocation behind unified API |
+| **Facade** | `subagents/manager.py` (`SubagentManager`) | Composes spawner, delegation, loader behind unified API |
+| **Registry** | `skills/registry.py` (`SkillRegistry`) | In-memory skill storage with async-safe register/get/list/deregister |
+| **Lazy Loading** | `skills/loader.py` (`load_metadata`/`load_full`) | Progressive disclosure: Tier 1 metadata-only, Tier 2 full body |
+| **Pipeline** | `skills/loader.py`, `subagents/loader.py` | `_read_file()` -> `_split_*()` -> `_parse_*()` -> `_validate_*()` -> `_map_*()` |
+| **No-Nesting Guard** | `subagents/spawner.py` (`_enforce_no_nesting`) | Prevents subagents from spawning sub-subagents via `_is_subagent` flag |
 
 ## Known Fragility Points
 
@@ -294,6 +345,8 @@ def test_file_ops(tmp_sandbox: Path):
 - **ReActWorkflow mutates injected Agent**: `ReActWorkflow.__init__()` permanently registers a `final_answer` tool on the agent. Reusing the same Agent instance elsewhere will retain this tool. No cleanup mechanism exists.
 - **Duplicate TokenCounter in CompactionStrategy**: `CompactionStrategy._count_tokens()` creates a fresh `TokenCounter()` with defaults, potentially inconsistent with the Agent's configured counter.
 - **pydantic-ai version sensitivity**: The `>=0.0.49` pin targets a pre-1.0 library. `tracker.py` already handles an `input_tokens`/`request_tokens` API migration. Watch for breaking changes in message types, Model API, and toolset interfaces.
+- **Skills-Subagents circular initialization**: `SkillManager` and `SubagentManager` reference each other. Post-construction wiring via `SkillManager.subagent_manager` setter avoids circular init, but the wiring order matters.
+- **SubagentManager mutates parent UsageTracker**: `_aggregate_usage()` directly writes to `parent_agent.usage_tracker._subagent_totals`, coupling to internal state. Changes to `UsageTracker` internals could break subagent usage tracking.
 
 ## Implementation Notes
 
@@ -312,6 +365,9 @@ def test_file_ops(tmp_sandbox: Path):
   - `Agent(model_instance)` - uses the Model instance directly
   - `Agent("gpt-4", tools=[...])` - registers tool functions
   - `Agent("gpt-4", toolsets=[...])` - registers MCP servers (use for MCP, not `tools`)
+  - `Agent("gpt-4", skills=[...])` - registers skills (Skill instances, string paths, or Path objects)
+  - `Agent("gpt-4", skill_dirs=[...])` - discovers and registers skills from directories
+  - `Agent("gpt-4", subagents=[...])` - registers subagent configs (SubagentConfig instances)
 - **Agent manages context and token tracking directly** (no separate instantiation needed):
   - Context tracking enabled by default (`AgentConfig.track_context=True`)
   - Auto-compaction when threshold reached (`AgentConfig.auto_compact=True`)
@@ -329,6 +385,8 @@ def test_file_ops(tmp_sandbox: Path):
   - Cost: `get_cost()`, `get_cost_breakdown()`
   - Context: `get_messages()`, `should_compact()`, `compact()`, `get_context_state()`
   - Messages: `messages` property returns `MessageQuery` for filtering, analytics, and export
+  - Skills: `skill_manager` (lazy property), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()`
+  - Subagents: `subagent_manager` (lazy property), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
   - Reset: `clear_context()`, `reset_tracking()`, `reset_all()`
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - **Prompt Management** provides Jinja2-based template system:
@@ -395,3 +453,41 @@ def test_file_ops(tmp_sandbox: Path):
   - Registers `final_answer` tool on the agent for termination detection
   - Auto-compacts context when threshold ratio is reached
   - Access scratchpad via `result.state.context.scratchpad` or `workflow.get_scratchpad()`
+- **Skills System** provides modular, discoverable agent capabilities (experimental):
+  - `SkillManager` is the top-level facade composing loader, registry, validator, discovery, and invocation
+  - Skills follow the SKILL.md open standard: YAML frontmatter + markdown body
+  - **Progressive disclosure** (three tiers):
+    - Tier 1: `load_metadata(path)` returns `SkillInfo` (frontmatter only, loaded eagerly at discovery)
+    - Tier 2: `load_full(path)` returns `Skill` (frontmatter + body, loaded lazily on first activation)
+    - Tier 3: `get_references(name)` / `load_reference(name, ref)` loads supplemental files on demand
+  - **Discovery** scans three-level directory hierarchy with priority: project (`.mamba/skills/`) > user (`~/.mamba/skills/`) > custom paths
+  - **Trust levels**: `TrustLevel.TRUSTED` (full access) and `TrustLevel.UNTRUSTED` (restricted capabilities). Project/user scopes default to trusted; custom paths configurable via `SkillConfig.trusted_paths`
+  - **Invocation lifecycle**: permission check -> lazy body load -> argument substitution -> activation state management -> tool registration
+  - `InvocationSource` enum: `MODEL`, `USER`, `CODE` -- controls permission gates (e.g., `user_invocable=False` blocks user invocations)
+  - Agent accepts `skills` and `skill_dirs` constructor params for eager registration
+  - Agent facade: `skill_manager` (lazy property), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()`
+  - `SkillConfig` configures: `skills_dirs`, `user_skills_dir`, `custom_paths`, `auto_discover`, `namespace_tools`, `trusted_paths`
+  - `AgentSettings.skills` provides default `SkillConfig`
+  - `SkillTestHarness` enables testing skills without a full Agent instance; `skill_harness` pytest fixture for convenience
+  - Lazy initialization: `_pending_skills`/`_pending_skill_dirs` stored in constructor, `skill_manager` property creates `SkillManager` on first access
+  - TYPE_CHECKING imports used for skill types in `core.py` to avoid circular imports; runtime imports are lazy inside methods
+- **Subagents System** provides task delegation to isolated child agents (experimental):
+  - `SubagentManager` is the top-level facade composing spawner, delegation, and loader
+  - Subagents are isolated `Agent` instances with their own `ContextManager`, `UsageTracker`, etc.
+  - **No-nesting rule**: subagents cannot spawn sub-subagents (enforced via `AgentConfig._is_subagent` private attribute)
+  - **Spawning**: `spawn()` creates a new Agent from `SubagentConfig`, inheriting model/tools from parent unless overridden
+  - **Delegation**: three patterns -- `delegate()` (async), `delegate_sync()` (sync wrapper), `delegate_async()` (fire-and-forget with `DelegationHandle`)
+  - Token usage automatically aggregated to parent's `UsageTracker` with per-subagent breakdown via `_subagent_totals`
+  - **Config loading**: markdown files in `.mamba/agents/{name}.md` with YAML frontmatter + optional system prompt body
+  - `SubagentConfig` fields: `name`, `description`, `model`, `tools`, `disallowed_tools`, `system_prompt`, `skills` (pre-load list), `max_turns`, `config`
+  - Agent accepts `subagents` constructor param for eager registration
+  - Agent facade: `subagent_manager` (lazy property), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
+  - `_UsageTrackingHandle` extends `DelegationHandle` to aggregate usage on async result completion
+  - `spawn_dynamic()` creates one-off subagents from runtime configs without registering
+- **Skills-Subagents Integration** enables bi-directional wiring:
+  - Skills with `execution_mode: "fork"` delegate to a subagent instead of returning content directly
+  - `activate_with_fork()` in `skills/integration.py` handles: trust check -> circular detection -> content preparation -> subagent delegation
+  - `detect_circular_skill_subagent()` traces skill -> agent -> pre-loaded skills chains to prevent cycles
+  - `SkillManager.subagent_manager` is a settable property for post-construction wiring (avoids circular initialization)
+  - Untrusted skills cannot use fork execution mode
+  - Named subagent configs (`agent` field) must exist in the `SubagentManager`; unnamed forks create temporary subagents via `spawn_dynamic()`

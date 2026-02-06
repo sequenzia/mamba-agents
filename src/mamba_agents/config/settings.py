@@ -18,6 +18,7 @@ from mamba_agents.config.model_backend import ModelBackendSettings
 from mamba_agents.config.retry import ErrorRecoveryConfig
 from mamba_agents.context.config import CompactionConfig
 from mamba_agents.prompts.config import PromptConfig
+from mamba_agents.skills.config import SkillConfig
 from mamba_agents.tokens.config import TokenizerConfig
 
 
@@ -44,6 +45,7 @@ class AgentSettings(BaseSettings):
         tokenizer: Default tokenizer settings.
         prompts: Default prompt management settings.
         cost_rates: Custom cost rates per 1000 tokens by model.
+        skills: Skill subsystem configuration. None disables skill discovery.
     """
 
     model_config = SettingsConfigDict(
@@ -109,6 +111,10 @@ class AgentSettings(BaseSettings):
     cost_rates: dict[str, float] = Field(
         default_factory=dict,
         description="Custom cost rates per 1000 tokens by model",
+    )
+    skills: SkillConfig | None = Field(
+        default=None,
+        description="Skill subsystem configuration. None disables skill discovery.",
     )
 
     @classmethod

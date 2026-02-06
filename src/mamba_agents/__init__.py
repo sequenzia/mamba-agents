@@ -60,6 +60,37 @@ from mamba_agents.mcp import MCPAuthConfig, MCPClientManager, MCPServerConfig
 # Prompt management
 from mamba_agents.prompts import PromptConfig, PromptManager, PromptTemplate, TemplateConfig
 
+# Skills subsystem
+from mamba_agents.skills import (
+    Skill,
+    SkillConfig,
+    SkillConflictError,
+    SkillError,
+    SkillInfo,
+    SkillLoadError,
+    SkillManager,
+    SkillNotFoundError,
+    SkillParseError,
+    SkillScope,
+    SkillValidationError,
+    TrustLevel,
+    ValidationResult,
+)
+
+# Subagents subsystem
+from mamba_agents.subagents import (
+    DelegationHandle,
+    SubagentConfig,
+    SubagentConfigError,
+    SubagentDelegationError,
+    SubagentError,
+    SubagentManager,
+    SubagentNestingError,
+    SubagentNotFoundError,
+    SubagentResult,
+    SubagentTimeoutError,
+)
+
 # Token tracking
 from mamba_agents.tokens.cost import CostBreakdown
 from mamba_agents.tokens.tracker import TokenUsage, UsageRecord
@@ -83,6 +114,7 @@ __all__ = [
     "CompactionResult",
     "ContextState",
     "CostBreakdown",
+    "DelegationHandle",
     "DisplayPreset",
     "HtmlRenderer",
     "MCPAuthConfig",
@@ -96,11 +128,33 @@ __all__ = [
     "PromptManager",
     "PromptTemplate",
     "RichRenderer",
+    "Skill",
+    "SkillConfig",
+    "SkillConflictError",
+    "SkillError",
+    "SkillInfo",
+    "SkillLoadError",
+    "SkillManager",
+    "SkillNotFoundError",
+    "SkillParseError",
+    "SkillScope",
+    "SkillValidationError",
+    "SubagentConfig",
+    "SubagentConfigError",
+    "SubagentDelegationError",
+    "SubagentError",
+    "SubagentManager",
+    "SubagentNestingError",
+    "SubagentNotFoundError",
+    "SubagentResult",
+    "SubagentTimeoutError",
     "TemplateConfig",
     "TokenUsage",
     "ToolCallInfo",
+    "TrustLevel",
     "Turn",
     "UsageRecord",
+    "ValidationResult",
     "Workflow",
     "WorkflowConfig",
     "WorkflowHooks",

@@ -1,0 +1,24 @@
+{
+  "id": "22",
+  "subject": "Extend AgentConfig and AgentSettings with skill and subagent fields",
+  "description": "Extend existing configuration classes to support skills and subagents.\n\n**AgentConfig extensions** (`src/mamba_agents/agent/config.py`):\n- Add `_is_subagent: bool = False` — private flag to enforce no-nesting\n- This field is set internally by the spawner, not by users\n\n**AgentSettings extensions** (`src/mamba_agents/config/settings.py`):\n- Add `skills: SkillConfig | None = None` — nested skill configuration\n- Add optional skill-related settings that can be set via environment variables\n\n**Import handling:** Use `TYPE_CHECKING` guards to avoid circular imports between `agent/config.py` and `skills/config.py`.\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] `AgentConfig._is_subagent` field available for spawner to set\n- [ ] `AgentSettings.skills` field accepts `SkillConfig` for directory/trust configuration\n- [ ] Backward compatible — existing configs work without new fields\n- [ ] No circular imports\n\n_Edge Cases:_\n- [ ] `AgentConfig` without `_is_subagent` set — defaults to False\n- [ ] `AgentSettings` without skills field — defaults to None\n\n**Testing Requirements:**\n• Unit: AgentConfig with _is_subagent flag\n• Unit: AgentSettings with SkillConfig\n• Unit: Backward compatibility (existing configs unchanged)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.10",
+  "activeForm": "Extending AgentConfig and AgentSettings",
+  "status": "completed",
+  "blocks": [
+    "20",
+    "21"
+  ],
+  "blockedBy": [
+    "2",
+    "12"
+  ],
+  "metadata": {
+    "priority": "high",
+    "complexity": "S",
+    "source_section": "5.10",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Config Extensions",
+    "task_uid": "skills-and-subagents:config-extensions:config:001",
+    "task_group": "skills-and-subagents"
+  }
+}
