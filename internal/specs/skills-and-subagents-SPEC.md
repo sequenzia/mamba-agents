@@ -1,6 +1,6 @@
 # Skills and Subagents PRD
 
-**Version**: 1.0
+**Version**: 1.1
 **Author**: Stephen Sequenzia
 **Date**: 2026-02-05
 **Status**: Draft
@@ -64,7 +64,9 @@ Without Skills and Subagents:
 | Subagent delegation | Not supported | Sync + async delegation working | Unit + integration tests |
 | Test coverage (skills/) | N/A | >= 80% | pytest --cov |
 | Test coverage (subagents/) | N/A | >= 80% | pytest --cov |
-| API compatibility with Agent Skills spec | N/A | Full compliance with spec validation | skills-ref validate |
+| API compatibility with Agent Skills spec | N/A | Full compliance with spec validation | `skills-ref validate` (see note below) |
+
+> **Note on `skills-ref`**: `skills-ref` is the reference validation CLI from the [Agent Skills open standard repository](https://github.com/agentskills/agentskills). It validates SKILL.md files against the Agent Skills specification schema. If `skills-ref` is not available as an installable tool at implementation time, equivalent validation should be implemented directly via pydantic schema validation in `skills/validator.py`, and this metric should be measured by internal unit tests instead.
 
 ### 3.3 Non-Goals
 
@@ -164,6 +166,12 @@ Parent agent needs parallel research
 - [ ] Validate frontmatter against schema (name format: lowercase alphanumeric + hyphens, max 64 chars)
 - [ ] Load markdown body as skill instructions
 - [ ] Detect and index optional directories: scripts/, references/, assets/
+- [ ] Reference loading (on-demand, third tier of progressive disclosure):
+  - `references/` directory contains supplemental files (markdown, text, JSON)
+  - References are not loaded at discovery or activation — only when explicitly requested
+  - `SkillManager.get_references(skill_name)` returns list of available reference file paths
+  - `SkillManager.load_reference(skill_name, ref_name)` reads and returns reference content as string
+  - Loaded reference content is appended to context as additional instructions
 
 **Technical Notes**:
 - Use `yaml` (PyYAML) for frontmatter parsing — already available via pydantic
@@ -208,7 +216,7 @@ Parent agent needs parallel research
   - Custom: Additional configurable search paths
 - [ ] Priority order: project > user > custom (higher priority wins on name conflict)
 - [ ] Progressive disclosure loading: metadata at startup, body on activation, references on demand
-- [ ] Programmatic registration: `SkillManager.register(skill)` accepts `Skill` instances
+- [ ] Programmatic registration: `SkillManager.register(skill)` accepts `Skill`, `SkillInfo`, or `Path` instances
 - [ ] Skill deregistration: `SkillManager.deregister(name)` removes a skill
 - [ ] List all skills: `SkillManager.list()` returns all registered skill metadata
 - [ ] Get skill by name: `SkillManager.get(name)` returns full skill or None
@@ -220,7 +228,7 @@ Parent agent needs parallel research
 - Follow `MCPClientManager` pattern for lifecycle management
 - Use `Path.glob("*/SKILL.md")` for directory scanning
 - Metadata loading should be synchronous (fast); body loading can be lazy
-- Thread-safe registry for concurrent access
+- Thread-safe registry for concurrent access (use `asyncio.Lock` for async safety, matching the codebase's asyncio-first architecture)
 
 **Edge Cases**:
 | Scenario | Input | Expected Behavior |
@@ -259,7 +267,7 @@ Parent agent needs parallel research
   3. Perform argument substitution
   4. Register skill's allowed-tools with agent
   5. Return processed skill content
-- [ ] Skill deactivation: restore previous tool state when skill completes
+- [ ] Skill deactivation via `SkillManager.deactivate(name)`: restore previous tool state
 
 **Technical Notes**:
 - Argument parsing: split on whitespace, preserve quoted strings
@@ -340,7 +348,7 @@ Parent agent needs parallel research
 **Acceptance Criteria**:
 - [ ] Markdown-based definition:
   - `.mamba/agents/{name}.md` files with YAML frontmatter
-  - Frontmatter fields: name, description, tools, disallowed-tools, model, permission-mode, skills
+  - Frontmatter fields: name, description, tools, disallowed-tools, model, skills
   - Markdown body becomes the subagent's system prompt
 - [ ] Programmatic definition:
   - `SubagentConfig` pydantic model with all configuration fields
@@ -388,7 +396,7 @@ Parent agent needs parallel research
   - Spawns subagent Agent instances from configs
   - Tracks active subagents and their status
   - Enforces no-nesting rule (subagents cannot spawn sub-subagents)
-- [ ] Pre-configured spawning: `manager.spawn("config-name", task="...")` creates subagent from registered config
+- [ ] Pre-configured delegation: `manager.delegate("config-name", task="...")` delegates task to subagent from registered config
 - [ ] Dynamic spawning: `manager.spawn_dynamic(config=SubagentConfig(...), task="...")` creates ad-hoc subagent
 - [ ] Subagent lifecycle:
   - Created: config validated, Agent instance initialized
@@ -517,7 +525,8 @@ Parent agent needs parallel research
   - `agent.list_skills()` — list all registered skills
   - `agent.invoke_skill(name, *args)` — activate and invoke a skill
 - [ ] Agent facade methods for subagents:
-  - `agent.delegate(config_name, task, **kwargs)` — sync delegation
+  - `agent.delegate(config_name, task, **kwargs)` — async delegation (await required)
+  - `agent.delegate_sync(config_name, task, **kwargs)` — sync wrapper
   - `agent.delegate_async(config_name, task, **kwargs)` — async delegation
   - `agent.register_subagent(config)` — register a subagent config
   - `agent.list_subagents()` — list registered subagent configs
@@ -644,12 +653,12 @@ class SkillInfo:
     metadata: dict[str, str] | None = None
     allowed_tools: list[str] | None = None
     model: str | None = None
-    context: str | None = None         # "fork" or None
+    execution_mode: str | None = None   # "fork" or None
     agent: str | None = None           # Subagent config name for fork
     disable_model_invocation: bool = False
     user_invocable: bool = True
     argument_hint: str | None = None
-    hooks: dict | None = None
+    hooks: dict | None = None            # Reserved for future lifecycle hooks (structure TBD — not implemented in v1, blocked for untrusted skills)
     trust_level: TrustLevel = TrustLevel.TRUSTED
 ```
 
@@ -661,7 +670,7 @@ class Skill(BaseModel):
     info: SkillInfo                    # Metadata (always loaded)
     body: str | None = None            # SKILL.md markdown body (lazy loaded)
     is_active: bool = False            # Whether skill is currently activated
-    _tools: list[Callable] = []        # Registered tools (private)
+    _tools: list[Callable] = PrivateAttr(default_factory=list)  # Registered tools (private)
 ```
 
 #### SkillConfig
@@ -765,6 +774,19 @@ class TrustLevel(str, Enum):
     """Skill trust level."""
     TRUSTED = "trusted"
     UNTRUSTED = "untrusted"
+```
+
+#### ValidationResult
+
+```python
+@dataclass
+class ValidationResult:
+    """Result from validating a skill against the schema."""
+    valid: bool                            # Whether the skill passed validation
+    errors: list[str] = field(default_factory=list)    # List of validation error messages
+    warnings: list[str] = field(default_factory=list)  # List of validation warnings
+    skill_path: Path | None = None         # Path to the validated skill
+    trust_level: TrustLevel | None = None  # Resolved trust level
 ```
 
 #### Entity Relationships
@@ -1121,9 +1143,33 @@ def sample_subagent_config() -> SubagentConfig:
     )
 ```
 
-## 11. Directory Structure
+## 11. Release Plan
 
-### 11.1 New Source Files
+### 11.1 Versioning & API Stability
+
+- All new public APIs (SkillManager, SubagentManager, data models) will be marked as **experimental** in v1 via docstrings and documentation
+- Use `__all__` exports to control the public surface area
+- Breaking changes may occur in minor versions until APIs are stabilized (target: v2)
+
+### 11.2 Migration Path for Existing Users
+
+- **Fully backward compatible**: Existing `Agent` usage without skills or subagents is unchanged
+- No new required dependencies (PyYAML already a transitive dependency)
+- Skills and subagents are opt-in via constructor parameters or directory conventions
+- No configuration migration required — new `SkillConfig` and subagent settings are additive
+
+### 11.3 Release Checklist
+
+- [ ] All Phase 1–3 checkpoint gates pass
+- [ ] Overall test coverage >= 50% (project target)
+- [ ] CHANGELOG.md updated with new features
+- [ ] CLAUDE.md updated with skills/subagents architecture
+- [ ] Root `__init__.py` exports new public symbols
+- [ ] Create annotated git tag for release version
+
+## 12. Directory Structure
+
+### 12.1 New Source Files
 
 ```
 src/mamba_agents/
@@ -1148,7 +1194,7 @@ src/mamba_agents/
 │   └── errors.py             # SubagentError hierarchy
 ```
 
-### 11.2 New Test Files
+### 12.2 New Test Files
 
 ```
 tests/
@@ -1174,9 +1220,9 @@ tests/
 │   └── test_agent_subagents.py   # Agent facade subagent methods
 ```
 
-## 12. Dependencies
+## 13. Dependencies
 
-### 12.1 Technical Dependencies
+### 13.1 Technical Dependencies
 
 | Dependency | Status | Risk if Delayed |
 |------------|--------|-----------------|
@@ -1185,11 +1231,11 @@ tests/
 | asyncio | stdlib | None |
 | pathlib | stdlib | None |
 
-### 12.2 No Cross-Team Dependencies
+### 13.2 No Cross-Team Dependencies
 
 This is a self-contained feature within the mamba-agents framework. No external team coordination required.
 
-## 13. Risks & Mitigations
+## 14. Risks & Mitigations
 
 | Risk | Impact | Likelihood | Mitigation Strategy |
 |------|--------|------------|---------------------|
@@ -1200,15 +1246,15 @@ This is a self-contained feature within the mamba-agents framework. No external 
 | Context window exhaustion from skills | Medium | Low | Progressive disclosure is mandatory. Enforce SKILL.md size warnings. Metadata-only loading at startup. |
 | Tool name conflicts | Medium | Low | Namespace prefixing enabled by default. Clear error messages on conflict detection. |
 
-## 14. Open Questions
+## 15. Open Questions
 
 | # | Question | Resolution |
 |---|----------|------------|
 | — | No open questions | All requirements gathered during interview |
 
-## 15. Appendix
+## 16. Appendix
 
-### 15.1 Glossary
+### 16.1 Glossary
 
 | Term | Definition |
 |------|------------|
@@ -1222,7 +1268,7 @@ This is a self-contained feature within the mamba-agents framework. No external 
 | Trust Level | A security classification (trusted/untrusted) that controls what capabilities a skill can access. |
 | Context Isolation | Running a subagent with its own independent conversation history, separate from the parent. |
 
-### 15.2 References
+### 16.2 References
 
 - [Agent Skills Specification](https://agentskills.io/specification) — Open standard for portable agent skills
 - [Claude Code Skills Documentation](https://code.claude.com/docs/en/skills) — Reference implementation of skills in Claude Code
@@ -1230,7 +1276,7 @@ This is a self-contained feature within the mamba-agents framework. No external 
 - [Claude Plugins Skill Development Guide](https://github.com/anthropics/claude-plugins-official/blob/main/plugins/plugin-dev/skills/skill-development/SKILL.md) — Best practices for skill authoring
 - [Agent Skills GitHub Repository](https://github.com/agentskills/agentskills) — Open standard repository with reference library
 
-### 15.3 Agent Recommendations (Accepted)
+### 16.3 Agent Recommendations (Accepted)
 
 The following recommendations were suggested based on industry best practices and accepted during the interview:
 
@@ -1242,11 +1288,12 @@ The following recommendations were suggested based on industry best practices an
 
 4. **Testing — SkillTestHarness**: A utility class for testing skills in isolation without requiring a full Agent instance. Follows the `TestModel` pattern for deterministic testing.
 
-### 15.4 Change Log
+### 16.4 Change Log
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-02-05 | Stephen Sequenzia | Initial version |
+| 1.1 | 2026-02-05 | Stephen Sequenzia | Analysis review: fixed API naming inconsistencies, added ValidationResult type, clarified hooks/reference loading, renamed overloaded context field, added release plan section, fixed PrivateAttr syntax, added skills-ref explanation |
 
 ---
 
