@@ -43,6 +43,17 @@ from mamba_agents import (
     DisplayPreset, MessageRenderer,
     RichRenderer, PlainTextRenderer, HtmlRenderer,
     print_stats, print_timeline, print_tools,
+
+    # Skills (experimental)
+    SkillManager, Skill, SkillInfo, SkillConfig,
+    SkillScope, TrustLevel, ValidationResult,
+    SkillError, SkillNotFoundError, SkillParseError,
+    SkillValidationError, SkillLoadError, SkillConflictError,
+
+    # Subagents (experimental)
+    SubagentManager, SubagentConfig, SubagentResult, DelegationHandle,
+    SubagentError, SubagentConfigError, SubagentNotFoundError,
+    SubagentNestingError, SubagentDelegationError, SubagentTimeoutError,
 )
 ```
 
@@ -64,6 +75,13 @@ from mamba_agents import (
 | [Prompts](prompts/index.md) | Jinja2 prompt templates |
 | [Workflows](workflows/index.md) | Workflow orchestration |
 | [Tools](tools/index.md) | Built-in tools |
+
+### Extensions
+
+| Module | Description |
+|--------|-------------|
+| [Skills](skills/index.md) | Modular, reusable agent capabilities (experimental) |
+| [Subagents](subagents/index.md) | Task delegation to isolated child agents (experimental) |
 
 ### Integration
 
@@ -105,6 +123,13 @@ from mamba_agents import MessageQuery, MessageStats
 # Display
 from mamba_agents import print_stats, print_timeline, print_tools
 from mamba_agents.agent.display import get_preset, COMPACT, DETAILED, VERBOSE
+
+# Skills (experimental)
+from mamba_agents import SkillManager, Skill, SkillInfo, SkillConfig
+from mamba_agents.skills.testing import SkillTestHarness, skill_harness
+
+# Subagents (experimental)
+from mamba_agents import SubagentManager, SubagentConfig, SubagentResult
 
 # MCP
 from mamba_agents.mcp import MCPClientManager, MCPServerConfig

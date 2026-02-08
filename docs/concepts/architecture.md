@@ -25,6 +25,8 @@ graph TB
             WORK[Workflows]
             MCP[MCP Client]
             TOOLS[Built-in Tools]
+            SKILLS[Skills]
+            SUBAGENTS[Subagents]
         end
 
         subgraph "Infrastructure"
@@ -51,6 +53,9 @@ graph TB
     WORK --> AGENT
     MCP --> MCPS
     TOOLS --> AGENT
+    SKILLS --> AGENT
+    SUBAGENTS --> AGENT
+    SKILLS -.-> SUBAGENTS
     LOG --> AGENT
     TRACE --> AGENT
     ERR --> AGENT
@@ -80,6 +85,24 @@ src/mamba_agents/
 │   ├── counter.py   # TokenCounter
 │   ├── tracker.py   # UsageTracker
 │   └── cost.py      # CostEstimator
+│
+├── skills/          # Skills subsystem (experimental)
+│   ├── manager.py   # SkillManager facade
+│   ├── config.py    # Skill, SkillInfo, SkillConfig
+│   ├── loader.py    # SKILL.md parser pipeline
+│   ├── registry.py  # In-memory skill storage
+│   ├── validator.py # Schema validation & trust
+│   ├── discovery.py # Directory scanning
+│   ├── invocation.py# Activation lifecycle
+│   ├── integration.py# Skills↔Subagents bridge
+│   └── testing.py   # SkillTestHarness
+│
+├── subagents/       # Subagents subsystem (experimental)
+│   ├── manager.py   # SubagentManager facade
+│   ├── config.py    # SubagentConfig, SubagentResult
+│   ├── spawner.py   # Agent creation & nesting guard
+│   ├── delegation.py# Sync/async delegation
+│   └── loader.py    # Markdown config loader
 │
 ├── workflows/       # Workflow orchestration
 │   ├── base.py      # Workflow ABC
@@ -129,6 +152,10 @@ class Agent[DepsT, OutputT]:
     token_counter: TokenCounter
     usage_tracker: UsageTracker
     cost_estimator: CostEstimator
+
+    # Extensions (lazy initialization)
+    skill_manager: SkillManager       # Created on first access
+    subagent_manager: SubagentManager  # Created on first access
 
     # Configuration
     config: AgentConfig
@@ -296,3 +323,44 @@ class MyStrategy(CompactionStrategy):
         # Custom compaction logic
         pass
 ```
+
+### Skills (Experimental)
+
+Define reusable capabilities as SKILL.md files:
+
+```
+.mamba/skills/
+  my-skill/
+    SKILL.md          # YAML frontmatter + markdown body
+    references/       # Supplemental files (Tier 3)
+```
+
+```python
+agent = Agent("gpt-4o", skills=["path/to/skill"])
+content = agent.invoke_skill("my-skill", "arguments")
+```
+
+Skills follow a **progressive disclosure** model:
+
+- **Tier 1** — Metadata only (fast discovery scan)
+- **Tier 2** — Full body loaded on activation (lazy)
+- **Tier 3** — Reference files loaded on demand
+
+See [Skills User Guide](../user-guide/skills.md) for details.
+
+### Subagents (Experimental)
+
+Delegate tasks to isolated child agents:
+
+```python
+from mamba_agents.subagents import SubagentConfig
+
+agent = Agent("gpt-4o", subagents=[
+    SubagentConfig(name="researcher", description="Research agent"),
+])
+result = agent.delegate_sync("researcher", "Analyze this topic")
+```
+
+Subagents enforce a **no-nesting rule** — subagents cannot spawn sub-subagents, preventing unbounded recursion. Token usage is automatically aggregated to the parent.
+
+See [Subagents User Guide](../user-guide/subagents.md) for details.

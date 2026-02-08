@@ -173,6 +173,39 @@ agent = Agent(settings=settings)
 | `preserve_recent_turns` | int | `10` | Recent turns to always preserve |
 | `preserve_system_prompt` | bool | `true` | Always keep system prompt |
 
+### SkillConfig
+
+!!! warning "Experimental"
+    The skills configuration is experimental and may change in minor versions.
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `skills_dirs` | list[Path] | `[".mamba/skills"]` | Project-level skill directories |
+| `user_skills_dir` | Path | `~/.mamba/skills` | User-level skills directory |
+| `custom_paths` | list[Path] | `[]` | Additional search paths |
+| `auto_discover` | bool | `true` | Auto-discover skills on startup |
+| `namespace_tools` | bool | `true` | Prefix tool names with skill name |
+| `trusted_paths` | list[Path] | `[]` | Custom paths treated as trusted |
+
+```bash
+# Environment variables
+MAMBA_SKILLS__AUTO_DISCOVER=true
+MAMBA_SKILLS__NAMESPACE_TOOLS=true
+MAMBA_SKILLS__SKILLS_DIRS='[".mamba/skills", "extra/skills"]'
+```
+
+```toml
+# config.toml
+[skills]
+auto_discover = true
+namespace_tools = true
+custom_paths = ["/shared/skills"]
+trusted_paths = ["/shared/skills"]
+```
+
+!!! note "Subagent Configuration"
+    Subagent configs are loaded from `.mamba/agents/{name}.md` markdown files (not via environment variables). See the [Subagents guide](../user-guide/subagents.md) for details.
+
 ## Override Settings in Code
 
 You can override settings when creating an agent:

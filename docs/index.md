@@ -60,7 +60,7 @@ print(agent.get_cost())   # Cost in USD
 
     ---
 
-    Connect to Model Context Protocol servers (stdio and SSE transports).
+    Connect to Model Context Protocol servers (stdio, SSE, and Streamable HTTP transports).
 
     [:octicons-arrow-right-24: Setup MCP](user-guide/mcp-integration.md)
 
@@ -87,6 +87,22 @@ print(agent.get_cost())   # Cost in USD
     5 strategies to manage long conversations without losing important context.
 
     [:octicons-arrow-right-24: Manage context](user-guide/context-management.md)
+
+-   :material-puzzle: **Skills** :material-flask-outline:{ title="Experimental" }
+
+    ---
+
+    Modular, reusable agent capabilities defined as SKILL.md files with discovery, trust, and testing.
+
+    [:octicons-arrow-right-24: Use skills](user-guide/skills.md)
+
+-   :material-account-group: **Subagents** :material-flask-outline:{ title="Experimental" }
+
+    ---
+
+    Delegate tasks to isolated child agents with usage tracking and three delegation patterns.
+
+    [:octicons-arrow-right-24: Delegate to subagents](user-guide/subagents.md)
 
 -   :material-state-machine: **Workflows**
 
@@ -162,6 +178,8 @@ print(agent.get_cost())   # Cost in USD
 | ReAct workflow | `from mamba_agents.workflows import ReActWorkflow, ReActConfig` |
 | Token tracking | `from mamba_agents.tokens import TokenCounter, CostEstimator` |
 | Message analytics | `from mamba_agents import MessageQuery, print_stats` |
+| Skills | `from mamba_agents import SkillManager, Skill, SkillConfig` |
+| Subagents | `from mamba_agents import SubagentManager, SubagentConfig` |
 | MCP servers | `from mamba_agents.mcp import MCPClientManager, MCPServerConfig` |
 
 ## Explore the Docs
