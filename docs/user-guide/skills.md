@@ -245,14 +245,74 @@ config = SkillConfig(
 
 Skills can be invoked from three sources, each with independent permission gates:
 
-| Source | Enum | Description | Permission Flag |
-|--------|------|-------------|-----------------|
-| Model | `InvocationSource.MODEL` | LLM invokes during conversation | Blocked by `disable-model-invocation: true` |
-| User | `InvocationSource.USER` | User invokes directly (e.g., slash command) | Blocked by `user-invocable: false` |
-| Code | `InvocationSource.CODE` | Programmatic invocation from application code | Always permitted |
+| Source | Enum | Description | Permission Flag | Status |
+|--------|------|-------------|-----------------|--------|
+| Code | `InvocationSource.CODE` | Programmatic invocation from application code | Always permitted | **Active** |
+| User | `InvocationSource.USER` | User invokes directly (e.g., slash command) | Blocked by `user-invocable: false` | **Active** |
+| Model | `InvocationSource.MODEL` | LLM invokes during conversation | Blocked by `disable-model-invocation: true` | **Reserved** |
+
+!!! info "Model Invocation is Reserved Infrastructure"
+    The `InvocationSource.MODEL` enum and `disable-model-invocation` flag exist as forward-looking infrastructure. In the current version, skills are **not** automatically wired into the pydantic-ai tool system, so the model cannot discover or invoke skills autonomously during `agent.run()`. See [Skills and agent.run()](#skills-and-agentrun) below for details and workaround patterns.
 
 !!! tip
     Use `disable-model-invocation: true` for skills that should only be triggered explicitly by users or code, never autonomously by the model.
+
+## Skills and `agent.run()`
+
+### Current Behavior
+
+Skills are a **content-preparation system**, not an execution engine integrated into the agent loop. When you call `agent.invoke_skill()`, the skill body is loaded, argument substitution is performed, and the processed content is returned as a string. The caller decides what to do with that content.
+
+Importantly, `agent.run()` delegates directly to the underlying `pydantic_ai.Agent.run()` without any skill integration. Skills live in a separate registry (`SkillManager`) that pydantic-ai knows nothing about. This means:
+
+- The model **cannot** discover or call skills autonomously during conversation
+- Skills are **not** registered as pydantic-ai tools
+- `invoke_skill()` returns prepared content — it does **not** execute the skill through the model (exception: [fork execution mode](#fork-execution-mode) delegates to a subagent)
+
+### Usage Patterns
+
+There are two primary patterns for using skills with your agent:
+
+#### Pattern 1: Inject Skill Content as Context
+
+Use skill content as part of the system prompt or user prompt to guide the model's behavior:
+
+```python
+from mamba_agents import Agent
+
+agent = Agent("gpt-4o")
+agent.register_skill(".mamba/skills/code-reviewer")
+
+# Invoke the skill to get processed instructions
+instructions = agent.invoke_skill("code-reviewer", "src/main.py")
+
+# Feed the skill content to the agent as context
+result = agent.run_sync(f"{instructions}\n\nPlease proceed with the review.")
+print(result.output)
+```
+
+This pattern treats skills as prompt templates — the skill body becomes instructions that the model follows during `agent.run()`.
+
+#### Pattern 2: Use Skills as a Tool Registry Manually
+
+Create a pydantic-ai tool that wraps `invoke_skill()` so the model can invoke skills by name:
+
+```python
+from mamba_agents import Agent
+
+agent = Agent("gpt-4o", skills=[".mamba/skills/code-reviewer"])
+
+@agent.tool_plain
+def use_skill(skill_name: str, arguments: str = "") -> str:
+    """Invoke a registered skill by name. Returns the skill's processed content."""
+    return agent.invoke_skill(skill_name, arguments)
+
+# Now the model can call `use_skill("code-reviewer", "src/main.py")` during agent.run()
+result = agent.run_sync("Review the file src/main.py using the code-reviewer skill.")
+```
+
+!!! warning
+    This pattern gives the model access to all registered skills. Consider adding validation or restricting which skills the model can invoke if you have untrusted skills registered.
 
 ## Argument Substitution
 

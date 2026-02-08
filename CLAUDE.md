@@ -349,6 +349,7 @@ def test_file_ops(tmp_sandbox: Path):
 - **SubagentManager mutates parent UsageTracker**: `_aggregate_usage()` directly writes to `parent_agent.usage_tracker._subagent_totals`, coupling to internal state. Changes to `UsageTracker` internals could break subagent usage tracking.
 - **skills/integration.py async workaround**: `activate_with_fork()` uses `ThreadPoolExecutor` + `asyncio.run()` (lines ~214-233) to bridge sync/async impedance mismatch. Fragile with nested event loops and could deadlock in certain async contexts (e.g., inside FastAPI). Consider replacing with proper async-first design.
 - **Lazy property side effects**: Accessing `agent.skill_manager` or `agent.subagent_manager` **creates** the manager on first access (not just retrieval). Conditional property access (e.g., `if agent.skill_manager:`) will unexpectedly initialize the subsystem. Use `agent._skill_manager is not None` to check without triggering initialization.
+- **Skills not wired into agent.run()**: Skills live in a separate `SkillManager` registry that pydantic-ai knows nothing about. `agent.run()` delegates directly to `pydantic_ai.Agent.run()` without injecting skill tools. The `InvocationSource.MODEL` enum, `disable_model_invocation` flag, and `Skill._tools` attribute are forward-looking infrastructure with no current wiring. `invoke_skill()` always uses `InvocationSource.CODE`. To let the model invoke skills during `agent.run()`, users must manually create a pydantic-ai tool that wraps `invoke_skill()`.
 
 ## Implementation Notes
 
@@ -465,7 +466,7 @@ def test_file_ops(tmp_sandbox: Path):
   - **Discovery** scans three-level directory hierarchy with priority: project (`.mamba/skills/`) > user (`~/.mamba/skills/`) > custom paths
   - **Trust levels**: `TrustLevel.TRUSTED` (full access) and `TrustLevel.UNTRUSTED` (restricted capabilities). Project/user scopes default to trusted; custom paths configurable via `SkillConfig.trusted_paths`
   - **Invocation lifecycle**: permission check -> lazy body load -> argument substitution -> activation state management -> tool registration
-  - `InvocationSource` enum: `MODEL`, `USER`, `CODE` -- controls permission gates (e.g., `user_invocable=False` blocks user invocations)
+  - `InvocationSource` enum: `MODEL`, `USER`, `CODE` -- controls permission gates (e.g., `user_invocable=False` blocks user invocations). Note: `MODEL` is reserved infrastructure; skills are NOT wired into `agent.run()` or pydantic-ai's tool system. `invoke_skill()` always uses `InvocationSource.CODE`. No code path currently passes `InvocationSource.MODEL`.
   - Agent accepts `skills` and `skill_dirs` constructor params for eager registration
   - Agent facade: `skill_manager` (lazy property), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()`
   - `SkillConfig` configures: `skills_dirs`, `user_skills_dir`, `custom_paths`, `auto_discover`, `namespace_tools`, `trusted_paths`
