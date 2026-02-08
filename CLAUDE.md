@@ -347,6 +347,8 @@ def test_file_ops(tmp_sandbox: Path):
 - **pydantic-ai version sensitivity**: The `>=0.0.49` pin targets a pre-1.0 library. `tracker.py` already handles an `input_tokens`/`request_tokens` API migration. Watch for breaking changes in message types, Model API, and toolset interfaces.
 - **Skills-Subagents circular initialization**: `SkillManager` and `SubagentManager` reference each other. Post-construction wiring via `SkillManager.subagent_manager` setter avoids circular init, but the wiring order matters.
 - **SubagentManager mutates parent UsageTracker**: `_aggregate_usage()` directly writes to `parent_agent.usage_tracker._subagent_totals`, coupling to internal state. Changes to `UsageTracker` internals could break subagent usage tracking.
+- **skills/integration.py async workaround**: `activate_with_fork()` uses `ThreadPoolExecutor` + `asyncio.run()` (lines ~214-233) to bridge sync/async impedance mismatch. Fragile with nested event loops and could deadlock in certain async contexts (e.g., inside FastAPI). Consider replacing with proper async-first design.
+- **Lazy property side effects**: Accessing `agent.skill_manager` or `agent.subagent_manager` **creates** the manager on first access (not just retrieval). Conditional property access (e.g., `if agent.skill_manager:`) will unexpectedly initialize the subsystem. Use `agent._skill_manager is not None` to check without triggering initialization.
 
 ## Implementation Notes
 
