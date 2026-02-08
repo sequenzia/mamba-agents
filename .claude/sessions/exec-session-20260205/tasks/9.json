@@ -1,0 +1,30 @@
+{
+  "id": "9",
+  "subject": "Implement SkillManager facade",
+  "description": "Create the top-level SkillManager in `src/mamba_agents/skills/manager.py`.\n\nThe SkillManager composes all skill subsystem components (loader, discovery, registry, validator, invocation) behind a single facade API.\n\n**Pattern:** Follow `MCPClientManager` pattern for lifecycle management.\n\n**Constructor:**\n- `__init__(config: SkillConfig | None = None)` — creates with default or custom config\n\n**API (delegates to components):**\n- Discovery: `discover() -> list[SkillInfo]` — scan configured directories\n- Registration: `register(skill: Skill | SkillInfo | Path)`, `deregister(name: str)`\n- Retrieval: `get(name: str) -> Skill | None`, `list() -> list[SkillInfo]`\n- Activation: `activate(name: str, arguments: str = \"\") -> str`, `deactivate(name: str)`\n- Validation: `validate(path: Path) -> ValidationResult`\n- Tools: `get_tools(name: str) -> list[Callable]`, `get_all_tools() -> list[Callable]`\n- References: `get_references(skill_name: str) -> list[Path]`, `load_reference(skill_name: str, ref_name: str) -> str`\n\n**Reference loading (Tier 3):**\n- `references/` directory contains supplemental files (markdown, text, JSON)\n- References not loaded at discovery or activation — only on demand\n- `get_references()` returns available reference file paths\n- `load_reference()` reads and returns content as string\n\n**Lifecycle:**\n- On init: create registry, set up config\n- On `discover()`: scan directories, register found skills\n- On first access after discover: skills are metadata-only\n- On `activate()`: lazy-load body, substitute args, register tools\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Composes loader, discovery, registry, validator, invocation components\n- [ ] `discover()` scans and registers skills from all configured directories\n- [ ] Registration/deregistration delegate to registry\n- [ ] `get()` and `list()` delegate to registry\n- [ ] `activate()` delegates to invocation with permission checks\n- [ ] `validate()` delegates to validator\n- [ ] `get_tools()` returns tools for a specific active skill\n- [ ] `get_all_tools()` returns all tools from all active skills with namespace prefixes\n- [ ] `get_references()` lists reference files for a skill\n- [ ] `load_reference()` reads and returns reference file content\n\n_Edge Cases:_\n- [ ] `discover()` called multiple times — no duplicates\n- [ ] Activate skill that's already active — no-op or refreshes\n- [ ] Deactivate skill that's not active — no error\n\n_Error Handling:_\n- [ ] Discovery errors for individual skills don't abort — logged and skipped\n- [ ] Activation of non-existent skill → `SkillNotFoundError`\n\n**Testing Requirements:**\n• Unit: Constructor with default and custom config\n• Unit: Discover populates registry\n• Unit: Registration lifecycle (register → get → deregister)\n• Unit: Activation lifecycle (activate → tools available → deactivate)\n• Unit: Reference loading on demand\n• Integration: Full discover → activate → use tools workflow\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.1-5.4, 7.4",
+  "activeForm": "Implementing SkillManager facade",
+  "status": "completed",
+  "blocks": [
+    "10",
+    "11",
+    "19",
+    "20",
+    "23"
+  ],
+  "blockedBy": [
+    "4",
+    "5",
+    "6",
+    "7",
+    "8"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "L",
+    "source_section": "5.1-5.4, 7.4",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "SkillManager",
+    "task_uid": "skills-and-subagents:skill-manager:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

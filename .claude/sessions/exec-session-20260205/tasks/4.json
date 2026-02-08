@@ -1,0 +1,25 @@
+{
+  "id": "4",
+  "subject": "Implement SKILL.md loader and parser",
+  "description": "Create the SKILL.md file parser in `src/mamba_agents/skills/loader.py`.\n\nThe loader must:\n1. Read a SKILL.md file from a given path\n2. Split content at `---` markers to extract YAML frontmatter and markdown body\n3. Parse YAML frontmatter using PyYAML\n4. Validate frontmatter fields against the Agent Skills spec + mamba extensions schema\n5. Return a `SkillInfo` (metadata only) or `Skill` (with body) depending on loading tier\n\n**Frontmatter fields to support:**\n- Required: `name`, `description`\n- Agent Skills spec: `license`, `compatibility`, `metadata`, `allowed-tools`\n- Mamba extensions: `model`, `context` (renamed to `execution_mode`), `disable-model-invocation`, `user-invocable`, `hooks`, `argument-hint`, `agent`\n\n**Name validation rules:**\n- Lowercase alphanumeric + hyphens only\n- Maximum 64 characters\n- Must match parent directory name\n\n**Progressive disclosure:**\n- `load_metadata(path) -> SkillInfo` — Parse frontmatter only (Tier 1)\n- `load_full(path) -> Skill` — Parse frontmatter + body (Tier 2)\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Parses valid SKILL.md with YAML frontmatter and markdown body\n- [ ] Returns `SkillInfo` with all frontmatter fields mapped correctly\n- [ ] Hyphenated YAML keys mapped to Python underscores (e.g., `allowed-tools` → `allowed_tools`)\n- [ ] Markdown body extracted correctly (everything after closing `---`)\n- [ ] `load_metadata()` returns only `SkillInfo` without reading body\n- [ ] `load_full()` returns complete `Skill` with body\n\n_Edge Cases:_\n- [ ] Empty body (frontmatter only, no instructions) — valid, body is None\n- [ ] Large body (>5000 tokens estimated) — accept but log warning\n- [ ] Frontmatter with unknown fields — ignore, don't error\n- [ ] Body with `---` markers (e.g., horizontal rules) — only split on first pair\n\n_Error Handling:_\n- [ ] Missing `---` markers → `SkillParseError` with clear message\n- [ ] Invalid YAML syntax → `SkillParseError` with line info\n- [ ] Missing required `name` field → `SkillValidationError` listing missing fields\n- [ ] Missing required `description` field → `SkillValidationError`\n- [ ] Invalid name format (uppercase, special chars) → `SkillValidationError` with format requirements\n- [ ] Name doesn't match parent directory → `SkillValidationError` noting mismatch\n- [ ] File not found → `SkillNotFoundError`\n- [ ] Permission denied → `SkillLoadError`\n\n**Testing Requirements:**\n• Unit: Parse valid SKILL.md with all fields\n• Unit: Parse minimal SKILL.md (name + description only)\n• Unit: Parse SKILL.md with empty body\n• Unit: Frontmatter-only vs full loading\n• Unit: Name validation (valid, invalid, mismatch)\n• Unit: All error conditions listed above\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.1",
+  "activeForm": "Implementing SKILL.md loader and parser",
+  "status": "completed",
+  "blocks": [
+    "5",
+    "7",
+    "9"
+  ],
+  "blockedBy": [
+    "1",
+    "2"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "M",
+    "source_section": "5.1",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skill Loader & Parser",
+    "task_uid": "skills-and-subagents:skill-loader:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "id": "12",
+  "subject": "Create subagent data models",
+  "description": "Create the data models for the subagents subsystem in `src/mamba_agents/subagents/config.py`.\n\nDefine the following types per Section 7.3:\n\n**SubagentConfig (BaseModel):**\n- `name: str` — unique identifier (required)\n- `description: str` — when to delegate to this subagent (required)\n- `model: str | None = None` — model override (None = inherit from parent)\n- `tools: list[str | Callable] | None = None` — explicit tool allowlist\n- `disallowed_tools: list[str] | None = None` — tools to deny\n- `system_prompt: str | TemplateConfig | None = None` — custom system prompt\n- `skills: list[str] | None = None` — skills to pre-load at startup\n- `max_turns: int = 50` — maximum conversation turns\n- `config: AgentConfig | None = None` — full agent config override\n\n**SubagentResult (dataclass):**\n- `output: str` — subagent's final response text\n- `agent_result: AgentResult` — full pydantic-ai result wrapper\n- `usage: TokenUsage` — token usage for this delegation\n- `duration: float` — execution time in seconds\n- `subagent_name: str` — which subagent handled it\n- `success: bool` — whether delegation completed successfully\n- `error: str | None = None` — error message if failed\n\n**DelegationHandle (dataclass):**\n- `subagent_name: str`\n- `task: str`\n- `_task: asyncio.Task | None = None`\n- Properties: `is_complete`, `result()` (async), `cancel()`\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] `SubagentConfig` validates required fields (name, description)\n- [ ] `SubagentConfig` accepts all optional override fields\n- [ ] `SubagentResult` stores delegation output, usage, and metadata\n- [ ] `DelegationHandle` wraps asyncio.Task with status/result/cancel API\n- [ ] `DelegationHandle.is_complete` property returns bool without blocking\n- [ ] `DelegationHandle.result()` awaits task completion\n- [ ] `DelegationHandle.cancel()` cancels running task\n\n_Edge Cases:_\n- [ ] `SubagentConfig` with empty tools list — valid (read-only subagent)\n- [ ] `DelegationHandle.cancel()` on already-completed task — no-op\n- [ ] `DelegationHandle.result()` on cancelled task — raises error\n- [ ] `SubagentResult` with success=False includes error message\n\n_Error Handling:_\n- [ ] Missing name → pydantic validation error\n- [ ] Missing description → pydantic validation error\n\n**Testing Requirements:**\n• Unit: SubagentConfig construction with minimal fields\n• Unit: SubagentConfig with all optional fields\n• Unit: SubagentResult construction\n• Unit: DelegationHandle lifecycle (create, check status, cancel)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 7.3",
+  "activeForm": "Creating subagent data models",
+  "status": "completed",
+  "blocks": [
+    "13",
+    "14",
+    "15",
+    "22",
+    "24"
+  ],
+  "blockedBy": [],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "S",
+    "source_section": "7.3",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Subagent Configuration",
+    "task_uid": "skills-and-subagents:subagent-models:models:001",
+    "task_group": "skills-and-subagents"
+  }
+}

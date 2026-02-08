@@ -5,3 +5,4 @@ site/
 
 # Auto-generated version file
 src/mamba_agents/_version.py
+**/.DS_Store

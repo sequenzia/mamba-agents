@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add skills system for discoverable, reusable agent capabilities:
+  - `SKILL.md` loader and parser with YAML frontmatter metadata extraction
+  - Skill discovery from directories with three-level priority resolution
+  - `SkillRegistry` for registering, deregistering, and querying skills
+  - Skill validation with structured `ValidationResult` (non-throwing pattern)
+  - Skill invocation with argument parsing and substitution
+  - Trust level enforcement (`trusted`/`untrusted`) with configurable restrictions
+  - Skill tool namespace prefixing to avoid name conflicts
+  - `SkillManager` facade with progressive disclosure loading (metadata-first, full on demand)
+  - `SkillTestHarness` testing utility with `skill_harness` pytest fixture
+- Add subagents system for delegating work to child agents:
+  - `SubagentConfig` for declarative subagent configuration (model, tools, constraints)
+  - Subagent spawning with system prompt building, tool resolution, and nesting prevention
+  - Synchronous delegation via `delegate_sync()` and async delegation via `delegate()` and `delegate_async()`
+  - `SubagentManager` facade with registration, delegation, and dynamic spawning
+  - Per-subagent token usage tracking and aggregation via `UsageTracker`
+  - Subagent config loading from markdown files with `discover_subagents()`
+- Add skills and subagents bi-directional integration:
+  - `activate_with_fork()` for skill activation with context forking to subagents
+  - Circular skill-subagent dependency detection
+  - `SkillManager.subagent_manager` property for post-construction wiring
+- Add Agent facade methods for skills:
+  - `skills` and `skill_dirs` constructor parameters with lazy `SkillManager` initialization
+  - `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()` facade methods
+- Add Agent facade methods for subagents:
+  - `subagents` constructor parameter with lazy `SubagentManager` initialization
+  - `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()` facade methods
+- Add `_is_subagent` private attribute to `AgentConfig` for nesting prevention
+- Add `skills` field to `AgentSettings` for default skill configuration
+- Add `source` field to `UsageRecord` and `get_subagent_usage()` method to `UsageTracker`
+
 ## [0.1.7] - 2026-02-03
 
 ### Added

@@ -1,0 +1,25 @@
+{
+  "id": "14",
+  "subject": "Implement subagent spawner",
+  "description": "Create the subagent spawning logic in `src/mamba_agents/subagents/spawner.py`.\n\nResponsible for creating isolated `Agent` instances from `SubagentConfig` definitions.\n\n**Spawning behavior:**\n- Each subagent is a full `Agent` instance with its own `ContextManager`, `UsageTracker`, etc.\n- Use `Agent(model, config=AgentConfig(...), tools=[...])` for subagent creation\n- Model selection: subagent uses its configured model, or inherits parent's model\n- Tool restriction: only tools in the allowlist are available to the subagent\n- No-nesting enforced by setting `_is_subagent: bool` flag on subagent's `AgentConfig`\n\n**Context isolation (configurable):**\n- Default: fresh context (subagent gets only task + system prompt)\n- Optional: inject parent messages via `context_messages: list[dict]`\n- Optional: inject specific context string via `context: str`\n\n**Skill pre-loading:**\n- If `SubagentConfig.skills` is set, resolve from parent's `SkillManager`\n- Full skill content (SKILL.md body) injected into subagent's system prompt\n- Skill's tools registered with the subagent\n\n**API:**\n- `spawn(config: SubagentConfig, parent_agent: Agent, skill_manager: SkillManager | None = None) -> Agent`\n- `_build_system_prompt(config: SubagentConfig, skill_manager: SkillManager | None) -> str`\n- `_resolve_tools(config: SubagentConfig, parent_agent: Agent) -> list`\n- `_enforce_no_nesting(parent_agent: Agent) -> None`\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Creates full Agent instance from SubagentConfig\n- [ ] Model inherited from parent when config.model is None\n- [ ] Custom model used when config.model is set\n- [ ] Tool allowlist enforced — only specified tools available\n- [ ] Disallowed tools removed even if in allowlist\n- [ ] System prompt set from config or markdown body\n- [ ] Skills pre-loaded into system prompt when configured\n- [ ] `_is_subagent` flag set on spawned agent's config\n- [ ] No-nesting: raises `SubagentNestingError` if parent is already a subagent\n\n_Edge Cases:_\n- [ ] Empty tools list — subagent has no tool access (valid)\n- [ ] No system prompt — uses default\n- [ ] Skill not found during pre-loading → `SkillNotFoundError`\n- [ ] Context messages injection for non-isolated subagent\n\n_Error Handling:_\n- [ ] Invalid model surfaces at delegation time, not spawn time\n- [ ] Missing skill → `SkillNotFoundError` at subagent startup\n\n_Performance:_\n- [ ] Spawn time < 50ms excluding LLM call\n\n**Testing Requirements:**\n• Unit: Spawn with minimal config (name + description)\n• Unit: Spawn with model override\n• Unit: Spawn with tool allowlist and disallowed tools\n• Unit: Spawn with skills pre-loading (mock SkillManager)\n• Unit: No-nesting enforcement\n• Unit: Context isolation (fresh vs injected)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.7",
+  "activeForm": "Implementing subagent spawner",
+  "status": "completed",
+  "blocks": [
+    "15",
+    "16"
+  ],
+  "blockedBy": [
+    "12",
+    "13",
+    "3"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "L",
+    "source_section": "5.7",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Subagent Manager & Spawning",
+    "task_uid": "skills-and-subagents:subagent-spawner:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

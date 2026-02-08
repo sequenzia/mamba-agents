@@ -6,6 +6,7 @@ import functools
 import inspect
 import logging
 from collections.abc import AsyncIterator, Callable, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic_ai import Agent as PydanticAgent
@@ -34,6 +35,13 @@ if TYPE_CHECKING:
     from pydantic_ai.usage import UsageLimits
 
     from mamba_agents.prompts import PromptManager
+    from mamba_agents.skills import Skill, SkillInfo, SkillManager
+    from mamba_agents.subagents import (
+        DelegationHandle,
+        SubagentConfig,
+        SubagentManager,
+        SubagentResult,
+    )
 
 
 DepsT = TypeVar("DepsT")
@@ -85,6 +93,9 @@ class Agent[DepsT, OutputT]:
         config: AgentConfig | None = None,
         settings: AgentSettings | None = None,
         prompt_manager: PromptManager | None = None,
+        skills: list[Skill | str | Path] | None = None,
+        skill_dirs: list[str | Path] | None = None,
+        subagents: list[SubagentConfig] | None = None,
     ) -> None:
         """Initialize the agent.
 
@@ -100,6 +111,10 @@ class Agent[DepsT, OutputT]:
             config: Agent execution configuration.
             settings: Full agent settings (for model backend, etc.).
             prompt_manager: Optional PromptManager for template resolution.
+            skills: Optional list of skills to register. Each item can be a
+                ``Skill`` instance, a string path, or a ``Path`` to a skill directory.
+            skill_dirs: Optional list of directories to scan for skills.
+            subagents: Optional list of subagent configurations to register.
 
         Raises:
             ValueError: If neither model nor settings is provided.
@@ -181,6 +196,21 @@ class Agent[DepsT, OutputT]:
                 self._context_manager.set_system_prompt(self._resolved_system_prompt)
         else:
             self._context_manager = None
+
+        # Initialize skill manager (lazy unless skills/skill_dirs provided)
+        self._skill_manager: SkillManager | None = None
+        self._pending_skills = skills
+        self._pending_skill_dirs = skill_dirs
+
+        if skills is not None or skill_dirs is not None:
+            self._init_skill_manager()
+
+        # Initialize subagent manager (lazy unless subagents provided)
+        self._subagent_manager: SubagentManager | None = None
+        self._pending_subagents = subagents
+
+        if subagents is not None:
+            self._init_subagent_manager()
 
     def _build_kwargs(self, **params: Any) -> dict[str, Any]:
         """Build kwargs dict, filtering out None values.
@@ -839,6 +869,259 @@ class Agent[DepsT, OutputT]:
             RuntimeError: If context tracking is disabled.
         """
         return self._ensure_context_enabled().get_context_state()
+
+    # === Skill Management Facade Methods ===
+
+    def _init_skill_manager(self) -> SkillManager:
+        """Create and populate the SkillManager from pending skills/dirs.
+
+        Returns:
+            The initialized SkillManager instance.
+        """
+        from mamba_agents.skills import SkillManager as _SkillManager
+        from mamba_agents.skills.config import Skill as _Skill
+
+        skill_cfg = self._settings.skills if self._settings.skills is not None else None
+        self._skill_manager = _SkillManager(config=skill_cfg)
+
+        # Register individual skills
+        if self._pending_skills is not None:
+            for skill in self._pending_skills:
+                if isinstance(skill, str):
+                    self._skill_manager.register(Path(skill))
+                elif isinstance(skill, (Path, _Skill)):
+                    self._skill_manager.register(skill)
+                else:
+                    self._skill_manager.register(skill)
+
+        # Discover skills from directories
+        if self._pending_skill_dirs is not None:
+            from mamba_agents.skills.config import SkillScope, TrustLevel
+            from mamba_agents.skills.discovery import scan_directory
+
+            for dir_path in self._pending_skill_dirs:
+                resolved = Path(dir_path) if isinstance(dir_path, str) else dir_path
+                found = scan_directory(resolved, SkillScope.CUSTOM, TrustLevel.TRUSTED)
+                for info in found:
+                    if not self._skill_manager.registry.has(info.name):
+                        self._skill_manager.registry.register(info)
+
+        # Clear pending state
+        self._pending_skills = None
+        self._pending_skill_dirs = None
+
+        return self._skill_manager
+
+    @property
+    def skill_manager(self) -> SkillManager:
+        """Get the SkillManager instance, creating it lazily if needed.
+
+        The SkillManager is created on first access if not already initialized
+        (e.g., via ``skills`` or ``skill_dirs`` constructor parameters).
+
+        Returns:
+            The SkillManager instance.
+        """
+        if self._skill_manager is None:
+            self._init_skill_manager()
+        return self._skill_manager  # type: ignore[return-value]
+
+    def register_skill(self, skill: Skill | str | Path) -> None:
+        """Register a skill with the agent.
+
+        Delegates to the underlying ``SkillManager.register()`` method.
+
+        Args:
+            skill: A ``Skill`` instance, ``SkillInfo``, string path, or ``Path``
+                to a directory containing SKILL.md.
+        """
+        from mamba_agents.skills.config import Skill as _Skill
+
+        if isinstance(skill, str):
+            self.skill_manager.register(Path(skill))
+        elif isinstance(skill, (Path, _Skill)):
+            self.skill_manager.register(skill)
+        else:
+            # SkillInfo or other compatible type
+            self.skill_manager.register(skill)
+
+    def get_skill(self, name: str) -> Skill | None:
+        """Get a skill by name.
+
+        Delegates to the underlying ``SkillManager.get()`` method.
+
+        Args:
+            name: The skill name to retrieve.
+
+        Returns:
+            The ``Skill`` if found, ``None`` otherwise.
+        """
+        return self.skill_manager.get(name)
+
+    def list_skills(self) -> list[SkillInfo]:
+        """List all registered skill metadata.
+
+        Delegates to the underlying ``SkillManager.list()`` method.
+
+        Returns:
+            A list of ``SkillInfo`` for all registered skills.
+        """
+        return self.skill_manager.list()
+
+    def invoke_skill(self, name: str, *args: str) -> str:
+        """Activate and invoke a skill by name.
+
+        Looks up the skill in the manager, activates it with the provided
+        arguments joined as a single argument string, and returns the
+        processed skill content.
+
+        Args:
+            name: Name of the skill to invoke.
+            *args: Positional arguments to pass to the skill. Arguments are
+                joined with spaces into a single argument string.
+
+        Returns:
+            Processed skill content with arguments substituted.
+
+        Raises:
+            SkillNotFoundError: If the skill is not registered.
+            SkillInvocationError: If the invocation source lacks permission.
+        """
+        arguments = " ".join(args) if args else ""
+        return self.skill_manager.activate(name, arguments)
+
+    # === Subagent Management Facade Methods ===
+
+    def _init_subagent_manager(self) -> SubagentManager:
+        """Create and populate the SubagentManager from pending subagents.
+
+        Returns:
+            The initialized SubagentManager instance.
+        """
+        from mamba_agents.subagents import SubagentManager as _SubagentManager
+
+        self._subagent_manager = _SubagentManager(
+            parent_agent=self,
+            configs=self._pending_subagents,
+        )
+
+        # Clear pending state
+        self._pending_subagents = None
+
+        return self._subagent_manager
+
+    @property
+    def subagent_manager(self) -> SubagentManager:
+        """Get the SubagentManager instance, creating it lazily if needed.
+
+        The SubagentManager is created on first access if not already initialized
+        (e.g., via the ``subagents`` constructor parameter).
+
+        Returns:
+            The SubagentManager instance.
+        """
+        if self._subagent_manager is None:
+            self._init_subagent_manager()
+        return self._subagent_manager  # type: ignore[return-value]
+
+    async def delegate(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> SubagentResult:
+        """Delegate a task to a registered subagent (async).
+
+        Spawns a subagent from the named config, runs the task, and
+        returns the result. Token usage is automatically aggregated
+        to this agent's ``UsageTracker``.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            SubagentResult with output, usage, duration, and success status.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return await self.subagent_manager.delegate(config_name, task, **kwargs)
+
+    def delegate_sync(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> SubagentResult:
+        """Delegate a task to a registered subagent (sync wrapper).
+
+        Synchronous convenience wrapper around the async ``delegate()``
+        method.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            SubagentResult with output, usage, duration, and success status.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return self.subagent_manager.delegate_sync(config_name, task, **kwargs)
+
+    async def delegate_async(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> DelegationHandle:
+        """Delegate a task to a registered subagent asynchronously.
+
+        Returns a ``DelegationHandle`` immediately while the subagent
+        runs in the background.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            DelegationHandle for tracking and awaiting the result.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return await self.subagent_manager.delegate_async(config_name, task, **kwargs)
+
+    def register_subagent(self, config: SubagentConfig) -> None:
+        """Register a subagent configuration.
+
+        Delegates to the underlying ``SubagentManager.register()`` method.
+
+        Args:
+            config: The subagent configuration to register.
+
+        Raises:
+            SubagentConfigError: If the config fails validation.
+        """
+        self.subagent_manager.register(config)
+
+    def list_subagents(self) -> list[SubagentConfig]:
+        """List all registered subagent configurations.
+
+        Delegates to the underlying ``SubagentManager.list()`` method.
+
+        Returns:
+            List of all registered ``SubagentConfig`` instances.
+        """
+        return self.subagent_manager.list()
 
     # === Reset Operations ===
 

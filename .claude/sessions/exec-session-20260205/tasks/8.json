@@ -1,0 +1,23 @@
+{
+  "id": "8",
+  "subject": "Implement skill validation and trust levels",
+  "description": "Create the skill validation system in `src/mamba_agents/skills/validator.py`.\n\nValidates SKILL.md files against the Agent Skills spec + mamba extensions schema and enforces trust levels.\n\n**Validation rules:**\n- Frontmatter validated against pydantic models (Agent Skills spec + mamba extensions)\n- Name format: lowercase alphanumeric + hyphens, max 64 chars\n- Name must match parent directory name\n- Required fields: name, description\n- All optional fields type-checked\n\n**Trust levels:**\n| Trust Level | Capabilities | Default For |\n|-------------|-------------|-------------|\n| Trusted | Full access: allowed-tools, hooks, context:fork | Project (`.mamba/skills/`), User (`~/.mamba/skills/`) |\n| Untrusted | Limited: no hooks, no context:fork, allowed-tools restricted | Custom path skills |\n\n**Untrusted skill restrictions (enforced at activation time):**\n- Cannot use `allowed-tools` to grant tool access beyond agent's existing tools\n- Cannot use `hooks` to register lifecycle hooks\n- Cannot use `context: fork` to spawn subagents\n- Tools are sandboxed\n\n**API:**\n- `validate(path: Path) -> ValidationResult` — validate a skill, return errors/warnings\n- `validate_frontmatter(data: dict) -> ValidationResult` — validate parsed frontmatter dict\n- `check_trust_restrictions(skill: SkillInfo) -> list[str]` — check untrusted skill violations\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Validates all frontmatter fields against schema (types, constraints)\n- [ ] Returns `ValidationResult` with `valid`, `errors`, `warnings`\n- [ ] Name format validation (lowercase, hyphens, max 64)\n- [ ] Name-directory mismatch detected\n- [ ] Trust level resolved based on skill scope and `trusted_paths`\n- [ ] Untrusted skills cannot use hooks, context:fork, or extend tool access\n\n_Edge Cases:_\n- [ ] Valid skill with all optional fields present — no errors\n- [ ] Valid skill with only required fields — no errors\n- [ ] Multiple validation errors — all reported (not just first)\n- [ ] Unknown frontmatter fields — warning, not error\n\n_Error Handling:_\n- [ ] Returns structured errors rather than raising exceptions\n- [ ] Each error message is specific and actionable\n\n_Performance:_\n- [ ] Validation < 1ms per skill\n\n**Testing Requirements:**\n• Unit: Valid skill passes validation\n• Unit: Missing required fields detected\n• Unit: Invalid name format detected\n• Unit: Name-directory mismatch detected\n• Unit: Trust level resolution by scope\n• Unit: Untrusted skill restriction detection\n• Unit: Multiple errors reported together\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.4",
+  "activeForm": "Implementing skill validation and trust levels",
+  "status": "completed",
+  "blocks": [
+    "9"
+  ],
+  "blockedBy": [
+    "2",
+    "1"
+  ],
+  "metadata": {
+    "priority": "high",
+    "complexity": "M",
+    "source_section": "5.4",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skill Validation & Trust",
+    "task_uid": "skills-and-subagents:skill-validation:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

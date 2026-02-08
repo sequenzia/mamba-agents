@@ -1,0 +1,21 @@
+{
+  "id": "3",
+  "subject": "Create subagent error hierarchy",
+  "description": "Create the error hierarchy for the subagents subsystem in `src/mamba_agents/subagents/errors.py`.\n\nDefine the following exception classes:\n\n- `SubagentError(Exception)` — Base exception for all subagent errors\n- `SubagentConfigError(SubagentError)` — Invalid subagent configuration\n- `SubagentNotFoundError(SubagentError)` — Referenced subagent config not found\n- `SubagentNestingError(SubagentError)` — Subagent attempted to spawn sub-subagent\n- `SubagentDelegationError(SubagentError)` — Error during task delegation\n- `SubagentTimeoutError(SubagentError)` — Subagent exceeded max turns\n\nEach exception should have a descriptive message and relevant context (subagent name, config name, etc.).\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] All 6 error classes defined with proper inheritance chain\n- [ ] Each error includes contextual attributes (name, config_name where applicable)\n- [ ] Error messages are clear and actionable\n\n_Edge Cases:_\n- [ ] Errors are picklable\n- [ ] `repr()` and `str()` produce useful debugging info\n\n_Error Handling:_\n- [ ] Base `SubagentError` is catchable for all subagent-related errors\n\n**Testing Requirements:**\n• Unit: Each error class instantiation and message formatting\n• Unit: Inheritance chain verification (isinstance checks)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.7-5.8",
+  "activeForm": "Creating subagent error hierarchy",
+  "status": "completed",
+  "blocks": [
+    "13",
+    "14"
+  ],
+  "blockedBy": [],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "XS",
+    "source_section": "5.7-5.8",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Subagents System Foundation",
+    "task_uid": "skills-and-subagents:subagent-errors:errors:001",
+    "task_group": "skills-and-subagents"
+  }
+}

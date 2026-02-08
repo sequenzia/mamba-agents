@@ -1,0 +1,24 @@
+{
+  "id": "6",
+  "subject": "Implement skill registry",
+  "description": "Create the in-memory skill registry in `src/mamba_agents/skills/registry.py`.\n\nThe registry stores and manages registered skills, providing lookup, registration, and deregistration.\n\n**Pattern:** Follow `ToolRegistry` pattern for the registry implementation.\n\n**API:**\n- `register(skill: Skill | SkillInfo | Path) -> None` — Register a skill from instance, info, or path\n- `deregister(name: str) -> None` — Remove a skill from the registry\n- `get(name: str) -> Skill | None` — Get a skill by name, loads body if not already loaded\n- `list() -> list[SkillInfo]` — List all registered skill metadata\n- `has(name: str) -> bool` — Check if a skill is registered\n\n**Thread safety:** Use `asyncio.Lock` for async safety (matching codebase's asyncio-first architecture).\n\n**Tool namespace prefixing:** When `SkillConfig.namespace_tools` is True, skill tools are prefixed with `{skill_name}.{tool_name}`.\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Register skills from `Skill` instances, `SkillInfo` instances, or `Path` objects\n- [ ] `Path` registration delegates to loader to parse SKILL.md\n- [ ] Deregister removes skill by name\n- [ ] `get()` returns full `Skill` (loads body lazily if only `SkillInfo` was registered)\n- [ ] `list()` returns all registered `SkillInfo` metadata\n- [ ] `has()` returns True/False for registered skill names\n\n_Edge Cases:_\n- [ ] Register same name twice — raise `SkillConflictError`\n- [ ] Deregister non-existent skill — raise `SkillNotFoundError`\n- [ ] Get non-existent skill — return None\n- [ ] Thread-safe concurrent registration — asyncio.Lock protects mutations\n\n_Error Handling:_\n- [ ] Invalid Path (no SKILL.md) → `SkillNotFoundError`\n- [ ] Skill fails validation during Path registration → `SkillValidationError`\n\n**Testing Requirements:**\n• Unit: Register/deregister lifecycle\n• Unit: Get with lazy body loading\n• Unit: List returns metadata only\n• Unit: Conflict detection on duplicate names\n• Unit: Path-based registration triggers loader\n• Unit: Thread safety with concurrent access\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.2",
+  "activeForm": "Implementing skill registry",
+  "status": "completed",
+  "blocks": [
+    "5",
+    "9"
+  ],
+  "blockedBy": [
+    "1",
+    "2"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "M",
+    "source_section": "5.2",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skill Discovery & Registry",
+    "task_uid": "skills-and-subagents:skill-registry:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

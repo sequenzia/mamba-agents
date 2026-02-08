@@ -1,0 +1,23 @@
+{
+  "id": "15",
+  "subject": "Implement synchronous and asynchronous subagent delegation",
+  "description": "Create the delegation logic in `src/mamba_agents/subagents/delegation.py`.\n\nHandles both synchronous (wait for result) and asynchronous (fire-and-forget) task delegation to subagents.\n\n**Synchronous delegation:**\n- `delegate(agent: Agent, task: str, **kwargs) -> SubagentResult` — await completion\n- Wraps `agent.run(task)` (async) or `agent.run_sync(task)` (sync)\n- Returns `SubagentResult` with output, usage, duration, success status\n\n**Asynchronous delegation:**\n- `delegate_async(agent: Agent, task: str, **kwargs) -> DelegationHandle` — returns immediately\n- Uses `asyncio.create_task()` for background execution\n- `DelegationHandle.result()` awaits completion\n- `DelegationHandle.is_complete` checks status\n- `DelegationHandle.cancel()` cancels running subagent\n\n**Token tracking:**\n- Extract usage from `AgentResult` after delegation\n- Create `SubagentResult.usage` from token counts\n- Track delegation duration via timing\n\n**API:**\n- `async delegate(agent: Agent, task: str, context_messages: list[dict] | None = None, context: str | None = None) -> SubagentResult`\n- `delegate_sync(agent: Agent, task: str, **kwargs) -> SubagentResult` — sync wrapper\n- `async delegate_async(agent: Agent, task: str, **kwargs) -> DelegationHandle`\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Sync delegation runs subagent and returns `SubagentResult`\n- [ ] `SubagentResult` includes output, usage, duration, success flag\n- [ ] Async delegation returns `DelegationHandle` immediately\n- [ ] `DelegationHandle.result()` awaits and returns `SubagentResult`\n- [ ] `DelegationHandle.is_complete` returns current status without blocking\n- [ ] `DelegationHandle.cancel()` cancels running subagent task\n- [ ] Context messages injected as subagent's initial history when provided\n- [ ] Context string appended to task when provided\n\n_Edge Cases:_\n- [ ] Subagent exceeds `max_turns` → `SubagentResult(success=False, error=\"Max turns exceeded\")`\n- [ ] Model API error during delegation → captured in `SubagentResult(success=False, error=...)`\n- [ ] Cancel after completion → no-op, result already available\n- [ ] Empty task string → raise `SubagentError`\n- [ ] Multiple concurrent async delegations — each gets independent handle\n\n_Error Handling:_\n- [ ] All errors captured in SubagentResult rather than raised (delegation is fault-tolerant)\n- [ ] Unrecoverable errors (config errors) still raised\n\n**Testing Requirements:**\n• Unit: Sync delegation with TestModel\n• Unit: Async delegation with TestModel\n• Unit: DelegationHandle lifecycle\n• Unit: Error capture in SubagentResult\n• Unit: Cancel behavior\n• Unit: Concurrent async delegations\n• Integration: Token usage extraction from AgentResult\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.8",
+  "activeForm": "Implementing subagent delegation",
+  "status": "completed",
+  "blocks": [
+    "16"
+  ],
+  "blockedBy": [
+    "12",
+    "14"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "L",
+    "source_section": "5.8",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Subagent Delegation",
+    "task_uid": "skills-and-subagents:subagent-delegation:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

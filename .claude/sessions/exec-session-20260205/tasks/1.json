@@ -1,0 +1,22 @@
+{
+  "id": "1",
+  "subject": "Create skill error hierarchy",
+  "description": "Create the error hierarchy for the skills subsystem in `src/mamba_agents/skills/errors.py`.\n\nDefine the following exception classes:\n\n- `SkillError(Exception)` — Base exception for all skill errors\n- `SkillNotFoundError(SkillError)` — Skill path does not exist\n- `SkillParseError(SkillError)` — Frontmatter YAML syntax error\n- `SkillValidationError(SkillError)` — Frontmatter fields fail validation (include list of error messages)\n- `SkillLoadError(SkillError)` — Permission denied or disk error during loading\n- `SkillConflictError(SkillError)` — Duplicate skill names in same scope\n\nEach exception should have a descriptive message and relevant context (skill name, path, etc.).\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] All 6 error classes defined with proper inheritance chain\n- [ ] Each error includes contextual attributes (name, path where applicable)\n- [ ] Error messages are clear and actionable\n\n_Edge Cases:_\n- [ ] Errors are picklable (for multiprocessing compatibility)\n- [ ] `repr()` and `str()` produce useful debugging info\n\n_Error Handling:_\n- [ ] Base `SkillError` is catchable for all skill-related errors\n\n**Testing Requirements:**\n• Unit: Each error class instantiation and message formatting\n• Unit: Inheritance chain verification (isinstance checks)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.1-5.2",
+  "activeForm": "Creating skill error hierarchy",
+  "status": "completed",
+  "blocks": [
+    "4",
+    "6",
+    "8"
+  ],
+  "blockedBy": [],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "XS",
+    "source_section": "5.1-5.2",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skills System Foundation",
+    "task_uid": "skills-and-subagents:skills-errors:errors:001",
+    "task_group": "skills-and-subagents"
+  }
+}

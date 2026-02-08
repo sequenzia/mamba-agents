@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, PrivateAttr
 
 from mamba_agents.context.config import CompactionConfig
 from mamba_agents.prompts.config import TemplateConfig
@@ -19,7 +19,10 @@ class AgentConfig(BaseModel):
         tokenizer: Tokenizer configuration. None uses settings default.
         track_context: Whether to track messages internally across runs.
         auto_compact: Whether to automatically compact when threshold is reached.
+        graceful_tool_errors: Convert tool exceptions to ModelRetry for LLM error handling.
     """
+
+    _is_subagent: bool = PrivateAttr(default=False)
 
     max_iterations: int = Field(
         default=10,

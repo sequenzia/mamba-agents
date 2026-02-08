@@ -1,0 +1,24 @@
+{
+  "id": "2",
+  "subject": "Create skill data models and enums",
+  "description": "Create the data models and enums for the skills subsystem in `src/mamba_agents/skills/config.py`.\n\nDefine the following types per Section 7.3:\n\n**Enums:**\n- `SkillScope(str, Enum)` — `PROJECT`, `USER`, `CUSTOM`\n- `TrustLevel(str, Enum)` — `TRUSTED`, `UNTRUSTED`\n\n**Data Models:**\n- `SkillInfo` (dataclass) — Metadata about a discovered skill (loaded eagerly):\n  - `name: str` — validated identifier\n  - `description: str` — what the skill does\n  - `path: Path` — directory containing SKILL.md\n  - `scope: SkillScope` — project | user | custom\n  - Optional fields: license, compatibility, metadata, allowed_tools, model, execution_mode, agent, disable_model_invocation, user_invocable, argument_hint, hooks, trust_level\n\n- `Skill(BaseModel)` — Full skill with loaded content:\n  - `info: SkillInfo`\n  - `body: str | None = None` (lazy loaded)\n  - `is_active: bool = False`\n  - `_tools: list[Callable] = PrivateAttr(default_factory=list)`\n\n- `SkillConfig(BaseModel)` — Configuration for the skill subsystem:\n  - `skills_dirs`, `user_skills_dir`, `custom_paths`, `auto_discover`, `namespace_tools`, `trusted_paths`\n\n- `ValidationResult` (dataclass):\n  - `valid: bool`, `errors: list[str]`, `warnings: list[str]`, `skill_path: Path | None`, `trust_level: TrustLevel | None`\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] All enums define correct values\n- [ ] `SkillInfo` stores all frontmatter fields from Agent Skills spec + mamba extensions\n- [ ] `Skill` wraps `SkillInfo` with lazy-loaded body\n- [ ] `SkillConfig` has correct defaults (`.mamba/skills/`, `~/.mamba/skills/`)\n- [ ] `ValidationResult` tracks errors, warnings, and trust level\n\n_Edge Cases:_\n- [ ] `SkillInfo` handles all optional fields as None by default\n- [ ] `SkillConfig.user_skills_dir` expands `~` to home directory\n- [ ] `Skill` model serialization excludes private `_tools` attribute\n\n_Error Handling:_\n- [ ] Pydantic validation catches invalid field types at construction time\n\n**Testing Requirements:**\n• Unit: Enum member values and string conversion\n• Unit: SkillInfo construction with minimal fields (name, description, path, scope)\n• Unit: SkillInfo construction with all optional fields\n• Unit: SkillConfig default values\n• Unit: Skill model with PrivateAttr tools list\n• Unit: ValidationResult construction\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 7.3",
+  "activeForm": "Creating skill data models and enums",
+  "status": "completed",
+  "blocks": [
+    "4",
+    "6",
+    "7",
+    "8",
+    "22"
+  ],
+  "blockedBy": [],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "S",
+    "source_section": "7.3",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skills System Foundation",
+    "task_uid": "skills-and-subagents:skills-foundation:models:001",
+    "task_group": "skills-and-subagents"
+  }
+}
