@@ -271,6 +271,89 @@ agent.reset_tracking()
 agent.reset_all()
 ```
 
+## Configuration Options
+
+### AgentConfig Reference
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `system_prompt` | str | None | System prompt for the agent |
+| `max_iterations` | int | 10 | Maximum tool-calling iterations |
+| `track_context` | bool | True | Enable message tracking |
+| `auto_compact` | bool | True | Auto-compact when threshold reached |
+| `context` | CompactionConfig | None | Custom compaction settings |
+| `tokenizer` | TokenizerConfig | None | Custom tokenizer settings |
+| `graceful_tool_errors` | bool | True | Return error messages to model instead of raising |
+
+## Skills
+
+!!! warning "Experimental"
+    The skills API is experimental and may change in minor versions.
+
+Register reusable agent capabilities defined as SKILL.md files:
+
+```python
+from mamba_agents import Agent
+
+# Register skills at creation
+agent = Agent("gpt-4o", skills=["path/to/skill"])
+agent = Agent("gpt-4o", skill_dirs=["custom/skills/"])
+
+# Register later
+agent.register_skill("path/to/my-skill")
+
+# List and invoke skills
+for info in agent.list_skills():
+    print(f"{info.name}: {info.description}")
+
+content = agent.invoke_skill("my-skill", "arg1", "arg2")
+
+# Get a full skill object
+skill = agent.get_skill("my-skill")
+```
+
+!!! tip "Lazy Initialization"
+    Accessing `agent.skill_manager` creates the manager on first access. To check without triggering initialization, use `agent._skill_manager is not None`.
+
+[:octicons-arrow-right-24: Full Skills Guide](skills.md)
+
+## Subagents
+
+!!! warning "Experimental"
+    The subagents API is experimental and may change in minor versions.
+
+Delegate tasks to isolated child agents:
+
+```python
+from mamba_agents import Agent
+from mamba_agents.subagents import SubagentConfig
+
+agent = Agent("gpt-4o", subagents=[
+    SubagentConfig(
+        name="researcher",
+        description="Research assistant",
+        tools=["read_file", "grep_search"],
+    ),
+])
+
+# Synchronous delegation
+result = agent.delegate_sync("researcher", "Find info about asyncio")
+print(result.output)
+
+# Async delegation
+result = await agent.delegate("researcher", "Analyze this code")
+
+# Fire-and-forget
+handle = await agent.delegate_async("researcher", "Long task")
+# ... do other work ...
+result = await handle.result()
+```
+
+!!! tip "Lazy Initialization"
+    Accessing `agent.subagent_manager` creates the manager on first access. To check without triggering initialization, use `agent._subagent_manager is not None`.
+
+[:octicons-arrow-right-24: Full Subagents Guide](subagents.md)
+
 ## Agent Properties
 
 ```python
@@ -291,21 +374,11 @@ token_counter = agent.token_counter
 
 # Access message query interface
 query = agent.messages
+
+# Access extension managers (created on first access)
+skill_mgr = agent.skill_manager
+subagent_mgr = agent.subagent_manager
 ```
-
-## Configuration Options
-
-### AgentConfig Reference
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `system_prompt` | str | None | System prompt for the agent |
-| `max_iterations` | int | 10 | Maximum tool-calling iterations |
-| `track_context` | bool | True | Enable message tracking |
-| `auto_compact` | bool | True | Auto-compact when threshold reached |
-| `context` | CompactionConfig | None | Custom compaction settings |
-| `tokenizer` | TokenizerConfig | None | Custom tokenizer settings |
-| `graceful_tool_errors` | bool | False | Return error messages to model instead of raising |
 
 ## Next Steps
 
@@ -313,4 +386,6 @@ query = agent.messages
 - [Context Management](context-management.md) - Deep dive into context compaction
 - [Message Querying](message-querying.md) - Filter, analyze, and export conversations
 - [Display Rendering](display-rendering.md) - Rich, plain text, and HTML output
+- [Skills](skills.md) - Modular, reusable agent capabilities
+- [Subagents](subagents.md) - Task delegation to child agents
 - [Workflows](workflows.md) - Multi-step orchestration

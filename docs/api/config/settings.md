@@ -30,6 +30,8 @@ settings = AgentSettings(
 | `context` | CompactionConfig | Default compaction |
 | `tokenizer` | TokenizerConfig | Tokenizer settings |
 | `cost_rates` | dict | Custom cost rates |
+| `prompts` | PromptConfig | Prompt template settings |
+| `skills` | SkillConfig \| None | Skill subsystem configuration (experimental) |
 
 ## Environment Variables
 
@@ -38,6 +40,8 @@ MAMBA_MODEL_BACKEND__MODEL=gpt-4o
 MAMBA_MODEL_BACKEND__API_KEY=sk-...
 MAMBA_LOGGING__LEVEL=INFO
 MAMBA_RETRY__MAX_RETRIES=3
+MAMBA_SKILLS__AUTO_DISCOVER=true
+MAMBA_SKILLS__NAMESPACE_TOOLS=true
 ```
 
 ## API Reference

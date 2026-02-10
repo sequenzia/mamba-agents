@@ -64,6 +64,28 @@ This guide covers all the features of Mamba Agents in detail.
 
 </div>
 
+## Extensions
+
+<div class="grid cards" markdown>
+
+-   :material-puzzle: **Skills** :material-flask-outline:{ title="Experimental" }
+
+    ---
+
+    Define reusable agent capabilities as SKILL.md files with discovery, trust, and testing.
+
+    [:octicons-arrow-right-24: Skills](skills.md)
+
+-   :material-account-group: **Subagents** :material-flask-outline:{ title="Experimental" }
+
+    ---
+
+    Delegate tasks to isolated child agents with usage tracking and three delegation patterns.
+
+    [:octicons-arrow-right-24: Subagents](subagents.md)
+
+</div>
+
 ## Advanced Features
 
 <div class="grid cards" markdown>
@@ -121,6 +143,8 @@ This guide covers all the features of Mamba Agents in detail.
 | Messages | `mamba_agents` | `MessageQuery`, `MessageStats`, `Turn` |
 | Display | `mamba_agents.agent.display` | `DisplayPreset`, `print_stats`, `RichRenderer` |
 | Prompts | `mamba_agents.prompts` | `PromptManager`, `PromptTemplate`, `TemplateConfig` |
+| Skills | `mamba_agents.skills` | `SkillManager`, `Skill`, `SkillConfig` |
+| Subagents | `mamba_agents.subagents` | `SubagentManager`, `SubagentConfig`, `SubagentResult` |
 | Workflows | `mamba_agents.workflows` | `Workflow`, `ReActWorkflow` |
 | MCP | `mamba_agents.mcp` | `MCPClientManager`, `MCPServerConfig` |
 | Backends | `mamba_agents.backends` | `OpenAICompatibleBackend` |

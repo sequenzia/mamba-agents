@@ -1,0 +1,22 @@
+{
+  "id": "24",
+  "subject": "Extend UsageTracker for subagent token aggregation",
+  "description": "Extend `UsageTracker` to support per-subagent token tracking and aggregation.\n\n**Changes to `src/mamba_agents/tokens/tracker.py`:**\n- Extend `record_usage()` to accept an optional `source: str` tag to identify subagent usage\n- Add `get_subagent_usage() -> dict[str, TokenUsage]` — returns usage breakdown by subagent name\n- Subagent usage is also included in the total aggregate usage\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] `record_usage(usage, source=\"subagent-name\")` tags usage with source\n- [ ] `get_subagent_usage()` returns per-subagent token usage breakdown\n- [ ] Subagent usage included in total `get_usage()` aggregate\n- [ ] Backward compatible — `record_usage()` without source works as before\n\n_Edge Cases:_\n- [ ] No subagent usage recorded → `get_subagent_usage()` returns empty dict\n- [ ] Multiple delegations to same subagent → usage accumulated\n\n**Testing Requirements:**\n• Unit: Record usage with source tag\n• Unit: Get subagent usage breakdown\n• Unit: Backward compatibility (no source tag)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.8",
+  "activeForm": "Extending UsageTracker for subagent tracking",
+  "status": "completed",
+  "blocks": [
+    "21"
+  ],
+  "blockedBy": [
+    "12"
+  ],
+  "metadata": {
+    "priority": "high",
+    "complexity": "S",
+    "source_section": "5.8",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Token Tracking Extension",
+    "task_uid": "skills-and-subagents:usage-tracker-ext:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

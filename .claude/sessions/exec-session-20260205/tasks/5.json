@@ -1,0 +1,23 @@
+{
+  "id": "5",
+  "subject": "Implement skill discovery from directories",
+  "description": "Create the skill discovery system in `src/mamba_agents/skills/discovery.py`.\n\nThe discovery system scans configured directories for SKILL.md files and returns metadata.\n\n**Directory hierarchy (priority order):**\n1. Project: `.mamba/skills/` (relative to working directory) — highest priority\n2. User: `~/.mamba/skills/` (user home)\n3. Custom: Additional configurable search paths — lowest priority\n\n**Discovery behavior:**\n- Use `Path.glob(\"*/SKILL.md\")` to find skill directories\n- For each found SKILL.md, call loader's `load_metadata()` to get `SkillInfo`\n- Assign `SkillScope` based on which directory the skill was found in\n- Assign `TrustLevel`: project/user skills → TRUSTED, custom path skills → UNTRUSTED (unless in `trusted_paths`)\n- On name conflicts across scopes: higher priority wins, log info\n- On name conflicts within same scope: raise `SkillConflictError`\n\n**Function signatures:**\n- `discover_skills(config: SkillConfig) -> list[SkillInfo]` — scan all configured directories\n- `scan_directory(path: Path, scope: SkillScope, trust: TrustLevel) -> list[SkillInfo]` — scan single directory\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Discovers skills from `.mamba/skills/` (project level)\n- [ ] Discovers skills from `~/.mamba/skills/` (user level)\n- [ ] Discovers skills from custom paths in `SkillConfig.custom_paths`\n- [ ] Returns `SkillInfo` list with correct scope and trust_level assigned\n- [ ] Priority: project > user > custom (higher priority wins on name conflict)\n- [ ] `trusted_paths` config allows marking custom paths as trusted\n\n_Edge Cases:_\n- [ ] Empty skills directory — no error, returns empty list\n- [ ] Skills directory doesn't exist — no error, skip it\n- [ ] Skill dir without SKILL.md — skip directory, log warning\n- [ ] Duplicate names across scopes — higher priority wins, log info\n- [ ] Duplicate names in same scope — raise `SkillConflictError`\n- [ ] Symlinked skill directories — follow symlinks\n\n_Error Handling:_\n- [ ] Individual skill parse failures don't abort entire discovery — log error, skip skill\n- [ ] Permission denied on directory — log warning, skip directory\n\n_Performance:_\n- [ ] Scan < 100ms for 50 skills (metadata only loading)\n\n**Testing Requirements:**\n• Unit: Discover from single directory with multiple skills\n• Unit: Priority ordering across project/user/custom scopes\n• Unit: Name conflict resolution (cross-scope and same-scope)\n• Unit: Empty/missing directories handled gracefully\n• Unit: Trust level assignment based on scope and trusted_paths\n• Unit: Malformed skill directories skipped with warning\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.2",
+  "activeForm": "Implementing skill discovery from directories",
+  "status": "completed",
+  "blocks": [
+    "9"
+  ],
+  "blockedBy": [
+    "4",
+    "6"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "M",
+    "source_section": "5.2",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skill Discovery & Registry",
+    "task_uid": "skills-and-subagents:skill-discovery:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

@@ -55,6 +55,8 @@ nav:
       - Message Querying: user-guide/message-querying.md
       - Display Rendering: user-guide/display-rendering.md
       - Prompt Management: user-guide/prompt-management.md
+      - Skills: user-guide/skills.md
+      - Subagents: user-guide/subagents.md
       - Workflows: user-guide/workflows.md
       - MCP Integration: user-guide/mcp-integration.md
       - Model Backends: user-guide/model-backends.md
@@ -106,6 +108,16 @@ nav:
           - PromptTemplate: api/prompts/template.md
           - Configuration: api/prompts/config.md
           - Errors: api/prompts/errors.md
+      - Skills:
+          - api/skills/index.md
+          - SkillManager: api/skills/manager.md
+          - Configuration: api/skills/config.md
+          - Errors: api/skills/errors.md
+      - Subagents:
+          - api/subagents/index.md
+          - SubagentManager: api/subagents/manager.md
+          - Configuration: api/subagents/config.md
+          - Errors: api/subagents/errors.md
       - Tools:
           - api/tools/index.md
           - Filesystem: api/tools/filesystem.md

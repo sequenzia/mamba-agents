@@ -1,0 +1,24 @@
+{
+  "id": "13",
+  "subject": "Implement subagent config loader from markdown files",
+  "description": "Create the markdown-based subagent config loader in `src/mamba_agents/subagents/loader.py`.\n\nLoads subagent definitions from `.mamba/agents/{name}.md` and `~/.mamba/agents/{name}.md` files.\n\n**File format:**\n```markdown\n---\nname: researcher\ndescription: Research subagent for gathering information\ntools: [read_file, grep_search]\nmodel: gpt-4\nskills: [web-search]\n---\n\nYou are a research assistant. Your job is to gather information...\n```\n\n**Frontmatter fields map to SubagentConfig:**\n- `name`, `description` (required)\n- `tools`, `disallowed-tools`, `model`, `skills`, `max-turns` (optional)\n- Markdown body → `system_prompt`\n\n**Discovery:**\n- `discover_subagents() -> list[SubagentConfig]` — scan `.mamba/agents/` and `~/.mamba/agents/`\n- `load_subagent_config(path: Path) -> SubagentConfig` — load single file\n\n**Reuse:** Frontmatter parsing should reuse skill loader's YAML parsing approach.\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] Parse `.md` files with YAML frontmatter into `SubagentConfig`\n- [ ] Markdown body becomes `system_prompt`\n- [ ] Discover from `.mamba/agents/` (project) and `~/.mamba/agents/` (user)\n- [ ] Hyphenated YAML keys mapped to Python underscores\n\n_Edge Cases:_\n- [ ] Agent file without frontmatter → `SubagentConfigError`\n- [ ] Agent file without body → valid, system_prompt is None\n- [ ] Agent directory doesn't exist → skip, no error\n- [ ] Multiple agent files discovered — all loaded\n\n_Error Handling:_\n- [ ] Missing name → `SubagentConfigError`\n- [ ] Invalid YAML → `SubagentConfigError`\n\n**Testing Requirements:**\n• Unit: Parse valid agent markdown file\n• Unit: Parse minimal file (name + description only)\n• Unit: Discovery from project and user directories\n• Unit: Error conditions (missing name, invalid YAML)\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.6",
+  "activeForm": "Implementing subagent config loader",
+  "status": "completed",
+  "blocks": [
+    "14",
+    "16"
+  ],
+  "blockedBy": [
+    "3",
+    "12"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "S",
+    "source_section": "5.6",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Subagent Configuration",
+    "task_uid": "skills-and-subagents:subagent-loader:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

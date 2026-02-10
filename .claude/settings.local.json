@@ -1,6 +1,3 @@
 {
-  "enabledMcpjsonServers": [
-    "context7"
-  ],
-  "enableAllProjectMcpServers": true
+  "outputStyle": "Explanatory"
 }

@@ -1,0 +1,23 @@
+{
+  "id": "7",
+  "subject": "Implement skill invocation and argument substitution",
+  "description": "Create the skill invocation system in `src/mamba_agents/skills/invocation.py`.\n\nHandles skill activation lifecycle, argument substitution, and invocation permissions.\n\n**Invocation control via frontmatter flags:**\n- `disable-model-invocation: true` — only user/code can invoke\n- `user-invocable: false` — only model/code can invoke\n- Default: both model and user can invoke\n\n**Argument substitution:**\n- `$ARGUMENTS` → replaced with full argument string\n- `$ARGUMENTS[N]` or `$N` → positional access (0-indexed)\n- If no `$ARGUMENTS` in content → arguments appended as `ARGUMENTS: <value>`\n\n**Argument parsing:** Split on whitespace, preserve quoted strings (e.g., `\"hello world\"` is one argument).\n\n**Activation lifecycle:**\n1. Check invocation permissions (model vs user vs code)\n2. Load full SKILL.md body (if not already loaded)\n3. Perform argument substitution on body\n4. Register skill's allowed-tools with agent\n5. Return processed skill content\n\n**Deactivation:** `deactivate(name)` restores previous tool state.\n\n**Function signatures:**\n- `check_invocation_permission(skill: SkillInfo, source: InvocationSource) -> bool`\n- `substitute_arguments(content: str, arguments: str) -> str`\n- `parse_arguments(raw: str) -> list[str]` — split on whitespace, preserve quotes\n- `activate(skill: Skill, arguments: str = \"\") -> str` — full activation lifecycle\n- `deactivate(skill: Skill) -> None` — restore state\n\n**Acceptance Criteria:**\n\n_Functional:_\n- [ ] `$ARGUMENTS` replaced with full argument string\n- [ ] `$0`, `$1`, etc. replaced with positional arguments\n- [ ] `$ARGUMENTS[0]`, `$ARGUMENTS[1]` syntax also works\n- [ ] No `$ARGUMENTS` in content → appends `ARGUMENTS: <value>`\n- [ ] Invocation permissions checked against skill flags\n- [ ] Activation loads body, substitutes args, returns processed content\n- [ ] Deactivation restores previous tool state\n\n_Edge Cases:_\n- [ ] No arguments passed with `$ARGUMENTS` placeholder → replace with empty string\n- [ ] More args than placeholders → extra args available via `$ARGUMENTS`\n- [ ] Fewer args than placeholders → missing positionals become empty strings\n- [ ] Argument with special chars → quoted content preserved as single argument\n- [ ] `$ARGUMENTS` appears multiple times in content → all replaced\n\n_Error Handling:_\n- [ ] Permission denied → raise appropriate error with clear message\n- [ ] Skill body not loaded → load lazily during activation\n\n**Testing Requirements:**\n• Unit: Argument parsing with whitespace, quotes, special chars\n• Unit: `$ARGUMENTS` full replacement\n• Unit: `$N` positional replacement (0-indexed)\n• Unit: Missing args → empty strings\n• Unit: No placeholder → append behavior\n• Unit: Invocation permission checks (model, user, code)\n• Unit: Activation lifecycle end-to-end\n• Unit: Deactivation restores state\n\nSource: internal/specs/skills-and-subagents-SPEC.md Section 5.3",
+  "activeForm": "Implementing skill invocation and argument substitution",
+  "status": "completed",
+  "blocks": [
+    "9"
+  ],
+  "blockedBy": [
+    "2",
+    "4"
+  ],
+  "metadata": {
+    "priority": "critical",
+    "complexity": "M",
+    "source_section": "5.3",
+    "spec_path": "internal/specs/skills-and-subagents-SPEC.md",
+    "feature_name": "Skill Invocation & Arguments",
+    "task_uid": "skills-and-subagents:skill-invocation:service:001",
+    "task_group": "skills-and-subagents"
+  }
+}

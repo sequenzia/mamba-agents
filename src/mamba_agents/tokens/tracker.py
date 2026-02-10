@@ -21,6 +21,7 @@ class UsageRecord:
         total_tokens: Total tokens used.
         model: Model used for this request.
         tool_name: Optional tool name if tool call.
+        source: Optional source identifier (e.g., subagent name).
     """
 
     timestamp: datetime
@@ -29,6 +30,7 @@ class UsageRecord:
     total_tokens: int
     model: str | None = None
     tool_name: str | None = None
+    source: str | None = None
 
 
 @dataclass
@@ -68,12 +70,14 @@ class UsageTracker:
         self._records: list[UsageRecord] = []
         self._totals = TokenUsage()
         self._cost_rates = cost_rates or {}
+        self._subagent_totals: dict[str, TokenUsage] = {}
 
     def record_usage(
         self,
         usage: Usage,
         model: str | None = None,
         tool_name: str | None = None,
+        source: str | None = None,
     ) -> None:
         """Record usage from a pydantic-ai result.
 
@@ -81,6 +85,8 @@ class UsageTracker:
             usage: Usage object from pydantic-ai.
             model: Optional model name.
             tool_name: Optional tool name for tool calls.
+            source: Optional source identifier (e.g., subagent name) for
+                per-source usage tracking.
         """
         # Extract token counts from pydantic-ai Usage
         # Use new API (input_tokens/output_tokens) with fallback to deprecated names
@@ -99,15 +105,26 @@ class UsageTracker:
             total_tokens=total_tokens,
             model=model,
             tool_name=tool_name,
+            source=source,
         )
 
         self._records.append(record)
 
-        # Update totals
+        # Update totals (subagent usage is included in aggregate)
         self._totals.prompt_tokens += prompt_tokens
         self._totals.completion_tokens += completion_tokens
         self._totals.total_tokens += total_tokens
         self._totals.request_count += 1
+
+        # Update per-subagent totals if source is provided
+        if source is not None:
+            if source not in self._subagent_totals:
+                self._subagent_totals[source] = TokenUsage()
+            sub = self._subagent_totals[source]
+            sub.prompt_tokens += prompt_tokens
+            sub.completion_tokens += completion_tokens
+            sub.total_tokens += total_tokens
+            sub.request_count += 1
 
     def record_raw(
         self,
@@ -199,7 +216,46 @@ class UsageTracker:
 
         return breakdown
 
+    def record_subagent_usage(self, name: str, usage: TokenUsage) -> None:
+        """Record token usage from a subagent delegation.
+
+        Encapsulates the logic for aggregating subagent usage into both
+        the per-subagent breakdown and the overall totals. Creates a new
+        tracking entry if the subagent name hasn't been seen before.
+
+        Args:
+            name: The subagent name (used as the key in per-subagent breakdown).
+            usage: The ``TokenUsage`` to aggregate.
+        """
+        # Update overall totals
+        self._totals.prompt_tokens += usage.prompt_tokens
+        self._totals.completion_tokens += usage.completion_tokens
+        self._totals.total_tokens += usage.total_tokens
+        self._totals.request_count += usage.request_count
+
+        # Update per-subagent breakdown
+        if name not in self._subagent_totals:
+            self._subagent_totals[name] = TokenUsage()
+        sub = self._subagent_totals[name]
+        sub.prompt_tokens += usage.prompt_tokens
+        sub.completion_tokens += usage.completion_tokens
+        sub.total_tokens += usage.total_tokens
+        sub.request_count += usage.request_count
+
+    def get_subagent_usage(self) -> dict[str, TokenUsage]:
+        """Get token usage broken down by subagent source.
+
+        Returns a dictionary mapping subagent names to their aggregate
+        token usage. Only records tagged with a ``source`` are included.
+        If no subagent usage has been recorded, returns an empty dict.
+
+        Returns:
+            Dictionary mapping subagent names to usage.
+        """
+        return dict(self._subagent_totals)
+
     def reset(self) -> None:
         """Reset all tracking data."""
         self._records.clear()
         self._totals = TokenUsage()
+        self._subagent_totals.clear()

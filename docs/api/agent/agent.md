@@ -47,3 +47,16 @@ print(agent.get_cost())
         - reset_all
         - get_system_prompt
         - set_system_prompt
+        - skill_manager
+        - register_skill
+        - get_skill
+        - list_skills
+        - invoke_skill
+        - subagent_manager
+        - delegate
+        - delegate_sync
+        - delegate_async
+        - register_subagent
+        - list_subagents
+        - override
+        - from_settings

@@ -6,6 +6,7 @@ import functools
 import inspect
 import logging
 from collections.abc import AsyncIterator, Callable, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from pydantic_ai import Agent as PydanticAgent
@@ -34,6 +35,13 @@ if TYPE_CHECKING:
     from pydantic_ai.usage import UsageLimits
 
     from mamba_agents.prompts import PromptManager
+    from mamba_agents.skills import Skill, SkillInfo, SkillManager
+    from mamba_agents.subagents import (
+        DelegationHandle,
+        SubagentConfig,
+        SubagentManager,
+        SubagentResult,
+    )
 
 
 DepsT = TypeVar("DepsT")
@@ -85,6 +93,9 @@ class Agent[DepsT, OutputT]:
         config: AgentConfig | None = None,
         settings: AgentSettings | None = None,
         prompt_manager: PromptManager | None = None,
+        skills: list[Skill | str | Path] | None = None,
+        skill_dirs: list[str | Path] | None = None,
+        subagents: list[SubagentConfig] | None = None,
     ) -> None:
         """Initialize the agent.
 
@@ -100,6 +111,10 @@ class Agent[DepsT, OutputT]:
             config: Agent execution configuration.
             settings: Full agent settings (for model backend, etc.).
             prompt_manager: Optional PromptManager for template resolution.
+            skills: Optional list of skills to register. Each item can be a
+                ``Skill`` instance, a string path, or a ``Path`` to a skill directory.
+            skill_dirs: Optional list of directories to scan for skills.
+            subagents: Optional list of subagent configurations to register.
 
         Raises:
             ValueError: If neither model nor settings is provided.
@@ -181,6 +196,18 @@ class Agent[DepsT, OutputT]:
                 self._context_manager.set_system_prompt(self._resolved_system_prompt)
         else:
             self._context_manager = None
+
+        # Initialize skill manager (explicit via init_skills())
+        self._skill_manager: SkillManager | None = None
+
+        if skills is not None or skill_dirs is not None:
+            self.init_skills(skills=skills, skill_dirs=skill_dirs)
+
+        # Initialize subagent manager (explicit via init_subagents())
+        self._subagent_manager: SubagentManager | None = None
+
+        if subagents is not None:
+            self.init_subagents(subagents=subagents)
 
     def _build_kwargs(self, **params: Any) -> dict[str, Any]:
         """Build kwargs dict, filtering out None values.
@@ -839,6 +866,518 @@ class Agent[DepsT, OutputT]:
             RuntimeError: If context tracking is disabled.
         """
         return self._ensure_context_enabled().get_context_state()
+
+    # === Skill Management Facade Methods ===
+
+    def init_skills(
+        self,
+        skills: list[Skill | str | Path] | None = None,
+        skill_dirs: list[str | Path] | None = None,
+    ) -> None:
+        """Initialize the SkillManager and register provided skills.
+
+        Creates the ``SkillManager`` if it has not been created yet, then
+        registers the given skills and discovers skills from directories.
+        If the SkillManager is already initialized, this method is a no-op
+        (idempotent).
+
+        Args:
+            skills: Optional list of skills to register. Each item can be a
+                ``Skill`` instance, a string path, or a ``Path`` to a skill
+                directory.
+            skill_dirs: Optional list of directories to scan for skills.
+
+        Raises:
+            RuntimeError: If this agent is a subagent (subagents cannot
+                initialize skill managers).
+        """
+        if self._config._is_subagent:
+            raise RuntimeError(
+                "Subagents cannot initialize a SkillManager. "
+                "Only the parent agent may call init_skills()."
+            )
+
+        if self._skill_manager is not None:
+            return
+
+        from mamba_agents.skills import SkillManager as _SkillManager
+        from mamba_agents.skills.config import Skill as _Skill
+
+        skill_cfg = self._settings.skills if self._settings.skills is not None else None
+        self._skill_manager = _SkillManager(config=skill_cfg)
+
+        # Register individual skills
+        if skills is not None:
+            for skill in skills:
+                if isinstance(skill, str):
+                    self._skill_manager.register(Path(skill))
+                elif isinstance(skill, (Path, _Skill)):
+                    self._skill_manager.register(skill)
+                else:
+                    self._skill_manager.register(skill)
+
+        # Discover skills from directories
+        if skill_dirs is not None:
+            from mamba_agents.skills.config import SkillScope, TrustLevel
+            from mamba_agents.skills.discovery import scan_directory
+
+            for dir_path in skill_dirs:
+                resolved = Path(dir_path) if isinstance(dir_path, str) else dir_path
+                found = scan_directory(resolved, SkillScope.CUSTOM, TrustLevel.TRUSTED)
+                for info in found:
+                    if not self._skill_manager.registry.has(info.name):
+                        self._skill_manager.registry.register(info)
+
+        # Register the invoke_skill pydantic-ai tool when skills exist
+        if len(self._skill_manager) > 0:
+            self._register_invoke_skill_tool()
+
+    def _register_invoke_skill_tool(self) -> None:
+        """Register the ``invoke_skill`` pydantic-ai tool on the underlying agent.
+
+        Creates an async tool that allows the model to dynamically invoke
+        registered skills during ``agent.run()``. The tool description lists
+        all currently available skills (those not disabled for model invocation).
+
+        Skills registered after ``init_skills()`` are still callable via the
+        tool -- the tool queries the live registry at invocation time.
+
+        If a tool named ``invoke_skill`` already exists, it is removed first
+        to avoid pydantic-ai ``UserError`` on duplicate registration.
+        """
+        from mamba_agents.skills.invocation import InvocationSource
+
+        # Build dynamic description listing available skills
+        skill_lines: list[str] = []
+        for info in self._skill_manager.list():
+            if not info.disable_model_invocation:
+                skill_lines.append(f"- {info.name}: {info.description}")
+
+        if skill_lines:
+            available = "\n    ".join(skill_lines)
+            description = (
+                f"Invoke a registered skill by name.\n\n    Available skills:\n    {available}"
+            )
+        else:
+            description = "Invoke a registered skill by name."
+
+        # Remove existing invoke_skill tool to avoid duplicate registration error
+        toolset = self._agent._function_toolset.tools
+        toolset.pop("invoke_skill", None)
+
+        # Capture self reference for closure
+        agent_self = self
+
+        async def invoke_skill(name: str, arguments: str = "") -> str:
+            """Invoke a registered skill by name."""
+            try:
+                # Check if skill manager is still available
+                if agent_self._skill_manager is None:
+                    return "Error: No skills available"
+
+                # Look up the skill
+                skill = agent_self._skill_manager.get(name)
+                if skill is None:
+                    available_names = [s.name for s in agent_self._skill_manager.list()]
+                    return (
+                        f"Error: Skill '{name}' not found. "
+                        f"Available skills: {', '.join(available_names) or 'none'}"
+                    )
+
+                # Check model invocation permission
+                if skill.info.disable_model_invocation:
+                    return f"Error: Skill '{name}' has model invocation disabled"
+
+                # Check for fork execution mode
+                if skill.info.execution_mode == "fork":
+                    from mamba_agents.skills.integration import activate_with_fork
+
+                    if agent_self._subagent_manager is None:
+                        return (
+                            f"Error: Skill '{name}' requires fork execution "
+                            "but no SubagentManager is initialized"
+                        )
+
+                    result = await activate_with_fork(
+                        skill,
+                        arguments,
+                        agent_self.subagent_manager,
+                        get_skill_fn=agent_self._skill_manager.get,
+                    )
+                    return result
+
+                # Standard activation with MODEL invocation source
+                from mamba_agents.skills.invocation import activate
+
+                return activate(skill, arguments, source=InvocationSource.MODEL)
+
+            except Exception as exc:
+                return f"Error: {type(exc).__name__}: {exc}"
+
+        # Register as a plain tool (no RunContext needed)
+        self._agent.tool_plain(
+            invoke_skill,
+            name="invoke_skill",
+            description=description,
+        )
+
+    @property
+    def has_skill_manager(self) -> bool:
+        """Check whether the SkillManager has been initialized.
+
+        Returns:
+            True if ``init_skills()`` has been called, False otherwise.
+        """
+        return self._skill_manager is not None
+
+    @property
+    def skill_manager(self) -> SkillManager:
+        """Get the SkillManager instance.
+
+        Returns:
+            The SkillManager instance.
+
+        Raises:
+            AttributeError: If the SkillManager has not been initialized.
+                Call ``agent.init_skills()`` first.
+        """
+        if self._skill_manager is None:
+            raise AttributeError(
+                "SkillManager has not been initialized. "
+                "Call agent.init_skills() first, or pass skills/skill_dirs "
+                "to the Agent constructor."
+            )
+        return self._skill_manager
+
+    def register_skill(self, skill: Skill | str | Path) -> None:
+        """Register a skill with the agent.
+
+        Delegates to the underlying ``SkillManager.register()`` method,
+        then refreshes the ``invoke_skill`` pydantic-ai tool description
+        to reflect the updated set of available skills.
+
+        Args:
+            skill: A ``Skill`` instance, ``SkillInfo``, string path, or ``Path``
+                to a directory containing SKILL.md.
+        """
+        from mamba_agents.skills.config import Skill as _Skill
+
+        if isinstance(skill, str):
+            self.skill_manager.register(Path(skill))
+        elif isinstance(skill, (Path, _Skill)):
+            self.skill_manager.register(skill)
+        else:
+            # SkillInfo or other compatible type
+            self.skill_manager.register(skill)
+
+        # Refresh the invoke_skill tool description to include the new skill
+        self._register_invoke_skill_tool()
+
+    def deregister_skill(self, name: str) -> None:
+        """Remove a skill from the agent by name.
+
+        Delegates to the underlying ``SkillManager.deregister()`` method,
+        then refreshes the ``invoke_skill`` pydantic-ai tool description
+        to reflect the updated set of available skills. If no skills
+        remain after removal, the ``invoke_skill`` tool is removed
+        entirely.
+
+        Args:
+            name: The skill name to remove.
+
+        Raises:
+            SkillNotFoundError: If the skill is not registered.
+        """
+        self.skill_manager.deregister(name)
+
+        # Refresh or remove the invoke_skill tool
+        if len(self._skill_manager) > 0:
+            self._register_invoke_skill_tool()
+        else:
+            # No skills left — remove the tool entirely
+            toolset = self._agent._function_toolset.tools
+            toolset.pop("invoke_skill", None)
+
+    def get_skill(self, name: str) -> Skill | None:
+        """Get a skill by name.
+
+        Delegates to the underlying ``SkillManager.get()`` method.
+
+        Args:
+            name: The skill name to retrieve.
+
+        Returns:
+            The ``Skill`` if found, ``None`` otherwise.
+        """
+        return self.skill_manager.get(name)
+
+    def list_skills(self) -> list[SkillInfo]:
+        """List all registered skill metadata.
+
+        Delegates to the underlying ``SkillManager.list()`` method.
+
+        Returns:
+            A list of ``SkillInfo`` for all registered skills.
+        """
+        return self.skill_manager.list()
+
+    async def invoke_skill(self, name: str, *args: str) -> str:
+        """Activate and invoke a skill by name (async).
+
+        Looks up the skill in the manager, activates it with the provided
+        arguments joined as a single argument string, and returns the
+        processed skill content.
+
+        For skills with ``execution_mode: "fork"``, the Agent mediates
+        between the SkillManager and SubagentManager via the integration
+        module, passing both managers as explicit arguments. Fork-mode
+        delegation uses ``await`` internally for reliable operation in
+        async contexts (FastAPI, ASGI servers).
+
+        For non-fork skills, this method is a thin async wrapper around
+        the synchronous ``SkillManager.activate()`` call.
+
+        Args:
+            name: Name of the skill to invoke.
+            *args: Positional arguments to pass to the skill. Arguments are
+                joined with spaces into a single argument string.
+
+        Returns:
+            Processed skill content with arguments substituted.
+
+        Raises:
+            SkillNotFoundError: If the skill is not registered.
+            SkillInvocationError: If the invocation source lacks permission,
+                or if a fork-mode skill is invoked without a SubagentManager.
+        """
+        arguments = " ".join(args) if args else ""
+
+        # Check for fork execution mode and mediate via integration module
+        skill = self.skill_manager.get(name)
+        if skill is not None and skill.info.execution_mode == "fork":
+            from mamba_agents.skills.integration import activate_with_fork
+
+            if self._subagent_manager is None:
+                from mamba_agents.skills.errors import SkillInvocationError
+
+                raise SkillInvocationError(
+                    name=name,
+                    source="code",
+                    reason=(
+                        "Skill has execution_mode='fork' which requires a SubagentManager. "
+                        "Call agent.init_subagents() or pass subagents to the Agent "
+                        "constructor to enable fork-mode skills."
+                    ),
+                )
+
+            return await activate_with_fork(
+                skill,
+                arguments,
+                self.subagent_manager,
+                get_skill_fn=self.skill_manager.get,
+            )
+
+        return self.skill_manager.activate(name, arguments)
+
+    def invoke_skill_sync(self, name: str, *args: str) -> str:
+        """Activate and invoke a skill by name (sync wrapper).
+
+        Synchronous convenience wrapper around the async ``invoke_skill()``
+        method. For non-fork skills, delegates directly to the synchronous
+        ``SkillManager.activate()`` without creating an event loop. For
+        fork-mode skills, uses the pydantic-ai ``run_sync`` pattern.
+
+        Args:
+            name: Name of the skill to invoke.
+            *args: Positional arguments to pass to the skill. Arguments are
+                joined with spaces into a single argument string.
+
+        Returns:
+            Processed skill content with arguments substituted.
+
+        Raises:
+            SkillNotFoundError: If the skill is not registered.
+            SkillInvocationError: If the invocation source lacks permission,
+                or if a fork-mode skill is invoked without a SubagentManager.
+        """
+        import asyncio
+
+        arguments = " ".join(args) if args else ""
+
+        # Non-fork skills: call SkillManager.activate() directly (sync, no event loop)
+        skill = self.skill_manager.get(name)
+        if skill is None or skill.info.execution_mode != "fork":
+            return self.skill_manager.activate(name, arguments)
+
+        # Fork-mode: must go through async activate_with_fork
+        return asyncio.run(self.invoke_skill(name, *args))
+
+    # === Subagent Management Facade Methods ===
+
+    def init_subagents(
+        self,
+        subagents: list[SubagentConfig] | None = None,
+    ) -> None:
+        """Initialize the SubagentManager and register provided configs.
+
+        Creates the ``SubagentManager`` if it has not been created yet, then
+        registers the given subagent configurations. If the SubagentManager
+        is already initialized, this method is a no-op (idempotent).
+
+        Args:
+            subagents: Optional list of subagent configurations to register.
+
+        Raises:
+            RuntimeError: If this agent is a subagent (subagents cannot
+                initialize subagent managers).
+        """
+        if self._config._is_subagent:
+            raise RuntimeError(
+                "Subagents cannot initialize a SubagentManager. "
+                "Only the parent agent may call init_subagents()."
+            )
+
+        if self._subagent_manager is not None:
+            return
+
+        from mamba_agents.subagents import SubagentManager as _SubagentManager
+
+        # Pass the skill registry (not the SkillManager) if available.
+        # SubagentManager uses the registry for skill pre-loading only.
+        skill_registry = self._skill_manager.registry if self._skill_manager is not None else None
+
+        self._subagent_manager = _SubagentManager(
+            parent_agent=self,
+            configs=subagents,
+            skill_registry=skill_registry,
+        )
+
+    @property
+    def has_subagent_manager(self) -> bool:
+        """Check whether the SubagentManager has been initialized.
+
+        Returns:
+            True if ``init_subagents()`` has been called, False otherwise.
+        """
+        return self._subagent_manager is not None
+
+    @property
+    def subagent_manager(self) -> SubagentManager:
+        """Get the SubagentManager instance.
+
+        Returns:
+            The SubagentManager instance.
+
+        Raises:
+            AttributeError: If the SubagentManager has not been initialized.
+                Call ``agent.init_subagents()`` first.
+        """
+        if self._subagent_manager is None:
+            raise AttributeError(
+                "SubagentManager has not been initialized. "
+                "Call agent.init_subagents() first, or pass subagents "
+                "to the Agent constructor."
+            )
+        return self._subagent_manager
+
+    async def delegate(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> SubagentResult:
+        """Delegate a task to a registered subagent (async).
+
+        Spawns a subagent from the named config, runs the task, and
+        returns the result. Token usage is automatically aggregated
+        to this agent's ``UsageTracker``.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            SubagentResult with output, usage, duration, and success status.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return await self.subagent_manager.delegate(config_name, task, **kwargs)
+
+    def delegate_sync(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> SubagentResult:
+        """Delegate a task to a registered subagent (sync wrapper).
+
+        Synchronous convenience wrapper around the async ``delegate()``
+        method.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            SubagentResult with output, usage, duration, and success status.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return self.subagent_manager.delegate_sync(config_name, task, **kwargs)
+
+    async def delegate_async(
+        self,
+        config_name: str,
+        task: str,
+        **kwargs: Any,
+    ) -> DelegationHandle:
+        """Delegate a task to a registered subagent asynchronously.
+
+        Returns a ``DelegationHandle`` immediately while the subagent
+        runs in the background.
+
+        Args:
+            config_name: Name of the registered subagent config.
+            task: The task description to delegate.
+            **kwargs: Additional keyword arguments passed to the delegation
+                function (e.g., ``context``, ``context_messages``).
+
+        Returns:
+            DelegationHandle for tracking and awaiting the result.
+
+        Raises:
+            SubagentNotFoundError: If no config with that name is registered.
+        """
+        return await self.subagent_manager.delegate_async(config_name, task, **kwargs)
+
+    def register_subagent(self, config: SubagentConfig) -> None:
+        """Register a subagent configuration.
+
+        Delegates to the underlying ``SubagentManager.register()`` method.
+
+        Args:
+            config: The subagent configuration to register.
+
+        Raises:
+            SubagentConfigError: If the config fails validation.
+        """
+        self.subagent_manager.register(config)
+
+    def list_subagents(self) -> list[SubagentConfig]:
+        """List all registered subagent configurations.
+
+        Delegates to the underlying ``SubagentManager.list()`` method.
+
+        Returns:
+            List of all registered ``SubagentConfig`` instances.
+        """
+        return self.subagent_manager.list()
 
     # === Reset Operations ===
 

@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spec Analysis Review</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d1117;
+    --bg-surface: #161b22;
+    --bg-elevated: #1c2128;
+    --border: #30363d;
+    --border-active: #58a6ff;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-heading: #f0f6fc;
+    --amber: #d29922;
+    --amber-bg: rgba(210, 153, 34, 0.12);
+    --green: #3fb950;
+    --green-bg: rgba(63, 185, 80, 0.12);
+    --red: #f85149;
+    --red-bg: rgba(248, 81, 73, 0.12);
+    --purple: #bc8cff;
+    --purple-bg: rgba(188, 140, 255, 0.12);
+    --blue: #58a6ff;
+    --blue-bg: rgba(88, 166, 255, 0.12);
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .header {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header h1 { font-size: 18px; color: var(--text-heading); font-weight: 600; }
+  .header-meta { display: flex; gap: 16px; font-size: 13px; color: var(--text-muted); }
+  .header-meta span { display: flex; align-items: center; gap: 4px; }
+
+  /* Dashboard */
+  .dashboard {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .stats { display: flex; gap: 24px; }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .stat-value { font-size: 24px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  .stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+  /* Filter bar */
+  .filters { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .filter-tabs { display: flex; gap: 2px; background: var(--bg); border-radius: 6px; padding: 2px; }
+  .filter-tab {
+    padding: 6px 14px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .filter-tab:hover { color: var(--text); }
+  .filter-tab.active { background: var(--bg-elevated); color: var(--text); }
+  .filter-tab .count {
+    display: inline-block;
+    margin-left: 4px;
+    font-size: 11px;
+    background: var(--border);
+    padding: 0 6px;
+    border-radius: 10px;
+  }
+
+  select.severity-filter {
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    padding: 6px 28px 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b949e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+  }
+
+  /* Main layout */
+  .main { display: flex; height: calc(100vh - 140px); overflow: hidden; }
+
+  /* Left panel -- spec content */
+  .spec-panel {
+    flex: 6;
+    overflow-y: auto;
+    padding: 24px;
+    border-right: 1px solid var(--border);
+  }
+  .spec-content {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .spec-content h1, .spec-content h2, .spec-content h3, .spec-content h4 {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--text-heading);
+    margin: 20px 0 8px;
+    line-height: 1.3;
+  }
+  .spec-content h1 { font-size: 22px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  .spec-content h2 { font-size: 18px; }
+  .spec-content h3 { font-size: 15px; }
+  .spec-content h4 { font-size: 14px; }
+  .spec-content strong { color: var(--text-heading); }
+  .spec-content code {
+    background: var(--bg-elevated);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+  }
+  .spec-content ul, .spec-content ol { padding-left: 24px; margin: 4px 0; }
+  .spec-content li { margin: 2px 0; }
+
+  /* Annotated section */
+  .annotated-line {
+    border-left: 3px solid transparent;
+    padding-left: 8px;
+    margin-left: -11px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 0 4px 4px 0;
+  }
+  .annotated-line:hover { background: var(--bg-elevated); }
+  .annotated-line.severity-warning { border-left-color: var(--amber); }
+  .annotated-line.severity-critical { border-left-color: var(--purple); }
+  .annotated-line.severity-suggestion { border-left-color: var(--blue); }
+  .annotated-line.status-approved { border-left-color: var(--green); }
+  .annotated-line.status-rejected { border-left-color: var(--red); }
+  .annotated-line.selected { background: var(--bg-elevated); }
+
+  .annotation-marker {
+    display: inline-block;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 8px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    vertical-align: middle;
+    cursor: pointer;
+  }
+  .annotation-marker.severity-warning { background: var(--amber-bg); color: var(--amber); }
+  .annotation-marker.severity-critical { background: var(--purple-bg); color: var(--purple); }
+  .annotation-marker.severity-suggestion { background: var(--blue-bg); color: var(--blue); }
+
+  /* Editable blocks */
+  [contenteditable="true"] {
+    outline: none;
+    border: 1px dashed transparent;
+    padding: 2px 4px;
+    margin: -2px -4px;
+    border-radius: 3px;
+    transition: border-color 0.15s;
+  }
+  [contenteditable="true"]:focus {
+    border-color: var(--border-active);
+    background: var(--bg-elevated);
+  }
+
+  /* Right panel -- findings */
+  .findings-panel {
+    flex: 4;
+    overflow-y: auto;
+    padding: 16px;
+    background: var(--bg-surface);
+  }
+  .findings-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .finding-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .finding-card:hover { border-color: var(--border-active); }
+  .finding-card.selected { border-color: var(--border-active); box-shadow: 0 0 0 1px var(--border-active); }
+  .finding-card.status-approved { border-left: 3px solid var(--green); }
+  .finding-card.status-rejected { border-left: 3px solid var(--red); }
+
+  .finding-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+  .finding-id { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+  .finding-title { font-size: 14px; font-weight: 600; color: var(--text-heading); margin-bottom: 4px; }
+
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+  .badge-critical { background: var(--purple-bg); color: var(--purple); }
+  .badge-warning { background: var(--amber-bg); color: var(--amber); }
+  .badge-suggestion { background: var(--blue-bg); color: var(--blue); }
+
+  .category-badge {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .finding-issue {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    line-height: 1.5;
+  }
+
+  .finding-detail { margin-bottom: 10px; }
+  .finding-detail-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+  .finding-detail-text {
+    font-size: 13px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    background: var(--bg-elevated);
+    padding: 8px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .finding-detail-text.current { border-left: 3px solid var(--red); }
+  .finding-detail-text.proposed { border-left: 3px solid var(--green); }
+
+  .finding-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s;
+    background: var(--bg-elevated);
+    color: var(--text);
+  }
+  .btn:hover { border-color: var(--text-muted); }
+  .btn-approve { border-color: var(--green); color: var(--green); }
+  .btn-approve:hover { background: var(--green-bg); }
+  .btn-reject { border-color: var(--red); color: var(--red); }
+  .btn-reject:hover { background: var(--red-bg); }
+  .btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .btn-primary:hover { opacity: 0.9; }
+
+  .comment-area {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+    margin-top: 8px;
+  }
+  .comment-area:focus { outline: none; border-color: var(--border-active); }
+
+  .status-badge {
+    display: inline-block;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .status-pending { background: var(--amber-bg); color: var(--amber); }
+  .status-approved { background: var(--green-bg); color: var(--green); }
+  .status-rejected { background: var(--red-bg); color: var(--red); }
+
+  .finding-location {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  /* Prompt output panel */
+  .prompt-panel {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px;
+  }
+  .prompt-panel.hidden { display: none; }
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .prompt-header h3 { font-size: 14px; color: var(--text-heading); }
+  .prompt-actions { display: flex; gap: 8px; }
+  .prompt-content {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 13px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+
+  /* Notification toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 1000;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--text-muted);
+  }
+  .empty-state h3 { font-size: 16px; margin-bottom: 8px; color: var(--text); }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .main { flex-direction: column; height: auto; }
+    .spec-panel { border-right: none; border-bottom: 1px solid var(--border); max-height: 50vh; }
+    .findings-panel { max-height: 50vh; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <h1 id="spec-name"></h1>
+  </div>
+  <div class="header-meta">
+    <span id="depth-level"></span>
+    <span id="analyzed-at"></span>
+  </div>
+</header>
+
+<!-- Dashboard -->
+<div class="dashboard">
+  <div class="stats" id="stats"></div>
+  <div class="filters">
+    <div class="filter-tabs" id="status-filters"></div>
+    <select class="severity-filter" id="severity-filter">
+      <option value="all">All Severities</option>
+      <option value="critical">Critical</option>
+      <option value="warning">Warning</option>
+      <option value="suggestion">Suggestion</option>
+    </select>
+  </div>
+</div>
+
+<!-- Main content -->
+<div class="main">
+  <div class="spec-panel">
+    <div class="spec-content" id="spec-content"></div>
+  </div>
+  <div class="findings-panel">
+    <div class="findings-list" id="findings-list"></div>
+  </div>
+</div>
+
+<!-- Prompt output -->
+<div class="prompt-panel hidden" id="prompt-panel">
+  <div class="prompt-header">
+    <h3>Prompt from Approved Changes (<span id="approved-count">0</span>)</h3>
+    <div class="prompt-actions">
+      <button class="btn btn-primary" onclick="copyPrompt()">Copy Prompt</button>
+      <button class="btn" onclick="downloadSpec()">Download Modified Spec</button>
+    </div>
+  </div>
+  <div class="prompt-content" id="prompt-content"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// === DATA INJECTION ===
+const SPEC_CONTENT = {"path":"internal/specs/skills-and-subagents-SPEC.md","name":"Skills and Subagents PRD","depthLevel":"Full-Tech","analyzedAt":"2026-02-05 16:30","content":"# Skills and Subagents PRD\n\n**Version**: 1.0\n**Author**: Stephen Sequenzia\n**Date**: 2026-02-05\n**Status**: Draft\n**Spec Type**: New feature\n**Spec Depth**: Full technical documentation\n**Description**: Skills and Subagents \u2014 two critical components for modularity, reusability, and hierarchical task delegation in the mamba-agents framework.\n\n---\n\n## 1. Executive Summary\n\nMamba Agents currently operates as a single-agent framework with no built-in mechanisms for modular capability composition or hierarchical task delegation. This PRD specifies two new subsystems \u2014 **Skills** and **Subagents** \u2014 that transform mamba-agents into a fully modular agent framework. Skills follow the [Agent Skills](https://agentskills.io) open standard with mamba-specific extensions, while Subagents enable isolated, configurable child agents that handle delegated tasks independently.\n\n## 2. Problem Statement\n\n### 2.1 The Problem\n\nMamba Agents lacks two foundational capabilities that modern agent frameworks require:\n\n1. **No modularity**: All agent logic lives in a single Agent instance. There is no way to package, share, or reuse specialized capabilities across agents or projects.\n2. **No reusability**: Developers must re-implement common behaviors (code review, web search, data analysis) for every agent they build.\n3. **No task delegation**: Agents cannot break complex tasks into subtasks handled by specialized child agents with their own context windows, tool access, and model configurations.\n\nThese limitations force developers into monolithic agent designs that are difficult to maintain, test, and scale.\n\n### 2.2 Current State\n\n- **Tools** can be registered with agents (`tools=[...]`), but they are simple functions with no packaging, discovery, or metadata.\n- **MCP integration** provides external tool servers, but these are runtime services, not portable capability packages.\n- **Workflows** (ReAct) orchestrate multi-step execution but within a single agent context \u2014 no delegation to child agents.\n- **PromptManager** handles templates but has no concept of packaged instructions or progressive loading.\n\n### 2.3 Impact Analysis\n\nWithout Skills and Subagents:\n- Developers cannot build modular, composable agent systems\n- Enterprise teams cannot standardize agent capabilities across projects\n- The framework cannot compete with Claude Code, LangChain, or CrewAI which all support multi-agent patterns\n- Complex tasks requiring different models or tool sets must be handled by a single, over-provisioned agent\n\n### 2.4 Business Value\n\n- **Competitive parity**: Skills and Subagents bring mamba-agents in line with industry-leading agent frameworks\n- **Ecosystem growth**: The Agent Skills open standard enables a portable skill ecosystem shared across tools (Claude Code, Cursor, Gemini CLI, etc.)\n- **Developer productivity**: Reusable skills and delegated subagents reduce boilerplate and enable faster agent development\n- **Enterprise adoption**: Modular capabilities with validation and trust levels address enterprise security and governance requirements\n\n## 3. Goals & Success Metrics\n\n### 3.1 Primary Goals\n\n1. Implement a Skills system that follows the Agent Skills open standard (agentskills.io) with mamba-specific extensions\n2. Implement a Subagent system that enables isolated, configurable child agents for task delegation\n3. Establish the bi-directional relationship where skills load into subagents AND skills can delegate to subagents\n\n### 3.2 Success Metrics\n\n| Metric | Current Baseline | Target | Measurement Method |\n|--------|------------------|--------|-------------------|\n| Skill loading from files | Not supported | Functional with progressive disclosure | Unit + integration tests |\n| Subagent delegation | Not supported | Sync + async delegation working | Unit + integration tests |\n| Test coverage (skills/) | N/A | >= 80% | pytest --cov |\n| Test coverage (subagents/) | N/A | >= 80% | pytest --cov |\n| API compatibility with Agent Skills spec | N/A | Full compliance with spec validation | skills-ref validate |\n\n### 3.3 Non-Goals\n\n- **Agent teams / parallel coordination**: Multi-agent teams with shared task lists and inter-agent messaging (future release)\n- **Persistent cross-session memory**: Cross-conversation learning for subagents (future release)\n- **Skill marketplace**: Publishing, discovering, or installing skills from a central registry (future release)\n- **Skill authoring tools**: CLI commands or wizards for creating new skills (future release)\n\n## 4. User Research\n\n### 4.1 Target Users\n\n#### Primary Persona: AI Application Developer\n- **Role/Description**: Software engineer building production AI applications with mamba-agents\n- **Goals**: Build modular, maintainable agents that compose specialized capabilities; delegate complex tasks to purpose-built child agents\n- **Pain Points**: Forced to put all logic in one agent; can't reuse agent behaviors across projects; no way to use different models for different subtasks\n- **Context**: Building AI-powered applications, chatbots, automation tools\n- **Technical Proficiency**: High \u2014 comfortable with Python, pydantic, async programming\n\n#### Secondary Persona: AI Researcher\n- **Role/Description**: Researcher experimenting with multi-agent architectures\n- **Goals**: Prototype hierarchical agent systems; test different delegation strategies; compare single-agent vs multi-agent approaches\n- **Pain Points**: Must build delegation infrastructure from scratch; can't easily isolate agent contexts for experiments\n\n#### Tertiary Persona: Enterprise Team Lead\n- **Role/Description**: Technical lead standardizing agent capabilities across an organization\n- **Goals**: Create reusable skill packages that all teams can use; enforce consistent tool access and security policies across agents\n- **Pain Points**: No way to share agent capabilities across projects; can't enforce governance on what agents can do\n\n### 4.2 User Journey Map\n\n```\n[Developer needs modular agent] --> [Creates SKILL.md] --> [Agent discovers & loads skill] --> [Skill tools available] --> [Agent uses skill capabilities]\n                                         |\n                                         v\n[Developer needs task delegation] --> [Defines SubagentConfig] --> [Parent spawns subagent] --> [Subagent executes in isolation] --> [Result returned to parent]\n```\n\n### 4.3 User Workflows\n\n#### Workflow 1: Skill Registration (File-based)\n\n```\nDeveloper creates skills/web-search/SKILL.md\n    --> Agent discovers skill on startup (metadata only)\n    --> User/model triggers skill activation\n    --> Full SKILL.md body loaded into context\n    --> Skill's tools registered with agent\n    --> Skill's references loaded on-demand\n```\n\n#### Workflow 2: Skill Registration (Programmatic)\n\n```\nDeveloper creates Skill instance in Python\n    --> Calls agent.register_skill(skill) or SkillManager.register(skill)\n    --> Skill metadata indexed\n    --> Skill tools available immediately\n```\n\n#### Workflow 3: Subagent Delegation (Sync)\n\n```\nParent agent encounters complex subtask\n    --> Spawns subagent with SubagentConfig (model, tools, system_prompt)\n    --> Subagent runs in isolated context\n    --> Subagent returns AgentResult\n    --> Parent processes result, continues main task\n    --> Subagent usage aggregated to parent's tracker\n```\n\n#### Workflow 4: Subagent Delegation (Async)\n\n```\nParent agent needs parallel research\n    --> Spawns multiple subagents asynchronously\n    --> Continues own work while subagents execute\n    --> Collects results as subagents complete\n    --> Synthesizes findings from all subagents\n```\n\n## 5. Functional Requirements\n\n### 5.1 Feature: Skill Loader & Parser\n\n**Priority**: P0 (Critical)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-001**: As a developer, I want to create a `SKILL.md` file with YAML frontmatter and markdown instructions so that my agent can discover and load specialized capabilities.\n\n**Acceptance Criteria**:\n- [ ] Parse SKILL.md files with YAML frontmatter (name, description required)\n- [ ] Support all Agent Skills spec fields: name, description, license, compatibility, metadata, allowed-tools\n- [ ] Support mamba extensions: model, context, disable-model-invocation, user-invocable, hooks, argument-hint\n- [ ] Validate frontmatter against schema (name format: lowercase alphanumeric + hyphens, max 64 chars)\n- [ ] Load markdown body as skill instructions\n- [ ] Detect and index optional directories: scripts/, references/, assets/\n\n**Technical Notes**:\n- Use `yaml` (PyYAML) for frontmatter parsing \u2014 already available via pydantic\n- Validate name field matches parent directory name (per spec)\n- Store parsed skill as `SkillInfo` dataclass with metadata fields\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| Missing frontmatter | SKILL.md without `---` markers | Raise `SkillParseError` with clear message |\n| Missing required fields | Frontmatter without `name` | Raise `SkillValidationError` listing missing fields |\n| Invalid name format | `name: My-SKILL` (uppercase) | Raise `SkillValidationError` with format requirements |\n| Name mismatch | Dir `foo/` but `name: bar` | Raise `SkillValidationError` noting mismatch |\n| Empty body | Frontmatter only, no instructions | Accept (skill is metadata-only, valid per spec) |\n| Large body (>5000 tokens) | Very long SKILL.md | Accept but log warning about recommended size |\n\n**Error Handling**:\n| Error Condition | Error Type | Description |\n|-----------------|------------|-------------|\n| File not found | `SkillNotFoundError` | Skill path does not exist |\n| Invalid YAML | `SkillParseError` | Frontmatter YAML syntax error |\n| Schema violation | `SkillValidationError` | Frontmatter fields fail validation |\n| IO error | `SkillLoadError` | Permission denied or disk error |\n\n---\n\n### 5.2 Feature: Skill Discovery & Registry\n\n**Priority**: P0 (Critical)\n**Complexity**: High\n\n#### User Stories\n\n**US-002**: As a developer, I want my agent to automatically discover skills from configured directories so that I don't need to manually register each skill.\n\n**US-003**: As a developer, I want to register skills programmatically via Python so that I can create skills dynamically at runtime.\n\n**Acceptance Criteria**:\n- [ ] Auto-discover skills from three-level directory hierarchy:\n  - Project: `.mamba/skills/` (relative to working directory)\n  - User: `~/.mamba/skills/` (user home)\n  - Custom: Additional configurable search paths\n- [ ] Priority order: project > user > custom (higher priority wins on name conflict)\n- [ ] Progressive disclosure loading: metadata at startup, body on activation, references on demand\n- [ ] Programmatic registration: `SkillManager.register(skill)` accepts `Skill` instances\n- [ ] Skill deregistration: `SkillManager.deregister(name)` removes a skill\n- [ ] List all skills: `SkillManager.list()` returns all registered skill metadata\n- [ ] Get skill by name: `SkillManager.get(name)` returns full skill or None\n- [ ] Name conflict detection: raise `SkillConflictError` when same-priority skills share a name\n- [ ] Tool namespace prefixing: skill tools prefixed with `{skill_name}.{tool_name}` (configurable)\n\n**Technical Notes**:\n- Follow `ToolRegistry` pattern for the registry implementation\n- Follow `MCPClientManager` pattern for lifecycle management\n- Use `Path.glob(\"*/SKILL.md\")` for directory scanning\n- Metadata loading should be synchronous (fast); body loading can be lazy\n- Thread-safe registry for concurrent access\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| Empty skills directory | `.mamba/skills/` exists but empty | No error, empty registry |\n| Duplicate names across scopes | Project and user both have `web-search` | Project wins (higher priority), log info |\n| Duplicate names same scope | Two `web-search/` in project dir | Raise `SkillConflictError` |\n| Skill dir without SKILL.md | `skills/broken/` (no SKILL.md) | Skip directory, log warning |\n| Circular references | SKILL.md references itself | Detect and raise `SkillLoadError` |\n\n---\n\n### 5.3 Feature: Skill Invocation & Arguments\n\n**Priority**: P0 (Critical)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-004**: As a developer, I want to control when skills are invoked (by the model, by the user, or programmatically) so that I can manage skill activation.\n\n**US-005**: As a developer, I want to pass arguments to skills with `$ARGUMENTS` substitution so that skills can receive dynamic input.\n\n**Acceptance Criteria**:\n- [ ] Invocation control via frontmatter flags:\n  - `disable-model-invocation: true` \u2014 only user/code can invoke\n  - `user-invocable: false` \u2014 only model/code can invoke\n  - Default: both model and user can invoke\n- [ ] Argument substitution:\n  - `$ARGUMENTS` replaced with full argument string\n  - `$ARGUMENTS[N]` or `$N` for positional access (0-indexed)\n  - If no `$ARGUMENTS` in content, arguments appended as `ARGUMENTS: <value>`\n- [ ] Skill activation lifecycle:\n  1. Check invocation permissions\n  2. Load full SKILL.md body (if not already loaded)\n  3. Perform argument substitution\n  4. Register skill's allowed-tools with agent\n  5. Return processed skill content\n- [ ] Skill deactivation: restore previous tool state when skill completes\n\n**Technical Notes**:\n- Argument parsing: split on whitespace, preserve quoted strings\n- Substitution should handle missing positional args gracefully (empty string)\n- Tool registration during activation must be reversible\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| No arguments passed | Skill with `$ARGUMENTS` placeholder | Replace with empty string |\n| More args than placeholders | `/skill arg1 arg2 arg3` but only `$0` used | Extra args available via `$ARGUMENTS` |\n| Fewer args than placeholders | `$0 $1 $2` but only 1 arg passed | `$1` and `$2` become empty strings |\n| Argument with special chars | `$ARGUMENTS` = `\"hello world\"` | Preserve quoted content as single argument |\n\n---\n\n### 5.4 Feature: Skill Validation & Trust\n\n**Priority**: P1 (High)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-006**: As an enterprise team lead, I want skills to be validated against the schema and assigned trust levels so that untrusted skills cannot access sensitive capabilities.\n\n**Acceptance Criteria**:\n- [ ] Frontmatter validation against Agent Skills spec + mamba extensions schema\n- [ ] Trust level configuration: `trusted` or `untrusted` (default: `trusted` for project skills, `untrusted` for custom paths)\n- [ ] Untrusted skills:\n  - Cannot use `allowed-tools` to grant tool access beyond what the agent already permits\n  - Cannot use `hooks` to register lifecycle hooks\n  - Cannot use `context: fork` to spawn subagents\n  - Tools are sandboxed (no filesystem access unless explicitly granted)\n- [ ] Validation report: `SkillManager.validate(skill_path)` returns validation results\n- [ ] Configurable trust per directory: `SkillConfig.trusted_paths` list\n\n**Technical Notes**:\n- Validation should use pydantic model parsing for schema enforcement\n- Trust levels should be checked at skill activation time, not at discovery\n- Consider using the `skills-ref` reference library for spec compliance validation\n\n---\n\n### 5.5 Feature: Skill Testing Utilities\n\n**Priority**: P2 (Medium)\n**Complexity**: Low\n\n#### User Stories\n\n**US-007**: As a skill author, I want a `SkillTestHarness` utility so that I can test my skills in isolation without setting up a full Agent instance.\n\n**Acceptance Criteria**:\n- [ ] `SkillTestHarness` class that:\n  - Loads a skill from a directory or programmatic definition\n  - Validates frontmatter and body\n  - Simulates invocation with test arguments\n  - Verifies tool registrations\n  - Returns structured test results\n- [ ] Integration with pytest via fixtures: `@pytest.fixture def skill_harness()`\n- [ ] Support for testing skill content after argument substitution\n\n**Technical Notes**:\n- Follow the `TestModel` pattern from pydantic-ai for deterministic testing\n- Harness should not require a real LLM model\n\n---\n\n### 5.6 Feature: Subagent Configuration\n\n**Priority**: P0 (Critical)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-008**: As a developer, I want to define subagents via both markdown files and Python code so that I can choose the approach that fits my workflow.\n\n**Acceptance Criteria**:\n- [ ] Markdown-based definition:\n  - `.mamba/agents/{name}.md` files with YAML frontmatter\n  - Frontmatter fields: name, description, tools, disallowed-tools, model, permission-mode, skills\n  - Markdown body becomes the subagent's system prompt\n- [ ] Programmatic definition:\n  - `SubagentConfig` pydantic model with all configuration fields\n  - `SubagentManager.register(config)` for pre-registration\n- [ ] Configuration fields:\n  - `name: str` \u2014 unique identifier (required)\n  - `description: str` \u2014 when to delegate to this subagent (required)\n  - `model: str | None` \u2014 model override (None = inherit from parent)\n  - `tools: list[str | Callable] | None` \u2014 explicit tool allowlist (None = no tools)\n  - `disallowed_tools: list[str] | None` \u2014 tools to deny\n  - `system_prompt: str | TemplateConfig | None` \u2014 custom system prompt\n  - `skills: list[str] | None` \u2014 skills to pre-load at startup\n  - `max_turns: int` \u2014 maximum conversation turns (default: 50)\n  - `config: AgentConfig | None` \u2014 full agent config override\n- [ ] Discovery from `.mamba/agents/` directory (project-level)\n- [ ] Discovery from `~/.mamba/agents/` directory (user-level)\n\n**Technical Notes**:\n- Follow MCP's config pattern (`MCPServerConfig` \u2192 `MCPClientManager`)\n- Markdown parsing reuses skill loader's frontmatter parser\n- Pre-loaded skills inject full skill content into subagent's system prompt\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| Missing name | Config without name field | Raise `SubagentConfigError` |\n| Invalid model | `model: \"nonexistent-model\"` | Error surfaces at delegation time, not config time |\n| Empty tools list | `tools: []` | Subagent has no tool access (valid, read-only subagent) |\n| Skill not found | `skills: [\"missing-skill\"]` | Raise `SkillNotFoundError` at subagent startup |\n\n---\n\n### 5.7 Feature: Subagent Manager & Spawning\n\n**Priority**: P0 (Critical)\n**Complexity**: High\n\n#### User Stories\n\n**US-009**: As a developer, I want to spawn subagents both from pre-configured definitions and dynamically at runtime so that I can handle both planned and ad-hoc delegation patterns.\n\n**Acceptance Criteria**:\n- [ ] `SubagentManager` class that:\n  - Stores pre-configured `SubagentConfig` definitions\n  - Spawns subagent Agent instances from configs\n  - Tracks active subagents and their status\n  - Enforces no-nesting rule (subagents cannot spawn sub-subagents)\n- [ ] Pre-configured spawning: `manager.spawn(\"config-name\", task=\"...\")` creates subagent from registered config\n- [ ] Dynamic spawning: `manager.spawn_dynamic(config=SubagentConfig(...), task=\"...\")` creates ad-hoc subagent\n- [ ] Subagent lifecycle:\n  - Created: config validated, Agent instance initialized\n  - Running: executing delegated task\n  - Completed: result available\n  - Failed: error captured\n- [ ] Context isolation (configurable):\n  - Default: fresh context (subagent gets only task + system prompt)\n  - Optional: inject parent messages via `context_messages: list[dict]`\n  - Optional: inject specific context string via `context: str`\n- [ ] Model selection: subagent uses its configured model, or inherits parent's model\n- [ ] Tool restriction: only tools in the allowlist are available to the subagent\n\n**Technical Notes**:\n- Each subagent is a full `Agent` instance with its own `ContextManager`, `UsageTracker`, etc.\n- Use `Agent(model, config=AgentConfig(...), tools=[...])` for subagent creation\n- No-nesting enforced by setting a flag on subagent's `AgentConfig` (e.g., `_is_subagent: bool`)\n- Subagent Agent instances should be garbage-collected after result is returned (no persistent state)\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| Spawn from unknown config | `spawn(\"nonexistent\")` | Raise `SubagentNotFoundError` |\n| Nesting attempt | Subagent tries to spawn sub-subagent | Raise `SubagentNestingError` |\n| Parent context injection | `context_messages=[...]` | Messages injected as subagent's initial history |\n| Empty task | `spawn(\"config\", task=\"\")` | Raise `SubagentError` \u2014 task is required |\n| Concurrent spawns | Multiple `spawn()` calls | Each gets independent Agent instance |\n\n---\n\n### 5.8 Feature: Subagent Delegation (Sync & Async)\n\n**Priority**: P0 (Critical)\n**Complexity**: High\n\n#### User Stories\n\n**US-010**: As a developer, I want to delegate tasks to subagents synchronously (wait for result) and asynchronously (continue working) so that I can choose the right pattern for each use case.\n\n**Acceptance Criteria**:\n- [ ] Synchronous delegation:\n  - `result = await manager.delegate(config_name, task)` \u2014 waits for completion\n  - `result = manager.delegate_sync(config_name, task)` \u2014 sync wrapper\n  - Returns `SubagentResult` with output, usage, and metadata\n- [ ] Asynchronous delegation:\n  - `handle = await manager.delegate_async(config_name, task)` \u2014 returns immediately\n  - `result = await handle.result()` \u2014 wait for completion\n  - `handle.is_complete` \u2014 check status without blocking\n  - `handle.cancel()` \u2014 cancel running subagent\n- [ ] `SubagentResult` includes:\n  - `output: str` \u2014 subagent's final response\n  - `agent_result: AgentResult` \u2014 full pydantic-ai result wrapper\n  - `usage: TokenUsage` \u2014 token usage for this delegation\n  - `duration: float` \u2014 execution time in seconds\n  - `subagent_name: str` \u2014 which subagent handled it\n  - `success: bool` \u2014 whether delegation completed successfully\n  - `error: str | None` \u2014 error message if failed\n- [ ] Token tracking:\n  - Subagent usage tracked separately in `SubagentResult.usage`\n  - Aggregated to parent's `UsageTracker` automatically\n  - Parent can query `usage_tracker.get_subagent_usage()` for breakdown\n\n**Technical Notes**:\n- Sync delegation wraps `agent.run_sync(task)` on the subagent\n- Async delegation wraps `agent.run(task)` with `asyncio.Task`\n- Use `asyncio.create_task()` for background execution\n- Token aggregation requires extending `UsageTracker.record_usage()` to accept source tags\n\n**Edge Cases**:\n| Scenario | Input | Expected Behavior |\n|----------|-------|-------------------|\n| Subagent timeout | Task runs longer than `max_turns` | Return `SubagentResult(success=False, error=\"Max turns exceeded\")` |\n| Model API error | Subagent's model fails | Capture error, return failed `SubagentResult` |\n| Cancel after completion | `handle.cancel()` on finished task | No-op, result already available |\n| Parent context injection | `delegate(..., context_messages=[...])` | Pass messages as subagent's initial history |\n\n---\n\n### 5.9 Feature: Skills \\u2194 Subagents Integration\n\n**Priority**: P1 (High)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-011**: As a developer, I want subagents to be pre-loaded with specific skills so that they have domain expertise from startup.\n\n**US-012**: As a developer, I want skills to delegate part of their work to subagents via `context: fork` so that heavy processing runs in an isolated context.\n\n**Acceptance Criteria**:\n- [ ] Skill pre-loading into subagents:\n  - `SubagentConfig.skills: list[str]` specifies skill names to pre-load\n  - Full skill content (SKILL.md body) injected into subagent's system prompt at startup\n  - Skill's tools registered with the subagent\n  - Skills resolved from the parent's `SkillManager`\n- [ ] Skill-to-subagent delegation:\n  - `context: fork` in SKILL.md frontmatter triggers subagent execution\n  - `agent` frontmatter field specifies which subagent config to use\n  - Skill content becomes the subagent's task prompt\n  - Result returned to the invoking context\n\n**Technical Notes**:\n- Skill pre-loading appends skill content to system prompt (similar to Claude Code)\n- `context: fork` creates a temporary, anonymous subagent for the skill's execution\n- The `agent` field maps to registered `SubagentConfig` names, or defaults to a general-purpose config\n\n---\n\n### 5.10 Feature: Agent Facade Integration\n\n**Priority**: P0 (Critical)\n**Complexity**: Medium\n\n#### User Stories\n\n**US-013**: As a developer, I want Skills and Subagents accessible through the Agent class's facade API so that the interface remains simple and consistent.\n\n**Acceptance Criteria**:\n- [ ] Agent constructor accepts new parameters:\n  - `skills: list[Skill | str | Path] | None` \u2014 skills to register (Skill instances, names, or paths)\n  - `skill_dirs: list[str | Path] | None` \u2014 additional directories to scan for skills\n  - `subagents: list[SubagentConfig] | None` \u2014 pre-configured subagent definitions\n- [ ] Agent facade methods for skills:\n  - `agent.register_skill(skill)` \u2014 register a skill\n  - `agent.get_skill(name)` \u2014 get a skill by name\n  - `agent.list_skills()` \u2014 list all registered skills\n  - `agent.invoke_skill(name, *args)` \u2014 activate and invoke a skill\n- [ ] Agent facade methods for subagents:\n  - `agent.delegate(config_name, task, **kwargs)` \u2014 sync delegation\n  - `agent.delegate_async(config_name, task, **kwargs)` \u2014 async delegation\n  - `agent.register_subagent(config)` \u2014 register a subagent config\n  - `agent.list_subagents()` \u2014 list registered subagent configs\n- [ ] Agent properties:\n  - `agent.skill_manager` \u2014 access to SkillManager instance\n  - `agent.subagent_manager` \u2014 access to SubagentManager instance\n\n**Technical Notes**:\n- Follow existing facade patterns (e.g., `agent.context_manager`, `agent.usage_tracker`)\n- Skills and subagents should be optional \u2014 Agent works fine without them\n- Lazy initialization: managers created on first access, not in constructor\n\n---\n\n## 6. Non-Functional Requirements\n\n### 6.1 Performance Requirements\n\n| Metric | Requirement | Measurement Method |\n|--------|-------------|-------------------|\n| Skill directory scan | < 100ms for 50 skills | Unit test with benchmark |\n| Skill metadata loading | < 1ms per skill | Unit test with benchmark |\n| Skill body loading | < 10ms per skill | Unit test with benchmark |\n| Subagent spawn time | < 50ms (excluding LLM call) | Unit test with benchmark |\n| Memory overhead per skill (metadata only) | < 1KB | Memory profiling |\n\n### 6.2 Security Requirements\n\n#### Skill Validation\n- All SKILL.md files validated against schema before activation\n- Frontmatter fields type-checked and constraint-validated\n- Invalid skills rejected with clear error messages\n\n#### Trust Levels\n| Trust Level | Capabilities | Default For |\n|-------------|-------------|-------------|\n| Trusted | Full access: allowed-tools, hooks, context:fork, all frontmatter extensions | Project skills (`.mamba/skills/`) |\n| Untrusted | Limited: no hooks, no context:fork, allowed-tools restricted to agent's existing tools | Custom path skills |\n\n#### Subagent Isolation\n- Subagents run in isolated context windows by default\n- Tool access restricted to explicit allowlist\n- No access to parent's internal state (context manager, usage tracker)\n- Subagents cannot spawn sub-subagents (enforced)\n\n### 6.3 Scalability Requirements\n\n- Support 100+ registered skills without performance degradation (metadata only in memory)\n- Support 10+ concurrent subagent delegations (async)\n- Progressive disclosure ensures context window usage scales with active skills, not total skills\n\n### 6.4 Compatibility Requirements\n\n- Agent Skills spec compliance: validate with `skills-ref validate`\n- Backward compatible: existing Agent usage without skills/subagents unchanged\n- pydantic-ai compatibility: work with pydantic-ai >= 0.0.49\n- Python 3.12+ required (matches existing requirement)\n\n## 7. Technical Architecture\n\n### 7.1 System Overview\n\n```\n(architecture diagram)\n```\n\n### 7.2 Tech Stack\n\n| Layer | Technology | Justification |\n|-------|------------|---------------|\n| Configuration | pydantic / pydantic-settings | Matches existing config patterns |\n| Frontmatter parsing | PyYAML (via pydantic) | Already a dependency |\n| Markdown parsing | Standard string processing | No heavy library needed for body extraction |\n| Async execution | asyncio | Already used throughout codebase |\n| File discovery | pathlib.Path.glob | Standard library, already used |\n| Testing | pytest + TestModel | Matches existing test infrastructure |\n\n### 7.3 Data Models\n\n(See spec for full data model definitions)\n\n### 7.4 Python API Specifications\n\n(See spec for full API signatures)\n\n### 7.5 Integration Points\n\n| System | Type | Purpose |\n|--------|------|----------|\n| Agent (core.py) | Internal | Facade methods, constructor params, property access |\n| ToolRegistry | Internal | Skill tools registered via existing tool system |\n| MCPClientManager | Internal | Skills may reference MCP servers as toolsets |\n| UsageTracker | Internal | Subagent token usage aggregated to parent |\n| ContextManager | Internal | Context injection for non-isolated subagents |\n| AgentSettings | Internal | Nested SkillConfig and SubagentConfig |\n| PromptManager | Internal | Skill system prompts via TemplateConfig |\n\n### 7.6 Technical Constraints\n\n| Constraint | Impact | Mitigation |\n|------------|--------|------------|\n| pydantic-ai pre-1.0 API | Message types, Model API may change | Pin `>=0.0.49`, add defensive type checks |\n| No subagent nesting | Limits complex multi-tier delegation | Use workflows for orchestration beyond 1 level |\n| Context window limits | Many pre-loaded skills consume tokens | Progressive disclosure + lazy loading |\n| Circular import risk | skills/ -> agent/, subagents/ -> agent/ | Lazy imports, TYPE_CHECKING guards |\n\n## 8. Scope Definition\n\n(See spec for full scope details)\n\n## 9. Implementation Plan\n\n(See spec for phased implementation plan)\n\n## 10. Testing Strategy\n\n(See spec for testing strategy details)\n\n## 11. Directory Structure\n\n(See spec for directory layout)\n\n## 12. Dependencies\n\n(See spec for dependency list)\n\n## 13. Risks & Mitigations\n\n(See spec for risk table)\n\n## 14. Open Questions\n\nNo open questions.\n\n## 15. Appendix\n\n(See spec for glossary, references, and recommendations)"};
+const FINDINGS_DATA = [{"id":"FIND-001","title":"Facade Delegation Method Conflicts with Async API Signature","category":"Inconsistencies","severity":"critical","location":"Section 5.10 \"Agent Facade Integration\" (line 520)","lineNumber":520,"currentText":"  - `agent.delegate(config_name, task, **kwargs)` \u2014 sync delegation","issue":"Section 5.10 defines agent.delegate() as \"sync delegation\" on the Agent facade. However, Section 5.8 and the SubagentManager API (Section 7.4) define delegate() as an async method and provide delegate_sync() as the synchronous wrapper. The facade's delegate() cannot be both sync and async.","impact":"Developers will encounter confusion about whether agent.delegate() is sync or async, leading to runtime errors (missing await) or design conflicts during implementation.","proposedText":"  - `agent.delegate(config_name, task, **kwargs)` \u2014 async delegation (await required)\n  - `agent.delegate_sync(config_name, task, **kwargs)` \u2014 sync wrapper","status":"pending"},{"id":"FIND-002","title":"ValidationResult Type Referenced but Never Defined","category":"Missing Information","severity":"critical","location":"Section 7.4 \"SkillManager API\" (line 828)","lineNumber":828,"currentText":"    def validate(self, path: Path) -> ValidationResult:","issue":"The SkillManager.validate() method returns ValidationResult, but this type is never defined anywhere in the spec -- not in the data models (Section 7.3), not in the enums, and not in the directory structure files.","impact":"Implementers will have to invent the ValidationResult type without guidance, leading to inconsistency with the rest of the system. This is a core part of the skill validation feature (Section 5.4), which is P1 priority.","proposedText":null,"status":"pending"},{"id":"FIND-003","title":"Spawn vs Delegate Naming Mismatch Between Requirements and API","category":"Inconsistencies","severity":"warning","location":"Section 5.7 (line 391)","lineNumber":391,"currentText":"- [ ] Pre-configured spawning: `manager.spawn(\"config-name\", task=\"...\")` creates subagent from registered config","issue":"Section 5.7 describes the primary spawning method as manager.spawn() with a task parameter. The API specification in Section 7.4 defines delegate() and delegate_async() for task execution, and spawn_dynamic() for ad-hoc subagents, but there is no spawn() method that accepts a task. The requirements use \"spawn\" terminology while the API uses \"delegate\" terminology.","impact":"Naming mismatch between requirements and API will cause confusion during implementation about which method signatures to implement.","proposedText":"- [ ] Pre-configured delegation: `manager.delegate(\"config-name\", task=\"...\")` delegates task to subagent from registered config","status":"pending"},{"id":"FIND-004","title":"SkillManager.register() Signature Inconsistency","category":"Inconsistencies","severity":"warning","location":"Section 5.2 (line 211)","lineNumber":211,"currentText":"- [ ] Programmatic registration: `SkillManager.register(skill)` accepts `Skill` instances","issue":"Section 5.2 acceptance criteria states register() accepts Skill instances only. Section 7.4 defines the signature as register(self, skill: Skill | SkillInfo | Path), which accepts three types. The broader signature is likely correct, but the functional requirement understates the capability.","impact":"Developers reading the requirements section may implement a narrower API than intended, missing SkillInfo and Path support.","proposedText":"- [ ] Programmatic registration: `SkillManager.register(skill)` accepts `Skill`, `SkillInfo`, or `Path` instances","status":"pending"},{"id":"FIND-005","title":"Permission-Mode Field Missing from SubagentConfig Data Model","category":"Missing Information","severity":"warning","location":"Section 5.6 (line 343)","lineNumber":343,"currentText":"  - Frontmatter fields: name, description, tools, disallowed-tools, model, permission-mode, skills","issue":"Section 5.6 lists permission-mode as a frontmatter field for markdown-based subagent definitions, but the SubagentConfig data model in Section 7.3 does not include a permission_mode field.","impact":"The markdown-based config format supports a field that has no corresponding representation in the programmatic model, creating an inconsistency between the two configuration approaches.","proposedText":"  - Frontmatter fields: name, description, tools, disallowed-tools, model, skills","status":"pending"},{"id":"FIND-006","title":"Hooks Field Undefined","category":"Missing Information","severity":"warning","location":"Section 7.3 \"SkillInfo\" (line 652)","lineNumber":652,"currentText":"    hooks: dict | None = None","issue":"SkillInfo has a hooks: dict | None field, and Section 5.4 states that untrusted skills cannot use hooks to register lifecycle hooks. However, the spec never defines what hooks are available, what the dict structure looks like, or how hooks are registered and executed.","impact":"Implementers cannot build the hooks system without knowing the supported hook names, dict schema, or execution model. Trust level enforcement for hooks is also unverifiable.","proposedText":null,"status":"pending"},{"id":"FIND-007","title":"Reference Loading Mechanism Unspecified","category":"Missing Information","severity":"warning","location":"Section 5.1 (line 166)","lineNumber":166,"currentText":"- [ ] Detect and index optional directories: scripts/, references/, assets/","issue":"Progressive disclosure describes three loading tiers: metadata (startup), body (activation), references (on demand). The spec mentions detecting references/ directories and loading references on-demand, but never specifies how references are loaded, what formats are supported, how they are injected into context, or what API triggers loading.","impact":"The third tier of progressive disclosure (reference loading) is part of the core skill architecture but has no implementation guidance, leaving a gap in the otherwise well-specified loading system.","proposedText":null,"status":"pending"},{"id":"FIND-008","title":"Context Field Overloaded with Different Semantics","category":"Ambiguities","severity":"warning","location":"Section 7.3 \"SkillInfo\" (line 647)","lineNumber":647,"currentText":"    context: str | None = None         # \"fork\" or None","issue":"The name \"context\" is used with different meanings: in SkillInfo, context means \"fork\" or None (an execution mode flag). In SubagentManager.delegate(), context: str | None is an arbitrary string to inject into the subagent. This overloading will confuse implementers and API users.","impact":"Developers may confuse the skill execution mode flag with the delegation context injection parameter, leading to bugs or misuse of the API.","proposedText":"    execution_mode: str | None = None   # \"fork\" or None","status":"pending"},{"id":"FIND-009","title":"Thread Safety Model Unclear","category":"Ambiguities","severity":"warning","location":"Section 5.2 \"Technical Notes\" (line 223)","lineNumber":223,"currentText":"- Thread-safe registry for concurrent access","issue":"The spec requires \"Thread-safe registry for concurrent access\" but does not specify the concurrency model. Python's GIL provides some safety for CPU-bound operations but asyncio requires explicit synchronization. It is unclear whether this means threading.Lock, asyncio.Lock, or both.","impact":"Without specifying the concurrency model, implementers may choose the wrong synchronization primitive, leading to either unnecessary overhead or actual race conditions in async contexts.","proposedText":"- Thread-safe registry for concurrent access (use `asyncio.Lock` for async safety, matching the codebase's asyncio-first architecture)","status":"pending"},{"id":"FIND-010","title":"Skill Deactivation Trigger Undefined","category":"Ambiguities","severity":"warning","location":"Section 5.3 (line 262)","lineNumber":262,"currentText":"- [ ] Skill deactivation: restore previous tool state when skill completes","issue":"The acceptance criteria state \"restore previous tool state when skill completes.\" However, skills are capability packages, not tasks with a defined completion point. The spec does not define what triggers deactivation -- whether it is explicit (via deactivate(name)), automatic after a conversation turn, or tied to some other lifecycle event.","impact":"Without a clear deactivation trigger, implementers may build conflicting assumptions about skill lifecycle, and users won't know when tools are restored.","proposedText":"- [ ] Skill deactivation via `SkillManager.deactivate(name)`: restore previous tool state","status":"pending"},{"id":"FIND-011","title":"skills-ref Tool Not Explained","category":"Ambiguities","severity":"suggestion","location":"Section 3.2 (line 67)","lineNumber":67,"currentText":"| API compatibility with Agent Skills spec | N/A | Full compliance with spec validation | skills-ref validate |","issue":"The spec references skills-ref validate as a validation tool in three places (success metrics, compatibility requirements, and checkpoint gate) but never explains what skills-ref is, where it comes from, whether it is a dependency that needs to be installed, or how it integrates with the validation system.","impact":"Implementers cannot set up the validation pipeline without knowing what skills-ref is or where to find it.","proposedText":null,"status":"pending"},{"id":"FIND-012","title":"Pydantic BaseModel Private Attribute Incorrect Syntax","category":"Missing Information","severity":"suggestion","location":"Section 7.3 \"Skill\" data model (line 664)","lineNumber":664,"currentText":"    _tools: list[Callable] = []        # Registered tools (private)","issue":"The Skill class extends BaseModel and defines _tools: list[Callable] = []. In pydantic v2, private attributes on BaseModel must use PrivateAttr: _tools: list[Callable] = PrivateAttr(default_factory=list). The current syntax would be silently ignored or raise a validation error.","impact":"If implemented as written, the _tools field would not work correctly in pydantic v2, requiring a fix during implementation.","proposedText":"    _tools: list[Callable] = PrivateAttr(default_factory=list)  # Registered tools (private)","status":"pending"},{"id":"FIND-013","title":"Missing Deployment/Release Plan Section","category":"Structure Issues","severity":"suggestion","location":"Between Section 10 and Section 11","lineNumber":null,"currentText":null,"issue":"The Full-Tech checklist expects a deployment plan section covering deployment strategy, rollback procedures, and environment requirements. While this is a library feature (not a service), a release plan noting version bumping, migration path for existing users, and feature flag/experimental API marking would be valuable -- especially since Section 13 mentions marking APIs as experimental.","impact":"Without a release plan, there is no documented process for how to ship this feature, mark APIs as experimental, or handle backward compatibility during rollout.","proposedText":null,"status":"pending"}];
+
+// === STATE ===
+const STATE = {
+  findings: [],
+  selectedId: null,
+  statusFilter: 'all',
+  severityFilter: 'all',
+  comments: {}
+};
+
+function init() {
+  STATE.findings = FINDINGS_DATA.map(f => ({
+    ...f,
+    status: f.status || 'pending'
+  }));
+  renderHeader();
+  renderStats();
+  renderFilters();
+  renderSpec();
+  renderFindings();
+  updatePromptPanel();
+}
+
+// === RENDERING ===
+
+function renderHeader() {
+  document.getElementById('spec-name').textContent = SPEC_CONTENT.name || 'Spec Analysis';
+  document.getElementById('depth-level').textContent = SPEC_CONTENT.depthLevel || '';
+  document.getElementById('analyzed-at').textContent = SPEC_CONTENT.analyzedAt || '';
+  document.title = `Review: ${SPEC_CONTENT.name || 'Spec Analysis'}`;
+}
+
+function renderStats() {
+  const counts = { total: STATE.findings.length, critical: 0, warning: 0, suggestion: 0, pending: 0, approved: 0, rejected: 0 };
+  STATE.findings.forEach(f => {
+    counts[f.severity]++;
+    counts[f.status]++;
+  });
+
+  const el = document.getElementById('stats');
+  el.innerHTML = [
+    statHTML('Total', counts.total, ''),
+    statHTML('Critical', counts.critical, 'var(--purple)'),
+    statHTML('Warning', counts.warning, 'var(--amber)'),
+    statHTML('Suggestion', counts.suggestion, 'var(--blue)'),
+    statHTML('Pending', counts.pending, 'var(--amber)'),
+    statHTML('Approved', counts.approved, 'var(--green)'),
+    statHTML('Rejected', counts.rejected, 'var(--red)')
+  ].join('');
+}
+
+function statHTML(label, value, color) {
+  const pct = STATE.findings.length ? (value / STATE.findings.length * 100) : 0;
+  return `<div class="stat">
+    <div class="stat-value" style="color:${color || 'var(--text)'}">${value}</div>
+    <div class="stat-label">${label}</div>
+    <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%;background:${color || 'var(--border)'}"></div></div>
+  </div>`;
+}
+
+function renderFilters() {
+  const counts = { all: STATE.findings.length, pending: 0, approved: 0, rejected: 0 };
+  STATE.findings.forEach(f => counts[f.status]++);
+
+  const tabs = [
+    { key: 'all', label: 'All' },
+    { key: 'pending', label: 'Pending' },
+    { key: 'approved', label: 'Approved' },
+    { key: 'rejected', label: 'Rejected' }
+  ];
+
+  document.getElementById('status-filters').innerHTML = tabs.map(t =>
+    `<button class="filter-tab${STATE.statusFilter === t.key ? ' active' : ''}"
+      onclick="setStatusFilter('${t.key}')">${t.label}<span class="count">${counts[t.key]}</span></button>`
+  ).join('');
+}
+
+function renderSpec() {
+  const content = SPEC_CONTENT.content || '';
+  const el = document.getElementById('spec-content');
+  const lines = content.split('\n');
+  const findingsByLine = {};
+  STATE.findings.forEach(f => {
+    if (f.lineNumber) {
+      if (!findingsByLine[f.lineNumber]) findingsByLine[f.lineNumber] = [];
+      findingsByLine[f.lineNumber].push(f);
+    }
+  });
+
+  let html = '';
+  lines.forEach((line, i) => {
+    const lineNum = i + 1;
+    const findings = findingsByLine[lineNum];
+    if (findings) {
+      const f = findings[0];
+      const statusClass = f.status !== 'pending' ? ` status-${f.status}` : '';
+      const selectedClass = f.id === STATE.selectedId ? ' selected' : '';
+      const markers = findings.map(ff =>
+        `<span class="annotation-marker severity-${ff.severity}" onclick="selectFinding('${ff.id}')" title="${escapeAttr(ff.title)}">${ff.id}</span>`
+      ).join('');
+      html += `<div class="annotated-line severity-${f.severity}${statusClass}${selectedClass}" data-finding-id="${f.id}" onclick="selectFinding('${f.id}')">${renderMarkdownLine(line)}${markers}</div>`;
+    } else {
+      html += `<div>${renderMarkdownLine(line)}</div>`;
+    }
+  });
+
+  el.innerHTML = html;
+}
+
+function renderFindings() {
+  const filtered = STATE.findings.filter(f => {
+    if (STATE.statusFilter !== 'all' && f.status !== STATE.statusFilter) return false;
+    if (STATE.severityFilter !== 'all' && f.severity !== STATE.severityFilter) return false;
+    return true;
+  });
+
+  const el = document.getElementById('findings-list');
+
+  if (filtered.length === 0) {
+    el.innerHTML = `<div class="empty-state"><h3>No findings match filters</h3><p>Try changing the status or severity filter.</p></div>`;
+    return;
+  }
+
+  el.innerHTML = filtered.map(f => {
+    const isSelected = f.id === STATE.selectedId;
+    const comment = STATE.comments[f.id] || '';
+    return `
+    <div class="finding-card${isSelected ? ' selected' : ''} status-${f.status}" onclick="selectFinding('${f.id}')">
+      <div class="finding-header">
+        <div>
+          <span class="finding-id">${esc(f.id)}</span>
+          <span class="badge badge-${f.severity}">${esc(f.severity)}</span>
+          <span class="status-badge status-${f.status}">${esc(f.status)}</span>
+        </div>
+      </div>
+      <div class="finding-title">${esc(f.title)}</div>
+      <div class="category-badge">${esc(f.category)}</div>
+      <div class="finding-location">${esc(f.location)}</div>
+      <div class="finding-issue">${esc(f.issue)}</div>
+      ${f.impact ? `<div class="finding-issue" style="font-style:italic">${esc(f.impact)}</div>` : ''}
+      ${isSelected ? `
+        ${f.currentText ? `
+          <div class="finding-detail" onclick="event.stopPropagation()">
+            <div class="finding-detail-label">Current</div>
+            <div class="finding-detail-text current">${esc(f.currentText)}</div>
+          </div>` : ''}
+        ${f.proposedText ? `
+          <div class="finding-detail" onclick="event.stopPropagation()">
+            <div class="finding-detail-label">Proposed</div>
+            <div class="finding-detail-text proposed">${esc(f.proposedText)}</div>
+          </div>` : ''}
+        <textarea class="comment-area" placeholder="Add a comment (optional)..." oninput="setComment('${f.id}', this.value)" onclick="event.stopPropagation()" onmousedown="event.stopPropagation()">${esc(comment)}</textarea>
+        <div class="finding-actions">
+          ${f.status === 'pending' ? `
+            <button class="btn btn-approve" onclick="event.stopPropagation(); setStatus('${f.id}', 'approved')">Approve</button>
+            <button class="btn btn-reject" onclick="event.stopPropagation(); setStatus('${f.id}', 'rejected')">Reject</button>
+          ` : `
+            <button class="btn" onclick="event.stopPropagation(); setStatus('${f.id}', 'pending')">Reset to Pending</button>
+          `}
+        </div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+
+// === MINIMAL MARKDOWN RENDERER ===
+
+function renderMarkdownLine(line) {
+  if (/^#### (.+)/.test(line)) return `<h4>${esc(RegExp.$1)}</h4>`;
+  if (/^### (.+)/.test(line)) return `<h3>${esc(RegExp.$1)}</h3>`;
+  if (/^## (.+)/.test(line)) return `<h2>${esc(RegExp.$1)}</h2>`;
+  if (/^# (.+)/.test(line)) return `<h1>${esc(RegExp.$1)}</h1>`;
+  if (/^[-*] (.+)/.test(line)) return `<li>${inlineMarkdown(RegExp.$1)}</li>`;
+  if (/^\d+\. (.+)/.test(line)) return `<li>${inlineMarkdown(RegExp.$1)}</li>`;
+  if (line.trim() === '') return '<br>';
+  return inlineMarkdown(line);
+}
+
+function inlineMarkdown(text) {
+  let s = esc(text);
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/`(.+?)`/g, '<code>$1</code>');
+  return s;
+}
+
+// === STATE MUTATIONS ===
+
+function selectFinding(id) {
+  STATE.selectedId = STATE.selectedId === id ? null : id;
+  updateAll();
+}
+
+function setStatusFilter(filter) {
+  STATE.statusFilter = filter;
+  STATE.selectedId = null;
+  updateAll();
+}
+
+function setStatus(id, status) {
+  const f = STATE.findings.find(x => x.id === id);
+  if (f) f.status = status;
+  updateAll();
+  showToast(`${id} ${status}`);
+}
+
+function setComment(id, text) {
+  STATE.comments[id] = text;
+}
+
+function updateAll() {
+  renderStats();
+  renderFilters();
+  renderSpec();
+  renderFindings();
+  updatePromptPanel();
+}
+
+// === PROMPT GENERATION ===
+
+function updatePromptPanel() {
+  const approved = STATE.findings.filter(f => f.status === 'approved');
+  const panel = document.getElementById('prompt-panel');
+  const countEl = document.getElementById('approved-count');
+
+  countEl.textContent = approved.length;
+
+  if (approved.length === 0) {
+    panel.classList.add('hidden');
+    return;
+  }
+
+  panel.classList.remove('hidden');
+
+  const prompt = generatePrompt(approved);
+  document.getElementById('prompt-content').textContent = prompt;
+}
+
+function generatePrompt(approved) {
+  const lines = [`Apply these changes to the spec at: ${SPEC_CONTENT.path}\n`];
+
+  approved.forEach((f, i) => {
+    lines.push(`${i + 1}. ${f.title}`);
+    lines.push(`   Location: ${f.location}`);
+    if (f.currentText && f.proposedText) {
+      lines.push(`   Change: "${f.currentText}" \u2192 "${f.proposedText}"`);
+    } else if (f.proposedText) {
+      lines.push(`   Add: "${f.proposedText}"`);
+    } else {
+      lines.push(`   Issue: ${f.issue}`);
+    }
+    const comment = STATE.comments[f.id];
+    if (comment) {
+      lines.push(`   Note: ${comment}`);
+    }
+    lines.push('');
+  });
+
+  return lines.join('\n');
+}
+
+function copyPrompt() {
+  const approved = STATE.findings.filter(f => f.status === 'approved');
+  const prompt = generatePrompt(approved);
+  navigator.clipboard.writeText(prompt).then(() => {
+    showToast('Prompt copied to clipboard');
+  }).catch(() => {
+    const el = document.getElementById('prompt-content');
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    showToast('Select All applied \u2014 press Cmd/Ctrl+C');
+  });
+}
+
+function downloadSpec() {
+  const content = SPEC_CONTENT.content || '';
+  let modified = content;
+
+  const approved = STATE.findings.filter(f => f.status === 'approved' && f.currentText && f.proposedText);
+  approved.forEach(f => {
+    modified = modified.replace(f.currentText, f.proposedText);
+  });
+
+  const blob = new Blob([modified], { type: 'text/markdown' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const baseName = (SPEC_CONTENT.path || 'spec').split('/').pop().replace(/\.md$/, '');
+  a.download = `${baseName}.modified.md`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Modified spec downloaded');
+}
+
+// === HELPERS ===
+
+function esc(str) {
+  if (!str) return '';
+  const d = document.createElement('div');
+  d.textContent = String(str);
+  return d.innerHTML;
+}
+
+function escapeAttr(str) {
+  return esc(str).replace(/"/g, '&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// === SEVERITY FILTER ===
+document.getElementById('severity-filter').addEventListener('change', function() {
+  STATE.severityFilter = this.value;
+  STATE.selectedId = null;
+  updateAll();
+});
+
+// === INIT ===
+init();
+</script>
+</body>
+</html>
