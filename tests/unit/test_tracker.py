@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
-from mamba_agents.tokens.tracker import UsageRecord, UsageTracker
+from mamba_agents.tokens.tracker import TokenUsage, UsageRecord, UsageTracker
 
 
 def _make_usage(
@@ -232,3 +232,148 @@ class TestBackwardCompatibility:
             source="my-agent",
         )
         assert record.source == "my-agent"
+
+
+class TestRecordSubagentUsage:
+    """Tests for the public record_subagent_usage() method."""
+
+    def test_creates_new_entry_for_new_subagent(self) -> None:
+        """record_subagent_usage() creates a new entry for an unseen subagent name."""
+        tracker = UsageTracker()
+        usage = TokenUsage(
+            prompt_tokens=100,
+            completion_tokens=50,
+            total_tokens=150,
+            request_count=1,
+        )
+
+        tracker.record_subagent_usage("researcher", usage)
+
+        breakdown = tracker.get_subagent_usage()
+        assert "researcher" in breakdown
+        assert breakdown["researcher"].prompt_tokens == 100
+        assert breakdown["researcher"].completion_tokens == 50
+        assert breakdown["researcher"].total_tokens == 150
+        assert breakdown["researcher"].request_count == 1
+
+    def test_accumulates_for_existing_subagent(self) -> None:
+        """Multiple calls for the same subagent accumulate usage."""
+        tracker = UsageTracker()
+        usage1 = TokenUsage(
+            prompt_tokens=100,
+            completion_tokens=50,
+            total_tokens=150,
+            request_count=1,
+        )
+        usage2 = TokenUsage(
+            prompt_tokens=200,
+            completion_tokens=75,
+            total_tokens=275,
+            request_count=2,
+        )
+
+        tracker.record_subagent_usage("coder", usage1)
+        tracker.record_subagent_usage("coder", usage2)
+
+        breakdown = tracker.get_subagent_usage()
+        assert len(breakdown) == 1
+        assert breakdown["coder"].prompt_tokens == 300
+        assert breakdown["coder"].completion_tokens == 125
+        assert breakdown["coder"].total_tokens == 425
+        assert breakdown["coder"].request_count == 3
+
+    def test_zero_usage_accepted(self) -> None:
+        """record_subagent_usage() with zero usage creates entry without error."""
+        tracker = UsageTracker()
+        usage = TokenUsage()  # all zeros
+
+        tracker.record_subagent_usage("empty-agent", usage)
+
+        breakdown = tracker.get_subagent_usage()
+        assert "empty-agent" in breakdown
+        assert breakdown["empty-agent"].prompt_tokens == 0
+        assert breakdown["empty-agent"].completion_tokens == 0
+        assert breakdown["empty-agent"].total_tokens == 0
+        assert breakdown["empty-agent"].request_count == 0
+
+    def test_updates_overall_totals(self) -> None:
+        """record_subagent_usage() aggregates to overall totals."""
+        tracker = UsageTracker()
+        usage = TokenUsage(
+            prompt_tokens=100,
+            completion_tokens=50,
+            total_tokens=150,
+            request_count=1,
+        )
+
+        tracker.record_subagent_usage("helper", usage)
+
+        total = tracker.get_total_usage()
+        assert total.prompt_tokens == 100
+        assert total.completion_tokens == 50
+        assert total.total_tokens == 150
+        assert total.request_count == 1
+
+    def test_mixed_with_record_usage(self) -> None:
+        """record_subagent_usage() and record_usage() totals combine correctly."""
+        tracker = UsageTracker()
+
+        # Direct record_usage (simulating normal agent usage)
+        tracker.record_usage(_make_usage(input_tokens=50, output_tokens=25))
+
+        # Subagent usage via public API
+        tracker.record_subagent_usage(
+            "helper",
+            TokenUsage(prompt_tokens=100, completion_tokens=50, total_tokens=150, request_count=1),
+        )
+
+        total = tracker.get_total_usage()
+        assert total.prompt_tokens == 150
+        assert total.completion_tokens == 75
+        assert total.total_tokens == 225
+        assert total.request_count == 2
+
+    def test_multiple_subagents_tracked_independently(self) -> None:
+        """Different subagent names are tracked independently."""
+        tracker = UsageTracker()
+
+        tracker.record_subagent_usage(
+            "agent-a",
+            TokenUsage(prompt_tokens=100, completion_tokens=50, total_tokens=150, request_count=1),
+        )
+        tracker.record_subagent_usage(
+            "agent-b",
+            TokenUsage(prompt_tokens=200, completion_tokens=80, total_tokens=280, request_count=2),
+        )
+
+        breakdown = tracker.get_subagent_usage()
+        assert len(breakdown) == 2
+        assert breakdown["agent-a"].prompt_tokens == 100
+        assert breakdown["agent-a"].request_count == 1
+        assert breakdown["agent-b"].prompt_tokens == 200
+        assert breakdown["agent-b"].request_count == 2
+
+    def test_get_subagent_usage_unchanged(self) -> None:
+        """get_subagent_usage() still returns a copy after using record_subagent_usage()."""
+        tracker = UsageTracker()
+        tracker.record_subagent_usage(
+            "test",
+            TokenUsage(prompt_tokens=10, completion_tokens=5, total_tokens=15, request_count=1),
+        )
+
+        result1 = tracker.get_subagent_usage()
+        result2 = tracker.get_subagent_usage()
+        assert result1 is not result2
+
+    def test_reset_clears_subagent_usage_from_public_api(self) -> None:
+        """reset() clears usage recorded via record_subagent_usage()."""
+        tracker = UsageTracker()
+        tracker.record_subagent_usage(
+            "agent",
+            TokenUsage(prompt_tokens=100, completion_tokens=50, total_tokens=150, request_count=1),
+        )
+
+        tracker.reset()
+
+        assert tracker.get_subagent_usage() == {}
+        assert tracker.get_total_usage().total_tokens == 0

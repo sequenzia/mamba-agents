@@ -8,7 +8,7 @@ Individual module tests are in the sibling ``test_*.py`` files.
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from pydantic_ai.models.test import TestModel
@@ -379,16 +379,15 @@ class TestSkillSubagentCrossCutting:
         assert "Base prompt." in prompt
         assert "special skill capabilities" in prompt
 
-    def test_manager_with_skill_manager_passes_registry(
+    def test_manager_with_skill_registry_passes_registry(
         self, parent_agent: Agent[None, str]
     ) -> None:
         """SubagentManager passes skill registry through to spawn."""
-        mock_sm = MagicMock()
-        mock_sm.registry = SkillRegistry()
+        registry = SkillRegistry()
 
         manager = SubagentManager(
             parent_agent,
-            skill_manager=mock_sm,
+            skill_registry=registry,
         )
 
         config = SubagentConfig(name="skill-sub", description="With skills")

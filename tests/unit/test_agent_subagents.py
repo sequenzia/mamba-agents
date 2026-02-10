@@ -32,34 +32,65 @@ def _make_test_agent(output_text: str = "test output") -> Agent[None, str]:
 
 
 # ---------------------------------------------------------------------------
-# Tests: Lazy SubagentManager Initialization
+# Tests: Explicit SubagentManager Initialization
 # ---------------------------------------------------------------------------
 
 
-class TestAgentSubagentManagerLazy:
-    """Tests for lazy SubagentManager initialization."""
+class TestAgentSubagentManagerInit:
+    """Tests for explicit SubagentManager initialization via init_subagents()."""
 
-    def test_no_subagent_manager_created_without_subagents(self, test_model: TestModel) -> None:
-        """Agent without subagents parameter has no SubagentManager until accessed."""
+    def test_no_subagent_manager_created_without_init(self, test_model: TestModel) -> None:
+        """Agent without subagents parameter has no SubagentManager."""
         agent: Agent[None, str] = Agent(test_model)
         assert agent._subagent_manager is None
+        assert agent.has_subagent_manager is False
 
-    def test_subagent_manager_property_creates_lazily(self, test_model: TestModel) -> None:
-        """Accessing subagent_manager property creates SubagentManager lazily."""
+    def test_has_subagent_manager_false_before_init(self, test_model: TestModel) -> None:
+        """has_subagent_manager returns False before init_subagents() is called."""
         agent: Agent[None, str] = Agent(test_model)
-        assert agent._subagent_manager is None
+        assert agent.has_subagent_manager is False
 
-        # Access the property
+    def test_has_subagent_manager_true_after_init(self, test_model: TestModel) -> None:
+        """has_subagent_manager returns True after init_subagents() is called."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
+        assert agent.has_subagent_manager is True
+
+    def test_subagent_manager_property_raises_before_init(self, test_model: TestModel) -> None:
+        """Accessing subagent_manager before init_subagents() raises AttributeError."""
+        agent: Agent[None, str] = Agent(test_model)
+
+        with pytest.raises(AttributeError, match="init_subagents"):
+            _ = agent.subagent_manager
+
+    def test_subagent_manager_property_returns_after_init(self, test_model: TestModel) -> None:
+        """Accessing subagent_manager after init_subagents() returns SubagentManager."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
+
         manager = agent.subagent_manager
         assert isinstance(manager, SubagentManager)
-        assert agent._subagent_manager is not None
 
     def test_subagent_manager_returns_same_instance(self, test_model: TestModel) -> None:
         """Multiple accesses to subagent_manager return the same instance."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
         manager1 = agent.subagent_manager
         manager2 = agent.subagent_manager
         assert manager1 is manager2
+
+    def test_init_subagents_double_call_is_idempotent(self, test_model: TestModel) -> None:
+        """Calling init_subagents() twice is a no-op on the second call."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
+        manager1 = agent.subagent_manager
+
+        # Second call should not replace the manager
+        agent.init_subagents(subagents=[_make_config(name="extra")])
+        manager2 = agent.subagent_manager
+        assert manager1 is manager2
+        # The extra config should NOT be registered (idempotent no-op)
+        assert agent.subagent_manager.get("extra") is None
 
     def test_agent_with_empty_subagents_list_creates_manager(self, test_model: TestModel) -> None:
         """Agent with empty subagents list creates SubagentManager but it's empty."""
@@ -68,11 +99,14 @@ class TestAgentSubagentManagerLazy:
         assert isinstance(agent._subagent_manager, SubagentManager)
         assert len(agent._subagent_manager) == 0
 
-    def test_pending_subagents_cleared_after_init(self, test_model: TestModel) -> None:
-        """Pending subagents are cleared after manager initialization."""
-        config = _make_config()
-        agent: Agent[None, str] = Agent(test_model, subagents=[config])
-        assert agent._pending_subagents is None
+    def test_init_subagents_on_subagent_raises(self, test_model: TestModel) -> None:
+        """Subagent cannot call init_subagents()."""
+        config = AgentConfig()
+        config._is_subagent = True
+        agent: Agent[None, str] = Agent(test_model, config=config)
+
+        with pytest.raises(RuntimeError, match="Subagents cannot"):
+            agent.init_subagents()
 
 
 # ---------------------------------------------------------------------------
@@ -111,6 +145,14 @@ class TestAgentConstructionWithSubagents:
         names = {c.name for c in configs}
         assert names == {"alpha", "beta"}
 
+    def test_constructor_auto_calls_init_subagents(self, test_model: TestModel) -> None:
+        """Agent(subagents=[...]) auto-calls init_subagents()."""
+        config = _make_config(name="auto-init")
+        agent: Agent[None, str] = Agent(test_model, subagents=[config])
+
+        assert agent.has_subagent_manager is True
+        assert agent.subagent_manager.get("auto-init") is not None
+
 
 # ---------------------------------------------------------------------------
 # Tests: Facade Method Delegation
@@ -123,15 +165,25 @@ class TestAgentSubagentFacadeMethods:
     def test_register_subagent(self, test_model: TestModel) -> None:
         """register_subagent() delegates to SubagentManager.register()."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
         config = _make_config(name="registered-agent")
 
         agent.register_subagent(config)
 
         assert agent.subagent_manager.get("registered-agent") is not None
 
+    def test_register_subagent_without_init_raises(self, test_model: TestModel) -> None:
+        """register_subagent() without init_subagents() raises AttributeError."""
+        agent: Agent[None, str] = Agent(test_model)
+        config = _make_config(name="orphan")
+
+        with pytest.raises(AttributeError, match="init_subagents"):
+            agent.register_subagent(config)
+
     def test_register_subagent_invalid_raises(self, test_model: TestModel) -> None:
         """register_subagent() with invalid config raises SubagentConfigError."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
         config = SubagentConfig(name="  ", description="Blank name")
 
         with pytest.raises(SubagentConfigError, match="must not be empty"):
@@ -148,12 +200,12 @@ class TestAgentSubagentFacadeMethods:
         names = {c.name for c in configs}
         assert names == {"agent-alpha", "agent-beta"}
 
-    def test_list_subagents_empty_when_no_subagents(self, test_model: TestModel) -> None:
-        """list_subagents() returns empty list when no subagents registered."""
+    def test_list_subagents_raises_without_init(self, test_model: TestModel) -> None:
+        """list_subagents() raises AttributeError when not initialized."""
         agent: Agent[None, str] = Agent(test_model)
 
-        configs = agent.list_subagents()
-        assert configs == []
+        with pytest.raises(AttributeError, match="init_subagents"):
+            agent.list_subagents()
 
     def test_delegate_sync_delegates_to_manager(self, test_model: TestModel) -> None:
         """delegate_sync() delegates to SubagentManager.delegate_sync()."""
@@ -172,6 +224,7 @@ class TestAgentSubagentFacadeMethods:
     def test_delegate_sync_unknown_raises(self, test_model: TestModel) -> None:
         """delegate_sync() to unknown config raises SubagentNotFoundError."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
 
         with pytest.raises(SubagentNotFoundError, match="unknown"):
             agent.delegate_sync("unknown", "Some task")
@@ -192,6 +245,7 @@ class TestAgentSubagentFacadeMethods:
     async def test_delegate_unknown_raises(self, test_model: TestModel) -> None:
         """delegate() to unknown config raises SubagentNotFoundError."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
 
         with pytest.raises(SubagentNotFoundError, match="missing"):
             await agent.delegate("missing", "Some task")
@@ -216,6 +270,7 @@ class TestAgentSubagentFacadeMethods:
     async def test_delegate_async_unknown_raises(self, test_model: TestModel) -> None:
         """delegate_async() to unknown config raises SubagentNotFoundError."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
 
         with pytest.raises(SubagentNotFoundError, match="nope"):
             await agent.delegate_async("nope", "Some task")
@@ -330,9 +385,10 @@ class TestAgentSubagentsBackwardCompatibility:
 class TestAgentSubagentsIntegration:
     """Integration tests for Agent with subagents end-to-end."""
 
-    def test_full_lifecycle_register_list_delegate(self, test_model: TestModel) -> None:
-        """Full lifecycle: construct, register, list, delegate."""
+    def test_full_lifecycle_init_register_list_delegate(self, test_model: TestModel) -> None:
+        """Full lifecycle: init, register, list, delegate."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
 
         # Register a subagent
         config = _make_config(name="lifecycle-agent")
@@ -371,11 +427,11 @@ class TestAgentSubagentsIntegration:
 
         assert agent.subagent_manager._parent_agent is agent
 
-    def test_subagent_manager_lazy_also_gets_parent(self, test_model: TestModel) -> None:
-        """Lazy SubagentManager also receives the parent agent reference."""
+    def test_subagent_manager_explicit_init_also_gets_parent(self, test_model: TestModel) -> None:
+        """Explicit init_subagents() also receives the parent agent reference."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_subagents()
 
-        # Access lazily
         manager = agent.subagent_manager
         assert manager._parent_agent is agent
 

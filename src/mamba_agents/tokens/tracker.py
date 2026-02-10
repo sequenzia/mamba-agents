@@ -216,6 +216,32 @@ class UsageTracker:
 
         return breakdown
 
+    def record_subagent_usage(self, name: str, usage: TokenUsage) -> None:
+        """Record token usage from a subagent delegation.
+
+        Encapsulates the logic for aggregating subagent usage into both
+        the per-subagent breakdown and the overall totals. Creates a new
+        tracking entry if the subagent name hasn't been seen before.
+
+        Args:
+            name: The subagent name (used as the key in per-subagent breakdown).
+            usage: The ``TokenUsage`` to aggregate.
+        """
+        # Update overall totals
+        self._totals.prompt_tokens += usage.prompt_tokens
+        self._totals.completion_tokens += usage.completion_tokens
+        self._totals.total_tokens += usage.total_tokens
+        self._totals.request_count += usage.request_count
+
+        # Update per-subagent breakdown
+        if name not in self._subagent_totals:
+            self._subagent_totals[name] = TokenUsage()
+        sub = self._subagent_totals[name]
+        sub.prompt_tokens += usage.prompt_tokens
+        sub.completion_tokens += usage.completion_tokens
+        sub.total_tokens += usage.total_tokens
+        sub.request_count += usage.request_count
+
     def get_subagent_usage(self) -> dict[str, TokenUsage]:
         """Get token usage broken down by subagent source.
 

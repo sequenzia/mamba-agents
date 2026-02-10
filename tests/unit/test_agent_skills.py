@@ -84,35 +84,65 @@ def _make_skill_dir(
 
 
 # ---------------------------------------------------------------------------
-# Tests: Lazy SkillManager Initialization
+# Tests: Explicit SkillManager Initialization
 # ---------------------------------------------------------------------------
 
 
-class TestAgentSkillManagerLazy:
-    """Tests for lazy SkillManager initialization."""
+class TestAgentSkillManagerInit:
+    """Tests for explicit SkillManager initialization via init_skills()."""
 
-    def test_no_skill_manager_created_without_skills(self, test_model: TestModel) -> None:
-        """Agent without skills parameter has no SkillManager until accessed."""
-        agent: Agent[None, str] = Agent(test_model)
-        # Internal attribute should be None
-        assert agent._skill_manager is None
-
-    def test_skill_manager_property_creates_lazily(self, test_model: TestModel) -> None:
-        """Accessing skill_manager property creates SkillManager lazily."""
+    def test_no_skill_manager_created_without_init(self, test_model: TestModel) -> None:
+        """Agent without skills parameter has no SkillManager."""
         agent: Agent[None, str] = Agent(test_model)
         assert agent._skill_manager is None
+        assert agent.has_skill_manager is False
 
-        # Access the property
+    def test_has_skill_manager_false_before_init(self, test_model: TestModel) -> None:
+        """has_skill_manager returns False before init_skills() is called."""
+        agent: Agent[None, str] = Agent(test_model)
+        assert agent.has_skill_manager is False
+
+    def test_has_skill_manager_true_after_init(self, test_model: TestModel) -> None:
+        """has_skill_manager returns True after init_skills() is called."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
+        assert agent.has_skill_manager is True
+
+    def test_skill_manager_property_raises_before_init(self, test_model: TestModel) -> None:
+        """Accessing skill_manager before init_skills() raises AttributeError."""
+        agent: Agent[None, str] = Agent(test_model)
+
+        with pytest.raises(AttributeError, match="init_skills"):
+            _ = agent.skill_manager
+
+    def test_skill_manager_property_returns_after_init(self, test_model: TestModel) -> None:
+        """Accessing skill_manager after init_skills() returns SkillManager."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
+
         manager = agent.skill_manager
         assert isinstance(manager, SkillManager)
-        assert agent._skill_manager is not None
 
     def test_skill_manager_returns_same_instance(self, test_model: TestModel) -> None:
         """Multiple accesses to skill_manager return the same instance."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
         manager1 = agent.skill_manager
         manager2 = agent.skill_manager
         assert manager1 is manager2
+
+    def test_init_skills_double_call_is_idempotent(self, test_model: TestModel) -> None:
+        """Calling init_skills() twice is a no-op on the second call."""
+        agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
+        manager1 = agent.skill_manager
+
+        # Second call should not replace the manager
+        agent.init_skills(skills=[_make_skill(name="extra")])
+        manager2 = agent.skill_manager
+        assert manager1 is manager2
+        # The extra skill should NOT be registered (idempotent no-op)
+        assert agent.get_skill("extra") is None
 
     def test_agent_with_empty_skills_list_creates_manager(self, test_model: TestModel) -> None:
         """Agent with empty skills list creates SkillManager but it's empty."""
@@ -120,6 +150,34 @@ class TestAgentSkillManagerLazy:
         assert agent._skill_manager is not None
         assert isinstance(agent._skill_manager, SkillManager)
         assert len(agent._skill_manager) == 0
+
+    def test_init_skills_on_subagent_raises(self, test_model: TestModel) -> None:
+        """Subagent cannot call init_skills()."""
+        config = AgentConfig()
+        config._is_subagent = True
+        agent: Agent[None, str] = Agent(test_model, config=config)
+
+        with pytest.raises(RuntimeError, match="Subagents cannot"):
+            agent.init_skills()
+
+    def test_init_skills_and_init_subagents_any_order(self, test_model: TestModel) -> None:
+        """init_skills() and init_subagents() can be called in any order."""
+        agent: Agent[None, str] = Agent(test_model)
+
+        # Skills first, then subagents
+        agent.init_skills()
+        agent.init_subagents()
+        assert agent.has_skill_manager is True
+        assert agent.has_subagent_manager is True
+
+    def test_init_subagents_then_skills(self, test_model: TestModel) -> None:
+        """init_subagents() then init_skills() works without ordering dependency."""
+        agent: Agent[None, str] = Agent(test_model)
+
+        agent.init_subagents()
+        agent.init_skills()
+        assert agent.has_subagent_manager is True
+        assert agent.has_skill_manager is True
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +219,14 @@ class TestAgentConstructionWithSkills:
         agent: Agent[None, str] = Agent(test_model, skills=[skill_dir])
 
         assert agent.skill_manager.get("dir-skill") is not None
+
+    def test_constructor_auto_calls_init_skills(self, test_model: TestModel) -> None:
+        """Agent(skills=[...]) auto-calls init_skills()."""
+        skill = _make_skill(name="auto-init")
+        agent: Agent[None, str] = Agent(test_model, skills=[skill])
+
+        assert agent.has_skill_manager is True
+        assert agent.skill_manager.get("auto-init") is not None
 
 
 # ---------------------------------------------------------------------------
@@ -247,6 +313,7 @@ class TestAgentSkillFacadeMethods:
     def test_register_skill_with_skill_instance(self, test_model: TestModel) -> None:
         """register_skill() with Skill instance delegates to SkillManager."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
         skill = _make_skill(name="registered-skill")
 
         agent.register_skill(skill)
@@ -258,6 +325,7 @@ class TestAgentSkillFacadeMethods:
         skill_dir = _make_skill_dir(tmp_path, "path-reg-skill")
 
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
         agent.register_skill(skill_dir)
 
         assert agent.skill_manager.get("path-reg-skill") is not None
@@ -267,9 +335,18 @@ class TestAgentSkillFacadeMethods:
         _make_skill_dir(tmp_path, "str-reg-skill")
 
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
         agent.register_skill(str(tmp_path / "str-reg-skill"))
 
         assert agent.skill_manager.get("str-reg-skill") is not None
+
+    def test_register_skill_without_init_raises(self, test_model: TestModel) -> None:
+        """register_skill() without init_skills() raises AttributeError."""
+        agent: Agent[None, str] = Agent(test_model)
+        skill = _make_skill(name="orphan")
+
+        with pytest.raises(AttributeError, match="init_skills"):
+            agent.register_skill(skill)
 
     def test_get_skill_returns_skill(self, test_model: TestModel) -> None:
         """get_skill() returns the Skill instance."""
@@ -283,6 +360,7 @@ class TestAgentSkillFacadeMethods:
     def test_get_skill_returns_none_for_missing(self, test_model: TestModel) -> None:
         """get_skill() returns None for non-existent skill."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
 
         result = agent.get_skill("nonexistent")
         assert result is None
@@ -298,12 +376,12 @@ class TestAgentSkillFacadeMethods:
         names = {s.name for s in skills}
         assert names == {"skill-alpha", "skill-beta"}
 
-    def test_list_skills_empty_when_no_skills(self, test_model: TestModel) -> None:
-        """list_skills() returns empty list when no skills registered."""
+    def test_list_skills_raises_without_init(self, test_model: TestModel) -> None:
+        """list_skills() raises AttributeError when not initialized."""
         agent: Agent[None, str] = Agent(test_model)
 
-        skills = agent.list_skills()
-        assert skills == []
+        with pytest.raises(AttributeError, match="init_skills"):
+            agent.list_skills()
 
     def test_invoke_skill_activates_and_returns_content(
         self, test_model: TestModel, tmp_path: Path
@@ -312,7 +390,7 @@ class TestAgentSkillFacadeMethods:
         skill_dir = _make_skill_dir(tmp_path, "invoke-skill")
         agent: Agent[None, str] = Agent(test_model, skills=[skill_dir])
 
-        result = agent.invoke_skill("invoke-skill")
+        result = agent.invoke_skill_sync("invoke-skill")
         assert isinstance(result, str)
         assert len(result) > 0
 
@@ -325,16 +403,17 @@ class TestAgentSkillFacadeMethods:
         )
 
         agent: Agent[None, str] = Agent(test_model, skills=[skill_dir])
-        result = agent.invoke_skill("arg-skill", "hello", "world")
+        result = agent.invoke_skill_sync("arg-skill", "hello", "world")
 
         assert "hello world" in result
 
     def test_invoke_skill_raises_for_missing_skill(self, test_model: TestModel) -> None:
         """invoke_skill() raises SkillNotFoundError for missing skill."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
 
         with pytest.raises(SkillNotFoundError):
-            agent.invoke_skill("nonexistent")
+            agent.invoke_skill_sync("nonexistent")
 
 
 # ---------------------------------------------------------------------------
@@ -343,7 +422,7 @@ class TestAgentSkillFacadeMethods:
 
 
 class TestAgentSkillsBackwardCompatibility:
-    """Tests for backward compatibility — Agent works fine without skills."""
+    """Tests for backward compatibility -- Agent works fine without skills."""
 
     def test_agent_without_skills_works(self, test_model: TestModel) -> None:
         """Agent created without skills parameter works normally."""
@@ -391,11 +470,12 @@ class TestAgentSkillsBackwardCompatibility:
 class TestAgentSkillsIntegration:
     """Integration tests for Agent with skills end-to-end."""
 
-    def test_full_lifecycle_register_get_list_invoke(
+    def test_full_lifecycle_init_register_get_list_invoke(
         self, test_model: TestModel, tmp_path: Path
     ) -> None:
-        """Full lifecycle: construct, register, get, list, invoke."""
+        """Full lifecycle: init, register, get, list, invoke."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
 
         # Register a skill
         skill_dir = _make_skill_dir(tmp_path, "lifecycle-skill")
@@ -412,7 +492,7 @@ class TestAgentSkillsIntegration:
         assert skills[0].name == "lifecycle-skill"
 
         # Invoke it
-        content = agent.invoke_skill("lifecycle-skill")
+        content = agent.invoke_skill_sync("lifecycle-skill")
         assert isinstance(content, str)
         assert len(content) > 0
 
@@ -444,10 +524,12 @@ class TestAgentSkillsIntegration:
         # The manager should use the settings config
         assert agent.skill_manager.config.namespace_tools is False
 
-    def test_skill_manager_default_config_when_settings_none(self, test_model: TestModel) -> None:
+    def test_skill_manager_default_config_when_init_with_no_settings(
+        self, test_model: TestModel
+    ) -> None:
         """SkillManager uses default SkillConfig when settings.skills is None."""
         agent: Agent[None, str] = Agent(test_model)
+        agent.init_skills()
 
-        # Accessing skill_manager should not raise, even with no skills config
         manager = agent.skill_manager
         assert isinstance(manager, SkillManager)

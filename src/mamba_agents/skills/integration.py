@@ -1,6 +1,11 @@
-"""Bi-directional integration between the skills and subagents subsystems.
+"""Integration mediator between the skills and subagents subsystems.
 
-Handles the wiring between skills and subagents:
+This module is the sole mediator between ``SkillManager`` and
+``SubagentManager``.  Neither manager holds a reference to the other;
+instead, callers pass both managers (or their relevant components) into
+these functions explicitly.
+
+Responsibilities:
 - Skill activation with ``execution_mode: "fork"`` delegates to a subagent.
 - Circular reference detection between skills and subagent configs.
 - Trust level enforcement for fork-mode skills.
@@ -12,6 +17,7 @@ between the ``skills`` and ``subagents`` packages.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from mamba_agents.skills.config import Skill, TrustLevel
@@ -129,25 +135,38 @@ def _trace_cycle(
     return None
 
 
-def activate_with_fork(
+async def activate_with_fork(
     skill: Skill,
     arguments: str,
     subagent_manager: SubagentManager,
+    get_skill_fn: Callable[[str], Skill | None] | None = None,
 ) -> str:
     """Activate a fork-mode skill by delegating to a subagent.
+
+    This function is the sole mediator between the skills and subagents
+    subsystems.  The caller (typically the ``Agent`` facade) provides
+    both the ``SubagentManager`` and an optional skill-lookup callback
+    so that neither manager needs a direct reference to the other.
 
     When a skill has ``execution_mode: "fork"``, instead of returning the
     skill body directly, this function:
     1. Checks trust level (untrusted skills cannot fork).
-    2. Detects circular references.
+    2. Detects circular references using ``get_skill_fn``.
     3. Resolves or creates a subagent config.
     4. Delegates the skill content as the task prompt to the subagent.
     5. Returns the subagent's output.
+
+    This is an async function that uses ``await`` for subagent delegation,
+    avoiding the fragile ``ThreadPoolExecutor`` + ``asyncio.run()`` bridging
+    that previously caused deadlocks in async contexts (FastAPI, ASGI).
 
     Args:
         skill: The skill to activate (must have ``execution_mode="fork"``).
         arguments: Raw argument string for the skill.
         subagent_manager: The SubagentManager to delegate through.
+        get_skill_fn: Optional callable ``(name) -> Skill | None`` used
+            for circular reference detection.  When ``None``, indirect
+            cycles cannot be detected (direct cycles are still caught).
 
     Returns:
         The subagent's output text.
@@ -160,7 +179,7 @@ def activate_with_fork(
     from mamba_agents.subagents.config import SubagentConfig
     from mamba_agents.subagents.errors import SubagentNotFoundError
 
-    # Step 1: Trust level check — untrusted skills cannot fork
+    # Step 1: Trust level check -- untrusted skills cannot fork
     if skill.info.trust_level == TrustLevel.UNTRUSTED:
         raise SkillInvocationError(
             name=skill.info.name,
@@ -172,11 +191,7 @@ def activate_with_fork(
     cycle = detect_circular_skill_subagent(
         skill,
         {c.name: c for c in subagent_manager.list()},
-        get_skill_fn=(
-            subagent_manager._skill_manager.get
-            if subagent_manager._skill_manager is not None
-            else None
-        ),
+        get_skill_fn=get_skill_fn,
     )
     if cycle is not None:
         cycle_str = " -> ".join(cycle)
@@ -190,47 +205,26 @@ def activate_with_fork(
     # First activate the skill normally to get processed content
     content = activate(skill, arguments)
 
-    # Step 4: Resolve subagent config
+    # Step 4: Resolve subagent config and delegate
     agent_name = skill.info.agent
 
     if agent_name is not None:
-        # Named subagent config — must exist
+        # Named subagent config -- must exist
         config = subagent_manager.get(agent_name)
         if config is None:
             raise SubagentNotFoundError(
                 config_name=agent_name,
                 available=[c.name for c in subagent_manager.list()],
             )
-        # Delegate via the named config
-        result = subagent_manager.delegate_sync(agent_name, content)
+        # Delegate via the named config (async)
+        result = await subagent_manager.delegate(agent_name, content)
     else:
-        # No agent field — create a temporary general-purpose subagent
+        # No agent field -- create a temporary general-purpose subagent
         temp_config = SubagentConfig(
             name=f"_skill_fork_{skill.info.name}",
             description=f"Temporary subagent for skill '{skill.info.name}'",
         )
-        import asyncio
-
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop is not None and loop.is_running():
-            # We're in an async context — use nest_asyncio or run_until_complete
-            # on a new thread. For simplicity, use delegate_sync which handles this.
-            import concurrent.futures
-
-            with concurrent.futures.ThreadPoolExecutor() as pool:
-                future = pool.submit(
-                    asyncio.run,
-                    subagent_manager.spawn_dynamic(temp_config, content),
-                )
-                result = future.result()
-        else:
-            result = asyncio.run(
-                subagent_manager.spawn_dynamic(temp_config, content),
-            )
+        result = await subagent_manager.spawn_dynamic(temp_config, content)
 
     if not result.success:
         raise SkillInvocationError(

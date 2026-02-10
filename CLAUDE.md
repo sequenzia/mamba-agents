@@ -342,14 +342,9 @@ def test_file_ops(tmp_sandbox: Path):
 ## Known Fragility Points
 
 - **`agent/message_utils.py`**: Uses type-name string matching (`msg_type == "ModelRequest"`) to convert pydantic-ai `ModelMessage` objects to dicts. Upstream message type renames could produce silently incorrect results. When modifying, add defensive checks.
-- **ReActWorkflow mutates injected Agent**: `ReActWorkflow.__init__()` permanently registers a `final_answer` tool on the agent. Reusing the same Agent instance elsewhere will retain this tool. No cleanup mechanism exists.
 - **Duplicate TokenCounter in CompactionStrategy**: `CompactionStrategy._count_tokens()` creates a fresh `TokenCounter()` with defaults, potentially inconsistent with the Agent's configured counter.
 - **pydantic-ai version sensitivity**: The `>=0.0.49` pin targets a pre-1.0 library. `tracker.py` already handles an `input_tokens`/`request_tokens` API migration. Watch for breaking changes in message types, Model API, and toolset interfaces.
-- **Skills-Subagents circular initialization**: `SkillManager` and `SubagentManager` reference each other. Post-construction wiring via `SkillManager.subagent_manager` setter avoids circular init, but the wiring order matters.
-- **SubagentManager mutates parent UsageTracker**: `_aggregate_usage()` directly writes to `parent_agent.usage_tracker._subagent_totals`, coupling to internal state. Changes to `UsageTracker` internals could break subagent usage tracking.
-- **skills/integration.py async workaround**: `activate_with_fork()` uses `ThreadPoolExecutor` + `asyncio.run()` (lines ~214-233) to bridge sync/async impedance mismatch. Fragile with nested event loops and could deadlock in certain async contexts (e.g., inside FastAPI). Consider replacing with proper async-first design.
-- **Lazy property side effects**: Accessing `agent.skill_manager` or `agent.subagent_manager` **creates** the manager on first access (not just retrieval). Conditional property access (e.g., `if agent.skill_manager:`) will unexpectedly initialize the subsystem. Use `agent._skill_manager is not None` to check without triggering initialization.
-- **Skills not wired into agent.run()**: Skills live in a separate `SkillManager` registry that pydantic-ai knows nothing about. `agent.run()` delegates directly to `pydantic_ai.Agent.run()` without injecting skill tools. The `InvocationSource.MODEL` enum, `disable_model_invocation` flag, and `Skill._tools` attribute are forward-looking infrastructure with no current wiring. `invoke_skill()` always uses `InvocationSource.CODE`. To let the model invoke skills during `agent.run()`, users must manually create a pydantic-ai tool that wraps `invoke_skill()`.
+- **SubagentManager mutates parent UsageTracker**: `_aggregate_usage()` internally accesses `parent_agent.usage_tracker._subagent_totals`. A public `record_subagent_usage()` method now exists on `UsageTracker`, but `SubagentManager._aggregate_usage()` still uses the internal path for performance. Changes to `UsageTracker._subagent_totals` internals could break subagent usage tracking.
 
 ## Implementation Notes
 
@@ -388,8 +383,9 @@ def test_file_ops(tmp_sandbox: Path):
   - Cost: `get_cost()`, `get_cost_breakdown()`
   - Context: `get_messages()`, `should_compact()`, `compact()`, `get_context_state()`
   - Messages: `messages` property returns `MessageQuery` for filtering, analytics, and export
-  - Skills: `skill_manager` (lazy property), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()`
-  - Subagents: `subagent_manager` (lazy property), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
+  - Skills: `skill_manager` (property, requires `init_skills()`), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()` (async), `invoke_skill_sync()`, `deregister_skill()`
+  - Subagents: `subagent_manager` (property, requires `init_subagents()`), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
+  - Init checks: `has_skill_manager`, `has_subagent_manager` (safe boolean checks without triggering initialization)
   - Reset: `clear_context()`, `reset_tracking()`, `reset_all()`
 - Context compaction has 5 strategies: sliding_window, summarize_older, selective_pruning, importance_scoring, hybrid
 - **Prompt Management** provides Jinja2-based template system:
@@ -453,7 +449,7 @@ def test_file_ops(tmp_sandbox: Path):
   - `ReActConfig` extends `WorkflowConfig` with: expose_reasoning, prefixes, termination settings, compaction
   - `ReActState` tracks scratchpad (thoughts/actions/observations), token counts, termination status
   - `ReActHooks` extends `WorkflowHooks` with: on_thought, on_action, on_observation, on_compaction
-  - Registers `final_answer` tool on the agent for termination detection
+  - Registers `final_answer` tool on the agent during `run()` only; tool is cleaned up in `finally` block after workflow completes
   - Auto-compacts context when threshold ratio is reached
   - Access scratchpad via `result.state.context.scratchpad` or `workflow.get_scratchpad()`
 - **Skills System** provides modular, discoverable agent capabilities (experimental):
@@ -466,13 +462,13 @@ def test_file_ops(tmp_sandbox: Path):
   - **Discovery** scans three-level directory hierarchy with priority: project (`.mamba/skills/`) > user (`~/.mamba/skills/`) > custom paths
   - **Trust levels**: `TrustLevel.TRUSTED` (full access) and `TrustLevel.UNTRUSTED` (restricted capabilities). Project/user scopes default to trusted; custom paths configurable via `SkillConfig.trusted_paths`
   - **Invocation lifecycle**: permission check -> lazy body load -> argument substitution -> activation state management -> tool registration
-  - `InvocationSource` enum: `MODEL`, `USER`, `CODE` -- controls permission gates (e.g., `user_invocable=False` blocks user invocations). Note: `MODEL` is reserved infrastructure; skills are NOT wired into `agent.run()` or pydantic-ai's tool system. `invoke_skill()` always uses `InvocationSource.CODE`. No code path currently passes `InvocationSource.MODEL`.
+  - `InvocationSource` enum: `MODEL`, `USER`, `CODE` -- controls permission gates (e.g., `user_invocable=False` blocks user invocations). When skills are initialized via `init_skills()`, an `invoke_skill` pydantic-ai tool is registered that the model can call during `agent.run()`. The tool description lists available skills and updates dynamically when skills are registered/deregistered.
   - Agent accepts `skills` and `skill_dirs` constructor params for eager registration
-  - Agent facade: `skill_manager` (lazy property), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()`
+  - Agent facade: `skill_manager` (property, requires `init_skills()`), `register_skill()`, `get_skill()`, `list_skills()`, `invoke_skill()` (async), `invoke_skill_sync()`, `deregister_skill()`
   - `SkillConfig` configures: `skills_dirs`, `user_skills_dir`, `custom_paths`, `auto_discover`, `namespace_tools`, `trusted_paths`
   - `AgentSettings.skills` provides default `SkillConfig`
   - `SkillTestHarness` enables testing skills without a full Agent instance; `skill_harness` pytest fixture for convenience
-  - Lazy initialization: `_pending_skills`/`_pending_skill_dirs` stored in constructor, `skill_manager` property creates `SkillManager` on first access
+  - Explicit initialization: `init_skills()` must be called before accessing `skill_manager`; `has_skill_manager` for safe boolean checks
   - TYPE_CHECKING imports used for skill types in `core.py` to avoid circular imports; runtime imports are lazy inside methods
 - **Subagents System** provides task delegation to isolated child agents (experimental):
   - `SubagentManager` is the top-level facade composing spawner, delegation, and loader
@@ -484,13 +480,13 @@ def test_file_ops(tmp_sandbox: Path):
   - **Config loading**: markdown files in `.mamba/agents/{name}.md` with YAML frontmatter + optional system prompt body
   - `SubagentConfig` fields: `name`, `description`, `model`, `tools`, `disallowed_tools`, `system_prompt`, `skills` (pre-load list), `max_turns`, `config`
   - Agent accepts `subagents` constructor param for eager registration
-  - Agent facade: `subagent_manager` (lazy property), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
+  - Agent facade: `subagent_manager` (property, requires `init_subagents()`), `delegate()`, `delegate_sync()`, `delegate_async()`, `register_subagent()`, `list_subagents()`
   - `_UsageTrackingHandle` extends `DelegationHandle` to aggregate usage on async result completion
   - `spawn_dynamic()` creates one-off subagents from runtime configs without registering
 - **Skills-Subagents Integration** enables bi-directional wiring:
   - Skills with `execution_mode: "fork"` delegate to a subagent instead of returning content directly
   - `activate_with_fork()` in `skills/integration.py` handles: trust check -> circular detection -> content preparation -> subagent delegation
   - `detect_circular_skill_subagent()` traces skill -> agent -> pre-loaded skills chains to prevent cycles
-  - `SkillManager.subagent_manager` is a settable property for post-construction wiring (avoids circular initialization)
+  - Agent facade mediates between `SkillManager` and `SubagentManager` for fork-mode skills (no circular dependency between managers)
   - Untrusted skills cannot use fork execution mode
   - Named subagent configs (`agent` field) must exist in the `SubagentManager`; unnamed forks create temporary subagents via `spawn_dynamic()`

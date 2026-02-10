@@ -72,12 +72,12 @@ class TestConstruction:
         assert mgr.get("helper") is basic_config
         assert mgr.get("researcher") is second_config
 
-    def test_construction_with_skill_manager(self, parent_agent: Agent[None, str]) -> None:
-        """SubagentManager accepts optional skill_manager."""
-        mock_skill_manager = MagicMock()
-        mgr = SubagentManager(parent_agent, skill_manager=mock_skill_manager)
+    def test_construction_with_skill_registry(self, parent_agent: Agent[None, str]) -> None:
+        """SubagentManager accepts optional skill_registry."""
+        mock_registry = MagicMock()
+        mgr = SubagentManager(parent_agent, skill_registry=mock_registry)
 
-        assert mgr._skill_manager is mock_skill_manager
+        assert mgr._skill_registry is mock_registry
 
     def test_construction_with_invalid_config_raises(self, parent_agent: Agent[None, str]) -> None:
         """Invalid config in constructor raises SubagentConfigError."""

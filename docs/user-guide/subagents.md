@@ -315,8 +315,8 @@ for name, usage in breakdown.items():
 ### Via UsageTracker
 
 ```python
-# Access subagent totals from the parent's UsageTracker directly
-subagent_totals = agent.usage_tracker._subagent_totals
+# Access subagent totals from the parent's UsageTracker
+subagent_totals = agent.usage_tracker.get_subagent_usage()
 
 for name, usage in subagent_totals.items():
     print(f"{name}: prompt={usage.prompt_tokens}, completion={usage.completion_tokens}")

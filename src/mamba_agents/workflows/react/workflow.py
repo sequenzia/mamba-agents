@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from mamba_agents.workflows.base import Workflow, WorkflowState, WorkflowStep
+from mamba_agents.workflows.base import Workflow, WorkflowResult, WorkflowState, WorkflowStep
 from mamba_agents.workflows.errors import WorkflowMaxIterationsError
 from mamba_agents.workflows.react.config import ReActConfig
 from mamba_agents.workflows.react.hooks import ReActHooks
@@ -79,13 +79,6 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
         self._last_state: ReActState | None = None
         self._prompt_manager = prompt_manager
 
-        # Register the final_answer tool
-        self._agent.tool_plain(
-            create_final_answer_tool(),
-            name=self._react_config.final_answer_tool_name,
-            retries=self._react_config.tool_retry_count,
-        )
-
     @property
     def name(self) -> str:
         """Get the workflow name."""
@@ -127,6 +120,70 @@ class ReActWorkflow(Workflow[DepsT, str, ReActState]):
 
         self._prompt_manager = PromptManager(config=self._agent.settings.prompts)
         return self._prompt_manager
+
+    def _save_tool_state(self) -> dict[str, Any]:
+        """Save the agent's current tool state.
+
+        Returns a snapshot of the underlying pydantic-ai agent's function tools
+        so they can be restored after the workflow completes.
+
+        Returns:
+            Dictionary snapshot of registered tools.
+        """
+        return dict(self._agent._agent._function_toolset.tools)
+
+    def _restore_tool_state(self, saved_tools: dict[str, Any]) -> None:
+        """Restore the agent's tool state from a snapshot.
+
+        Replaces the current function tools with the previously saved snapshot,
+        removing any tools that were added during the workflow run.
+
+        Args:
+            saved_tools: Tool state snapshot from _save_tool_state().
+        """
+        toolset = self._agent._agent._function_toolset.tools
+        toolset.clear()
+        toolset.update(saved_tools)
+
+    def _register_final_answer_tool(self) -> None:
+        """Register the final_answer tool on the agent.
+
+        Called at the start of each run, after saving tool state.
+        Removes any existing tool with the same name to avoid conflicts.
+        """
+        tool_name = self._react_config.final_answer_tool_name
+        toolset = self._agent._agent._function_toolset.tools
+        toolset.pop(tool_name, None)
+        self._agent.tool_plain(
+            create_final_answer_tool(),
+            name=tool_name,
+            retries=self._react_config.tool_retry_count,
+        )
+
+    async def run(
+        self,
+        prompt: str,
+        deps: DepsT | None = None,
+    ) -> WorkflowResult[str, ReActState]:
+        """Run the ReAct workflow with tool state save/restore.
+
+        Saves the agent's tool state before registering the final_answer tool,
+        then restores it after workflow completion (success or failure) to avoid
+        permanently mutating the agent.
+
+        Args:
+            prompt: Initial user prompt/task.
+            deps: Optional dependencies for agent calls.
+
+        Returns:
+            WorkflowResult with output and execution details.
+        """
+        saved_tools = self._save_tool_state()
+        self._register_final_answer_tool()
+        try:
+            return await super().run(prompt, deps)
+        finally:
+            self._restore_tool_state(saved_tools)
 
     def _build_iteration_prompt(
         self,

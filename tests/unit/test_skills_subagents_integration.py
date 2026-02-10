@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from pydantic_ai.models.test import TestModel
@@ -77,10 +77,10 @@ def subagent_manager(
     parent_agent: Agent[None, str],
     skill_manager: SkillManager,
 ) -> SubagentManager:
-    """Create a SubagentManager wired to a SkillManager."""
+    """Create a SubagentManager with skill registry from SkillManager."""
     return SubagentManager(
         parent_agent,
-        skill_manager=skill_manager,
+        skill_registry=skill_manager.registry,
     )
 
 
@@ -307,7 +307,7 @@ class TestSkillToolPreLoading:
 class TestForkExecutionMode:
     """Skill with execution_mode: 'fork' triggers subagent delegation."""
 
-    def test_fork_skill_delegates_to_named_subagent(
+    async def test_fork_skill_delegates_to_named_subagent(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -315,7 +315,7 @@ class TestForkExecutionMode:
         """Skill with agent field delegates to named subagent config."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         sub_manager.register(
             SubagentConfig(
@@ -327,12 +327,14 @@ class TestForkExecutionMode:
         fork_skill = _make_fork_skill(agent_name="helper")
         mock_result = _make_subagent_result(output="forked output")
 
-        with patch.object(sub_manager, "delegate_sync", return_value=mock_result):
-            result = activate_with_fork(fork_skill, "test args", sub_manager)
+        with patch.object(
+            sub_manager, "delegate", new_callable=AsyncMock, return_value=mock_result
+        ):
+            result = await activate_with_fork(fork_skill, "test args", sub_manager)
 
         assert result == "forked output"
 
-    def test_fork_skill_creates_temporary_subagent_when_no_agent_field(
+    async def test_fork_skill_creates_temporary_subagent_when_no_agent_field(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -340,18 +342,20 @@ class TestForkExecutionMode:
         """Missing agent field creates temporary general-purpose subagent."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
 
         fork_skill = _make_fork_skill(name="temp-fork", agent_name=None)
         mock_result = _make_subagent_result(output="temp output")
 
-        with patch.object(sub_manager, "spawn_dynamic", return_value=mock_result):
-            result = activate_with_fork(fork_skill, "some args", sub_manager)
+        with patch.object(
+            sub_manager, "spawn_dynamic", new_callable=AsyncMock, return_value=mock_result
+        ):
+            result = await activate_with_fork(fork_skill, "some args", sub_manager)
 
         assert result == "temp output"
 
-    def test_fork_skill_with_nonexistent_agent_raises(
+    async def test_fork_skill_with_nonexistent_agent_raises(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -359,15 +363,15 @@ class TestForkExecutionMode:
         """Skill references non-existent subagent config raises SubagentNotFoundError."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
 
         fork_skill = _make_fork_skill(agent_name="nonexistent-agent")
 
         with pytest.raises(SubagentNotFoundError, match="nonexistent-agent"):
-            activate_with_fork(fork_skill, "args", sub_manager)
+            await activate_with_fork(fork_skill, "args", sub_manager)
 
-    def test_fork_skill_returns_subagent_output(
+    async def test_fork_skill_returns_subagent_output(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -375,7 +379,7 @@ class TestForkExecutionMode:
         """Result from forked subagent returned to invoking context."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         sub_manager.register(
             SubagentConfig(
@@ -388,12 +392,14 @@ class TestForkExecutionMode:
         expected_output = "This is the subagent's detailed analysis."
         mock_result = _make_subagent_result(output=expected_output)
 
-        with patch.object(sub_manager, "delegate_sync", return_value=mock_result):
-            result = activate_with_fork(fork_skill, "", sub_manager)
+        with patch.object(
+            sub_manager, "delegate", new_callable=AsyncMock, return_value=mock_result
+        ):
+            result = await activate_with_fork(fork_skill, "", sub_manager)
 
         assert result == expected_output
 
-    def test_fork_delegation_failure_raises_invocation_error(
+    async def test_fork_delegation_failure_raises_invocation_error(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -401,7 +407,7 @@ class TestForkExecutionMode:
         """Failed subagent delegation raises SkillInvocationError."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         sub_manager.register(
             SubagentConfig(
@@ -418,10 +424,12 @@ class TestForkExecutionMode:
         )
 
         with (
-            patch.object(sub_manager, "delegate_sync", return_value=mock_result),
+            patch.object(
+                sub_manager, "delegate", new_callable=AsyncMock, return_value=mock_result
+            ),
             pytest.raises(SkillInvocationError, match="delegation failed"),
         ):
-            activate_with_fork(fork_skill, "", sub_manager)
+            await activate_with_fork(fork_skill, "", sub_manager)
 
 
 # ---------------------------------------------------------------------------
@@ -432,7 +440,7 @@ class TestForkExecutionMode:
 class TestTrustLevelEnforcement:
     """Untrusted skill with context: fork is blocked by trust level check."""
 
-    def test_untrusted_skill_fork_blocked(
+    async def test_untrusted_skill_fork_blocked(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -440,7 +448,7 @@ class TestTrustLevelEnforcement:
         """Untrusted skill with execution_mode='fork' raises SkillInvocationError."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         sub_manager.register(
             SubagentConfig(
@@ -454,9 +462,9 @@ class TestTrustLevelEnforcement:
         )
 
         with pytest.raises(SkillInvocationError, match="Untrusted"):
-            activate_with_fork(untrusted_fork, "args", sub_manager)
+            await activate_with_fork(untrusted_fork, "args", sub_manager)
 
-    def test_trusted_skill_fork_allowed(
+    async def test_trusted_skill_fork_allowed(
         self,
         parent_agent: Agent[None, str],
         skill_manager: SkillManager,
@@ -464,7 +472,7 @@ class TestTrustLevelEnforcement:
         """Trusted skill with execution_mode='fork' proceeds normally."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         sub_manager.register(
             SubagentConfig(
@@ -476,8 +484,10 @@ class TestTrustLevelEnforcement:
         trusted_fork = _make_fork_skill(trust_level=TrustLevel.TRUSTED)
         mock_result = _make_subagent_result(output="trusted output")
 
-        with patch.object(sub_manager, "delegate_sync", return_value=mock_result):
-            result = activate_with_fork(trusted_fork, "", sub_manager)
+        with patch.object(
+            sub_manager, "delegate", new_callable=AsyncMock, return_value=mock_result
+        ):
+            result = await activate_with_fork(trusted_fork, "", sub_manager)
 
         assert result == "trusted output"
 
@@ -632,34 +642,17 @@ class TestCircularReferenceDetection:
 
 
 class TestSkillManagerForkActivation:
-    """SkillManager.activate() checks execution_mode and delegates to SubagentManager."""
+    """SkillManager.activate() raises for fork skills (no SubagentManager reference)."""
 
-    def test_activate_fork_skill_delegates_via_manager(
-        self,
-        parent_agent: Agent[None, str],
-    ) -> None:
-        """SkillManager.activate() on fork skill calls activate_with_fork."""
-        sub_manager = SubagentManager(parent_agent)
-        sub_manager.register(
-            SubagentConfig(
-                name="helper",
-                description="Helper",
-            )
-        )
-
-        sm = SkillManager(subagent_manager=sub_manager)
+    def test_activate_fork_skill_raises_invocation_error(self) -> None:
+        """SkillManager.activate() on fork skill raises SkillInvocationError."""
+        sm = SkillManager()
 
         fork_skill = _make_fork_skill(name="fork-test", agent_name="helper")
         sm._registry.register(fork_skill)
 
-        with patch(
-            "mamba_agents.skills.integration.activate_with_fork",
-            return_value="manager delegated",
-        ) as mock_fork:
-            result = sm.activate("fork-test", "some args")
-
-        assert result == "manager delegated"
-        mock_fork.assert_called_once()
+        with pytest.raises(SkillInvocationError, match="execution_mode='fork'"):
+            sm.activate("fork-test", "some args")
 
     def test_activate_normal_skill_no_delegation(self) -> None:
         """Normal skill activation does not trigger fork delegation."""
@@ -680,36 +673,29 @@ class TestSkillManagerForkActivation:
 
         assert "Normal content with test." in result
 
-    def test_activate_fork_without_subagent_manager_falls_through(self) -> None:
-        """Fork skill without SubagentManager falls through to normal activation."""
-        sm = SkillManager()  # No subagent_manager
+    def test_activate_fork_without_subagent_manager_raises(self) -> None:
+        """Fork skill without SubagentManager raises SkillInvocationError."""
+        sm = SkillManager()
 
         fork_skill = _make_fork_skill(name="orphan-fork")
         sm._registry.register(fork_skill)
 
-        # Should activate normally (no fork delegation)
-        result = sm.activate("orphan-fork", "test")
+        with pytest.raises(SkillInvocationError, match="SubagentManager"):
+            sm.activate("orphan-fork", "test")
 
-        assert "Do the forked thing with: test" in result
-
-    def test_subagent_manager_property_settable(self) -> None:
-        """SubagentManager can be set after construction."""
+    def test_skill_manager_has_no_subagent_manager_attribute(self) -> None:
+        """SkillManager no longer has a subagent_manager property."""
         sm = SkillManager()
-        assert sm.subagent_manager is None
-
-        mock_sub = MagicMock()
-        sm.subagent_manager = mock_sub
-
-        assert sm.subagent_manager is mock_sub
+        assert not hasattr(sm, "subagent_manager")
 
 
 # ---------------------------------------------------------------------------
-# SubagentManager skill_manager wiring
+# SubagentManager skill_registry wiring
 # ---------------------------------------------------------------------------
 
 
-class TestSubagentManagerSkillManagerWiring:
-    """SubagentManager.spawn() accepts SkillManager reference for skill pre-loading."""
+class TestSubagentManagerSkillRegistryWiring:
+    """SubagentManager.spawn() accepts SkillRegistry for skill pre-loading."""
 
     def test_spawn_passes_skill_registry(
         self,
@@ -719,7 +705,7 @@ class TestSubagentManagerSkillManagerWiring:
         """SubagentManager._spawn passes skill_registry to spawner."""
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=skill_manager,
+            skill_registry=skill_manager.registry,
         )
         config = SubagentConfig(
             name="skilled-sub",
@@ -831,10 +817,10 @@ class TestEndToEndIntegration:
         )
         sm.register(skill)
 
-        # Set up subagent manager with skill pre-loading
+        # Set up subagent manager with skill registry (not SkillManager)
         sub_manager = SubagentManager(
             parent_agent,
-            skill_manager=sm,
+            skill_registry=sm.registry,
         )
         config = SubagentConfig(
             name="analyst",
@@ -851,35 +837,39 @@ class TestEndToEndIntegration:
         assert result.success is True
         assert result.output == "analysis complete"
 
-    def test_bidirectional_wiring(
+    async def test_fork_via_integration_mediator(
         self,
         parent_agent: Agent[None, str],
     ) -> None:
-        """SkillManager and SubagentManager wired bidirectionally."""
+        """Fork activation uses integration module as sole mediator."""
         sm = SkillManager()
-        sub_manager = SubagentManager(parent_agent, skill_manager=sm)
-
-        # Wire the other direction
-        sm.subagent_manager = sub_manager
+        sub_manager = SubagentManager(parent_agent, skill_registry=sm.registry)
 
         # Register a fork skill
-        fork_skill = _make_fork_skill(name="bi-fork", agent_name="bi-agent")
+        fork_skill = _make_fork_skill(name="mediated-fork", agent_name="med-agent")
         sm._registry.register(fork_skill)
 
         # Register the subagent config
         sub_manager.register(
             SubagentConfig(
-                name="bi-agent",
-                description="Bidirectional agent",
+                name="med-agent",
+                description="Mediated agent",
             )
         )
 
-        # Activating the fork skill should delegate via SubagentManager
-        mock_result = _make_subagent_result(output="bidirectional output")
-        with patch.object(sub_manager, "delegate_sync", return_value=mock_result):
-            result = sm.activate("bi-fork", "test")
+        # Use integration.activate_with_fork directly (sole mediator)
+        mock_result = _make_subagent_result(output="mediated output")
+        with patch.object(
+            sub_manager, "delegate", new_callable=AsyncMock, return_value=mock_result
+        ):
+            result = await activate_with_fork(
+                fork_skill,
+                "test",
+                sub_manager,
+                get_skill_fn=sm.get,
+            )
 
-        assert result == "bidirectional output"
+        assert result == "mediated output"
 
     def test_skill_not_found_for_preloading_raises(
         self,
@@ -887,7 +877,7 @@ class TestEndToEndIntegration:
     ) -> None:
         """Subagent referencing non-existent skill for pre-loading raises error."""
         sm = SkillManager()
-        sub_manager = SubagentManager(parent_agent, skill_manager=sm)
+        sub_manager = SubagentManager(parent_agent, skill_registry=sm.registry)
 
         config = SubagentConfig(
             name="bad-agent",

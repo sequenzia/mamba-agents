@@ -19,7 +19,7 @@ from mamba_agents.tokens.tracker import TokenUsage
 
 if TYPE_CHECKING:
     from mamba_agents.agent.core import Agent
-    from mamba_agents.skills.manager import SkillManager
+    from mamba_agents.skills.registry import SkillRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -44,14 +44,14 @@ class SubagentManager:
     Args:
         parent_agent: The parent agent that owns this manager.
         configs: Optional list of initial subagent configurations to register.
-        skill_manager: Optional SkillManager for skill-based features.
+        skill_registry: Optional SkillRegistry for skill pre-loading in subagents.
     """
 
     def __init__(
         self,
         parent_agent: Agent[Any, Any],
         configs: list[SubagentConfig] | None = None,
-        skill_manager: SkillManager | None = None,
+        skill_registry: SkillRegistry | None = None,
     ) -> None:
         """Initialize the SubagentManager.
 
@@ -61,13 +61,13 @@ class SubagentManager:
         Args:
             parent_agent: The parent agent that owns this manager.
             configs: Optional list of initial subagent configurations to register.
-            skill_manager: Optional SkillManager for skill-based features.
+            skill_registry: Optional SkillRegistry for skill pre-loading in subagents.
 
         Raises:
             SubagentConfigError: If any provided config fails validation.
         """
         self._parent_agent = parent_agent
-        self._skill_manager = skill_manager
+        self._skill_registry = skill_registry
         self._configs: dict[str, SubagentConfig] = {}
         self._active_handles: list[DelegationHandle] = []
         self._usage_breakdown: dict[str, TokenUsage] = {}
@@ -400,11 +400,7 @@ class SubagentManager:
         Returns:
             A configured ``Agent`` instance.
         """
-        skill_registry = None
-        if self._skill_manager is not None:
-            skill_registry = self._skill_manager.registry
-
-        return spawn(config, self._parent_agent, skill_registry=skill_registry)
+        return spawn(config, self._parent_agent, skill_registry=self._skill_registry)
 
     def _aggregate_usage(self, config_name: str, result: SubagentResult) -> None:
         """Aggregate subagent token usage to parent tracker and internal breakdown.

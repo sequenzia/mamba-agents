@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 from mamba_agents.skills.config import (
     Skill,
@@ -19,13 +19,10 @@ from mamba_agents.skills.config import (
     ValidationResult,
 )
 from mamba_agents.skills.discovery import discover_skills
-from mamba_agents.skills.errors import SkillNotFoundError
+from mamba_agents.skills.errors import SkillInvocationError, SkillNotFoundError
 from mamba_agents.skills.invocation import activate, deactivate
 from mamba_agents.skills.registry import SkillRegistry
 from mamba_agents.skills.validator import validate
-
-if TYPE_CHECKING:
-    from mamba_agents.subagents.manager import SubagentManager
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +51,6 @@ class SkillManager:
     def __init__(
         self,
         config: SkillConfig | None = None,
-        subagent_manager: SubagentManager | None = None,
     ) -> None:
         """Initialize the SkillManager with configuration.
 
@@ -63,14 +59,9 @@ class SkillManager:
 
         Args:
             config: Skill subsystem configuration. Uses defaults if ``None``.
-            subagent_manager: Optional reference to the ``SubagentManager`` for
-                fork-mode skill activation. When provided, skills with
-                ``execution_mode: "fork"`` delegate to a subagent instead of
-                returning content directly.
         """
         self._config = config or SkillConfig()
         self._registry = SkillRegistry()
-        self._subagent_manager = subagent_manager
 
     @property
     def config(self) -> SkillConfig:
@@ -81,23 +72,6 @@ class SkillManager:
     def registry(self) -> SkillRegistry:
         """Get the internal skill registry (for advanced use)."""
         return self._registry
-
-    @property
-    def subagent_manager(self) -> SubagentManager | None:
-        """Get the linked SubagentManager, if any."""
-        return self._subagent_manager
-
-    @subagent_manager.setter
-    def subagent_manager(self, value: SubagentManager | None) -> None:
-        """Set the SubagentManager for fork-mode skill delegation.
-
-        This setter enables post-construction wiring to avoid circular
-        initialization between SkillManager and SubagentManager.
-
-        Args:
-            value: The ``SubagentManager`` instance, or ``None`` to unlink.
-        """
-        self._subagent_manager = value
 
     # ------------------------------------------------------------------
     # Discovery
@@ -219,9 +193,10 @@ class SkillManager:
         invocation module for permission checks, lazy loading, argument
         substitution, and activation state management.
 
-        When the skill has ``execution_mode: "fork"`` and a
-        ``SubagentManager`` is available, activation delegates to a
-        subagent instead of returning content directly.
+        Skills with ``execution_mode: "fork"`` require a ``SubagentManager``
+        for delegation. Use ``integration.activate_with_fork()`` directly,
+        or invoke through the ``Agent`` facade which mediates between both
+        managers.
 
         If the skill is already active, it is re-activated (refreshed)
         with the new arguments.
@@ -231,26 +206,30 @@ class SkillManager:
             arguments: Raw argument string to pass to the skill.
 
         Returns:
-            Processed skill content with arguments substituted, or the
-            subagent's output when fork execution mode is used.
+            Processed skill content with arguments substituted.
 
         Raises:
             SkillNotFoundError: If the skill is not registered.
-            SkillInvocationError: If the invocation source lacks permission,
-                or the skill is untrusted with fork mode, or circular
-                references are detected.
-            SubagentNotFoundError: If the skill references a non-existent
-                subagent config.
+            SkillInvocationError: If the skill has fork execution mode
+                (requires SubagentManager via integration module), or
+                the invocation source lacks permission.
         """
         skill = self._registry.get(name)
         if skill is None:
             raise SkillNotFoundError(name=name, path="<registry>")
 
-        # Check for fork execution mode
-        if skill.info.execution_mode == "fork" and self._subagent_manager is not None:
-            from mamba_agents.skills.integration import activate_with_fork
-
-            return activate_with_fork(skill, arguments, self._subagent_manager)
+        # Fork-mode skills cannot be activated through SkillManager alone.
+        # Use integration.activate_with_fork() with an explicit SubagentManager.
+        if skill.info.execution_mode == "fork":
+            raise SkillInvocationError(
+                name=name,
+                source="code",
+                reason=(
+                    "Skill has execution_mode='fork' which requires a SubagentManager. "
+                    "Use integration.activate_with_fork() or invoke through the Agent "
+                    "facade which mediates between SkillManager and SubagentManager."
+                ),
+            )
 
         return activate(skill, arguments)
 
